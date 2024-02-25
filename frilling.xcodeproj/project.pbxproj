@@ -11,6 +11,7 @@
 		8A14F9BB2B8A6C1700EAA9E2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */; };
 		8A14F9BD2B8A6C1800EAA9E2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */; };
 		8A14F9C02B8A6C1800EAA9E2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A14F9BF2B8A6C1800EAA9E2 /* Preview Assets.xcassets */; };
+		8A14F9C82B8A6C8200EAA9E2 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A14F9C72B8A6C8200EAA9E2 /* Models.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8A14F9BF2B8A6C1800EAA9E2 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		8A14F9C12B8A6C1800EAA9E2 /* frilling.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = frilling.entitlements; sourceTree = "<group>"; };
+		8A14F9C72B8A6C8200EAA9E2 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +54,8 @@
 		8A14F9B72B8A6C1700EAA9E2 /* frilling */ = {
 			isa = PBXGroup;
 			children = (
+				8A72395C2B8AC74800671984 /* models */,
+				8A14F9C72B8A6C8200EAA9E2 /* Models.swift */,
 				8A14F9B82B8A6C1700EAA9E2 /* frillingApp.swift */,
 				8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */,
 				8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */,
@@ -67,6 +71,13 @@
 				8A14F9BF2B8A6C1800EAA9E2 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		8A72395C2B8AC74800671984 /* models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,6 +150,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A14F9C82B8A6C8200EAA9E2 /* Models.swift in Sources */,
 				8A14F9BB2B8A6C1700EAA9E2 /* ContentView.swift in Sources */,
 				8A14F9B92B8A6C1700EAA9E2 /* frillingApp.swift in Sources */,
 			);
