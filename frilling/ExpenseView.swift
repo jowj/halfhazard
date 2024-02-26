@@ -7,12 +7,28 @@
 
 import SwiftUI
 
+var expenseList = [
+    Expense(name: "Lunch", amount: 500, status: "incomplete"),
+    Expense(name: "Dinner", amount: 90, status: "incomplete")
+]
+
 struct ExpenseView: View {
+    var expense: Expense
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(expense.name)
+                .foregroundColor(.primary)
+                .font(.headline)
+            HStack(spacing: 3) {
+                Label("\(expense.amount)" , systemImage: "money")
+            }
+            .foregroundColor(.secondary)
+            .font(.subheadline)
+        }
     }
 }
 
-#Preview {
-    ExpenseView()
-}
+
+//#Preview {
+//    ExpenseView()
+//}

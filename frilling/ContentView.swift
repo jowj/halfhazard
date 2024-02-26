@@ -13,38 +13,39 @@ struct ContentView: View {
     @State var newExpenseUser: String = "Josiah" // probably should just make this default to Josiah or something for testing?
     @State var newExpenseGroup: String = "Sainthood" // Using sainthood for testing
     @State var newExpenseStatus: String = "Incomplete" // Should be an enum thing, probably
-    @State var expenseList: [String] = []
+    @State var expenseList: [Expense] = []
+    
+    @FocusState private var costIsFocused: Bool
+
     
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
-        // Figure out how the fuck to make a new text field.
-        Section("New Expense!") {
-            TextField(
-                "What did you pay for?",
-                text: $newExpenseName)
-            TextField(
-                "How much did it cost?",
-                text: $newExpenseCost, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
-            TextField(
-                "What did you pay for?",
-                text: $newExpenseName)
-
-        }
-        
-        List {
-            Section("Expenses") {
-                Text(newExpenseName)
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Name", text: $newExpenseName)
+                    TextField("Cost", value: $newExpenseCost, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+            }
+            
+            Button(action: addExpense) {
+                Label("Add Expense", systemImage: "dollarsign")
             }
         }
+        List {
+            ForEach(expenseList) { expense in
+                ExpenseView(expense: expense)
+            }
+        }
+
+    }
+    
+    func addExpense() {
+        let expense = Expense(name: newExpenseName, amount: newExpenseCost, status: newExpenseStatus)
+        expenseList.append(expense)
     }
 }
 
 #Preview {
     ContentView()
 }
+
