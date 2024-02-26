@@ -4,10 +4,12 @@
 //
 //  Created by Josiah Ledbetter on 2024-02-24.
 //
+// Should add UUIDs
 
 import Foundation
 
 class Group {
+    let id = UUID()
     var name: String
     var expenses: [Expense]? // New groups might not have any expenses
     var members: [User]? // New groups may not have any users

@@ -4,10 +4,13 @@
 //
 //  Created by Josiah Ledbetter on 2024-02-24.
 //
+// Should add UUIDs
+
 
 import Foundation
 
 class User {
+    let id = UUID()
     var name: String
     var groups: [Group]? // users won't necessarily have groups
     var expenses: [Expense] // new users won't have any expenses
