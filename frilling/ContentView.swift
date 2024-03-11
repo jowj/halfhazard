@@ -6,42 +6,85 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State var newExpenseName: String = ""
-    @State var newExpenseCost: Double = 0.0
-    @State var newExpenseUser: String = "Josiah" // probably should just make this default to Josiah or something for testing?
-    @State var newExpenseGroup: String = "Sainthood" // Using sainthood for testing
-    @State var newExpenseStatus: String = "Incomplete" // Should be an enum thing, probably
-    @State var expenseList: [Expense] = []
-    
-    @FocusState private var costIsFocused: Bool
 
+    @State private var showCreate = false
+    @State private var expenseEdit: Expense?
+    @Query private var items: [Expense]
+    @Environment(\.modelContext) var context
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Name", text: $newExpenseName)
-                    TextField("Cost", value: $newExpenseCost, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+            List {
+                ForEach(items) { item in
+                    HStack {
+                        ExpenseView(expense: item)
+
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            withAnimation {
+                                context.delete(item)
+                                
+                            }
+                        } label: {
+                            Label("Delete", systemImage: "pencil")
+                                .symbolVariant(.circle.fill)
+                                .font(.largeTitle)
+                        }
+                        .tint(.orange)
+                        
+                        Button(role: .destructive) {
+                            withAnimation {
+                                expenseEdit = item
+                            }
+                        } label: {
+                            Label("Edit", systemImage: "edit")
+                                .symbolVariant(.circle.fill)
+                                .font(.largeTitle)
+                        }
+
+                        Button {
+                            withAnimation {
+                                item.isCompleted.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .symbolVariant(.circle.fill)
+                                .foregroundStyle(item.isCompleted ? .green :
+                                        .gray)
+                                .font(.largeTitle)
+                        }
+                    }
+
                 }
             }
-            
-            Button(action: addExpense) {
-                Label("Add Expense", systemImage: "dollarsign")
-            }
-        }
-        List {
-            ForEach(expenseList) { expense in
-                ExpenseView(expense: expense)
-            }
-        }
+                .navigationTitle("HalfHazard Budgetting")
+                .toolbar {
+                    ToolbarItem {
+                        Button {
+                            showCreate.toggle()
+                        } label: {
+                            Label("Add Item", systemImage: "plus")
+                        }
 
-    }
-    
-    func addExpense() {
-        let expense = Expense(name: newExpenseName, amount: newExpenseCost, status: newExpenseStatus)
-        expenseList.append(expense)
+                    }
+                }
+                .sheet(isPresented: $showCreate,
+                       content: {
+                    NavigationStack {
+                        CreateExpenseView()
+                    }
+                    .presentationDetents([.medium])
+                })
+                .sheet(item: $expenseEdit) {
+                    expenseEdit = nil
+                } content: {item in
+                    EditExpenseView(item: item)
+            }
+        }
     }
 }
 

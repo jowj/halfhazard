@@ -8,7 +8,9 @@
 
 
 import Foundation
+import SwiftData
 
+@Model
 class User {
     let id = UUID()
     var name: String

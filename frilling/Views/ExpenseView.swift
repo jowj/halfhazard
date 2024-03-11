@@ -7,11 +7,6 @@
 
 import SwiftUI
 
-var expenseList = [
-    Expense(name: "Lunch", amount: 500, status: "incomplete"),
-    Expense(name: "Dinner", amount: 90, status: "incomplete")
-]
-
 struct ExpenseView: View {
     var expense: Expense
     var body: some View {
@@ -20,7 +15,7 @@ struct ExpenseView: View {
                 .foregroundColor(.primary)
                 .font(.headline)
             HStack(spacing: 3) {
-                Label("\(expense.amount)" , systemImage: "money")
+                Label("\(expense.amount)" , systemImage: "dollarsign")
             }
             .foregroundColor(.secondary)
             .font(.subheadline)

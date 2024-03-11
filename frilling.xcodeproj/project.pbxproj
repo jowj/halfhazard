@@ -14,6 +14,8 @@
 		8A7239602B8AC83600671984 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A72395F2B8AC83600671984 /* Group.swift */; };
 		8A7239622B8AC84A00671984 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7239612B8AC84A00671984 /* Expense.swift */; };
 		8A7239642B8AC87000671984 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7239632B8AC87000671984 /* User.swift */; };
+		8AB240A22B9F8DD900E8848A /* CreateExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB240A12B9F8DD900E8848A /* CreateExpenseView.swift */; };
+		8AB240A52B9FA08700E8848A /* EditExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB240A42B9FA08700E8848A /* EditExpenseView.swift */; };
 		8AC5A2072B8D348600C69982 /* ExpenseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC5A2062B8D348600C69982 /* ExpenseView.swift */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +29,8 @@
 		8A72395F2B8AC83600671984 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		8A7239612B8AC84A00671984 /* Expense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expense.swift; sourceTree = "<group>"; };
 		8A7239632B8AC87000671984 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		8AB240A12B9F8DD900E8848A /* CreateExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateExpenseView.swift; sourceTree = "<group>"; };
+		8AB240A42B9FA08700E8848A /* EditExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditExpenseView.swift; sourceTree = "<group>"; };
 		8AC5A2062B8D348600C69982 /* ExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseView.swift; sourceTree = "<group>"; };
 		8AC5A2082B8D390700C69982 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -62,10 +66,10 @@
 		8A14F9B72B8A6C1700EAA9E2 /* frilling */ = {
 			isa = PBXGroup;
 			children = (
+				8AB240A32B9FA06300E8848A /* Views */,
 				8A72395E2B8AC81F00671984 /* Models */,
 				8A14F9B82B8A6C1700EAA9E2 /* frillingApp.swift */,
 				8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */,
-				8AC5A2062B8D348600C69982 /* ExpenseView.swift */,
 				8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */,
 				8A14F9C12B8A6C1800EAA9E2 /* frilling.entitlements */,
 				8A14F9BE2B8A6C1800EAA9E2 /* Preview Content */,
@@ -89,6 +93,16 @@
 				8A7239632B8AC87000671984 /* User.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		8AB240A32B9FA06300E8848A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				8AC5A2062B8D348600C69982 /* ExpenseView.swift */,
+				8AB240A12B9F8DD900E8848A /* CreateExpenseView.swift */,
+				8AB240A42B9FA08700E8848A /* EditExpenseView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +176,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A14F9BB2B8A6C1700EAA9E2 /* ContentView.swift in Sources */,
+				8AB240A52B9FA08700E8848A /* EditExpenseView.swift in Sources */,
+				8AB240A22B9F8DD900E8848A /* CreateExpenseView.swift in Sources */,
 				8A7239642B8AC87000671984 /* User.swift in Sources */,
 				8A14F9B92B8A6C1700EAA9E2 /* frillingApp.swift in Sources */,
 				8A7239602B8AC83600671984 /* Group.swift in Sources */,
@@ -305,6 +321,7 @@
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -313,6 +330,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.jowj.frilling;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -332,6 +351,7 @@
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -340,6 +360,8 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.jowj.frilling;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

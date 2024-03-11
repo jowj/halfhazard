@@ -8,7 +8,9 @@
 
 
 import Foundation
+import SwiftData
 
+@Model
 class Expense: Identifiable {
     // A class that models all the metadata we might want attached to /an expense/.
     let id = UUID()
@@ -16,13 +18,21 @@ class Expense: Identifiable {
     var amount: Double
     var author: User?
     var group: Group?
-    var status: String
+    var isCompleted: Bool
+    var timestamp: Date
     
-    init(name: String, amount: Double, author: User? = nil, group: Group? = nil, status: String) {
+    init(name: String = "",
+         amount: Double = 0.0,
+         author: User? = nil,
+         group: Group? = nil,
+         isCompleted: Bool = false,
+         timestamp: Date = .now
+    ) {
         self.name = name
         self.amount = amount
         self.author = author
         self.group = group
-        self.status = status
+        self.isCompleted = isCompleted
+        self.timestamp = timestamp
     }
 }

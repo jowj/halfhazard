@@ -7,18 +7,18 @@
 // Should add UUIDs
 
 import Foundation
+import SwiftData
 
+@Model
 class Group {
-    let id = UUID()
+    
     var name: String
     var expenses: [Expense]? // New groups might not have any expenses
     var members: [User]? // New groups may not have any users
-    var picture: Any // This is a test anyway.
     
     init(name: String, expenses: [Expense], members: [User], picture: Any) {
         self.name = name
         self.expenses = expenses
         self.members = members
-        self.picture = picture
     }
 }
