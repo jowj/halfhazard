@@ -12,7 +12,11 @@ struct ContentView: View {
 
     @State private var showCreate = false
     @State private var expenseEdit: Expense?
-    @Query private var items: [Expense]
+    @Query(
+        filter: #Predicate { (expense: Expense) in expense.isCompleted == false },
+        sort: \.timestamp,
+        order: .reverse
+    ) private var items: [Expense]
     @Environment(\.modelContext) var context
     
     var body: some View {
@@ -30,7 +34,7 @@ struct ContentView: View {
                                 
                             }
                         } label: {
-                            Label("Delete", systemImage: "pencil")
+                            Label("Delete", systemImage: "trash")
                                 .symbolVariant(.circle.fill)
                                 .font(.largeTitle)
                         }
@@ -41,7 +45,7 @@ struct ContentView: View {
                                 expenseEdit = item
                             }
                         } label: {
-                            Label("Edit", systemImage: "edit")
+                            Label("Edit", systemImage: "pencil")
                                 .symbolVariant(.circle.fill)
                                 .font(.largeTitle)
                         }
