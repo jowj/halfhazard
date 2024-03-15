@@ -24,48 +24,54 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(items) { item in
-                    HStack {
-                        ExpenseView(expense: item)
+                if items.isEmpty {
+                    ContentUnavailableView("No expenses exist. Make some!",
+                                           systemImage: "archivebox")
+                } else {
+                    ForEach(items) { item in
+                        HStack {
+                            ExpenseView(expense: item)
 
-                        Spacer()
-                        
-                        Button(role: .destructive) {
-                            withAnimation {
-                                context.delete(item)
-                                
+                            Spacer()
+                            
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    context.delete(item)
+                                    
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                                    .symbolVariant(.circle.fill)
+                                    .font(.largeTitle)
                             }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                                .symbolVariant(.circle.fill)
-                                .font(.largeTitle)
-                        }
-                        .tint(.orange)
-                        
-                        Button(role: .destructive) {
-                            withAnimation {
-                                expenseEdit = item
+                            .tint(.orange)
+                            
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    expenseEdit = item
+                                }
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                                    .symbolVariant(.circle.fill)
+                                    .font(.largeTitle)
                             }
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                                .symbolVariant(.circle.fill)
-                                .font(.largeTitle)
+
+                            Button {
+                                withAnimation {
+                                    item.isCompleted.toggle()
+                                }
+                            } label: {
+                                Image(systemName: "checkmark")
+                                    .symbolVariant(.circle.fill)
+                                    .foregroundStyle(item.isCompleted ? .green :
+                                            .gray)
+                                    .font(.largeTitle)
+                            }
                         }
 
-                        Button {
-                            withAnimation {
-                                item.isCompleted.toggle()
-                            }
-                        } label: {
-                            Image(systemName: "checkmark")
-                                .symbolVariant(.circle.fill)
-                                .foregroundStyle(item.isCompleted ? .green :
-                                        .gray)
-                                .font(.largeTitle)
-                        }
                     }
-
                 }
+      
             }
                 .navigationTitle("HalfHazard Budgetting")
                 .toolbar {

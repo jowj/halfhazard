@@ -47,18 +47,25 @@ struct CreateCategoryView: View {
                 .disabled(title.isEmpty)
             }
             Section("Existing Categories") {
-                ForEach(categories) { category in
-                    Text(category.title)
-                                        
-                    Button(role: .destructive) {
-                        withAnimation {
-                            modelContext.delete(category)
+                
+                if categories.isEmpty {
+                    ContentUnavailableView("No categories exist.",
+                    systemImage: "archivebox")
+                } else {
+                    ForEach(categories) { category in
+                        Text(category.title)
+                                            
+                        Button(role: .destructive) {
+                            withAnimation {
+                                modelContext.delete(category)
+                            }
+                        } label: {
+                            Label("delete", systemImage: "trash")
+                                .symbolVariant(.circle.fill)
                         }
-                    } label: {
-                        Label("delete", systemImage: "trash")
-                            .symbolVariant(.circle.fill)
                     }
                 }
+                
             }
         }
         .navigationTitle("Add Category")

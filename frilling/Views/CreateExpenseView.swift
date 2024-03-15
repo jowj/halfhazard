@@ -28,19 +28,24 @@ struct CreateExpenseView: View {
                 Section("How much did it cost?") {
                     TextField("Cost", value: $item.amount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                 }
-
-                Section("What kind of expense is it?") {
-                    Picker("", selection: $selectedCategory) {
-                        
-                        Text("None")
-                            .tag(nil as ExpenseCategory?) // I don't understand this but copied from a tutorial
-                        ForEach(categories) {category in
-                            Text(category.title)
-                                .tag(category as ExpenseCategory?) // same as above, waht is this
+                
+                if categories.isEmpty {
+                    ContentUnavailableView("No categories exist.",
+                    systemImage: "archivebox")
+                } else {
+                    Section("What kind of expense is it?") {
+                        Picker("", selection: $selectedCategory) {
+                            
+                            Text("None")
+                                .tag(nil as ExpenseCategory?) // I don't understand this but copied from a tutorial
+                            ForEach(categories) {category in
+                                Text(category.title)
+                                    .tag(category as ExpenseCategory?) // same as above, waht is this
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.inline)
                     }
-                    .labelsHidden()
-                    .pickerStyle(.inline)
                 }
             }
             

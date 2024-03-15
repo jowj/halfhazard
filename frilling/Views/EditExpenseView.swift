@@ -9,13 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct EditExpenseView: View {
-    
+
+    @Bindable var item: Expense
+
     @Environment(\.dismiss) var dismiss
     
     @State var selectedCategory: ExpenseCategory?
     @Query private var categories: [ExpenseCategory]
 
-    @Bindable var item: Expense
     
     var body: some View {
         List {
@@ -28,24 +29,33 @@ struct EditExpenseView: View {
                 }
 
                 Section("What kind of expense is it?") {
-                    Picker("", selection: $selectedCategory) {
-                        
-                        Text("None")
-                            .tag(nil as ExpenseCategory?) // I don't understand this but copied from a tutorial
-                        ForEach(categories) {category in
-                            Text(category.title)
-                                .tag(category as ExpenseCategory?) // same as above, waht is this
+                    if categories.isEmpty {
+                        ContentUnavailableView("No categories exist.",
+                                               systemImage: "archivebox")
+                    } else {
+                        Picker("", selection: $selectedCategory) {
+                            
+                            Text("None")
+                                .tag(nil as ExpenseCategory?) // I don't understand this but copied from a tutorial
+                            ForEach(categories) {category in
+                                Text(category.title)
+                                    .tag(category as ExpenseCategory?) // same as above, waht is this
+                            }
                         }
+                        .labelsHidden()
+                        .pickerStyle(.inline)
                     }
-                    .labelsHidden()
-                    .pickerStyle(.inline)
                 }
             }
 
             Button("Update") {
+                item.category = selectedCategory
                 dismiss()
             }
         }
         .navigationTitle("Edit Expense")
+        .onAppear(perform: {
+            selectedCategory = item.category
+        })
     }
 }
