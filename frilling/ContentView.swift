@@ -11,6 +11,8 @@ import SwiftData
 struct ContentView: View {
 
     @State private var showCreate = false
+    @State private var showCreateCategory = false
+    
     @State private var expenseEdit: Expense?
     @Query(
         filter: #Predicate { (expense: Expense) in expense.isCompleted == false },
@@ -75,11 +77,27 @@ struct ContentView: View {
                         }
 
                     }
+                    ToolbarItem {
+                        Button {
+                            showCreateCategory.toggle()
+                        } label: {
+                            Label("Manage Categories", systemImage: "envelope")
+                        }
+
+                    }
+
                 }
                 .sheet(isPresented: $showCreate,
                        content: {
                     NavigationStack {
                         CreateExpenseView()
+                    }
+                    .presentationDetents([.medium])
+                })
+                .sheet(isPresented: $showCreateCategory,
+                       content: {
+                    NavigationStack {
+                        CreateCategoryView()
                     }
                     .presentationDetents([.medium])
                 })
