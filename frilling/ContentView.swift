@@ -19,7 +19,28 @@ struct ContentView: View {
         sort: \.timestamp,
         order: .reverse
     ) private var items: [Expense]
+    
+    @State private var searchQuery = ""
+    
     @Environment(\.modelContext) var context
+    
+    var filteredExpenses: [Expense] {
+        if searchQuery.isEmpty {
+            return items
+        }
+        
+        let filteredExpenses = items.compactMap { item in
+            let titleContainsQuery = item.name.range(of: searchQuery, options:
+                    .caseInsensitive) != nil
+            
+            let categoryTitleContainsQuery = item.category?.title.range(of: searchQuery, options:
+                    .caseInsensitive) != nil
+            
+            // if either thing is true, return them, otherwise return nil
+            return (titleContainsQuery || categoryTitleContainsQuery) ? item : nil
+        }
+        return filteredExpenses
+    }
     
     var body: some View {
         NavigationStack {
@@ -28,7 +49,7 @@ struct ContentView: View {
                     ContentUnavailableView("No expenses exist. Make some!",
                                            systemImage: "archivebox")
                 } else {
-                    ForEach(items) { item in
+                    ForEach(filteredExpenses) { item in
                         HStack {
                             ExpenseView(expense: item)
 
@@ -74,6 +95,13 @@ struct ContentView: View {
       
             }
                 .navigationTitle("HalfHazard Budgetting")
+                .searchable(text: $searchQuery,
+                            prompt: "Search for an expense or expense category")
+                .overlay {
+                    if filteredExpenses.isEmpty {
+                        ContentUnavailableView.search // this is, quite nice.
+                    }
+                }
                 .toolbar {
                     ToolbarItem {
                         Button {
