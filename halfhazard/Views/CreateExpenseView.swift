@@ -43,7 +43,6 @@ struct CreateExpenseView: View {
                                     .tag(category as ExpenseCategory?) // same as above, waht is this
                             }
                         }
-                        .labelsHidden()
                         .pickerStyle(.inline)
                     }
                 }
@@ -55,6 +54,15 @@ struct CreateExpenseView: View {
             }
         }
         .navigationTitle("Add an expense")
+        .toolbar {
+            
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Dismiss") {
+                    dismiss()
+                }
+            }
+        }
+
     }
 }
 
