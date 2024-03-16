@@ -1,6 +1,6 @@
 // I have no idea what this is for.
-//  frillingApp.swift
-//  frilling
+//  halfhazardApp.swift
+//
 //
 //  Created by Josiah Ledbetter on 2024-02-24.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct frillingApp: App {
+struct halfhazard: App {
     
     @AppStorage("isFirstTimeLaunch") private var isFirstTimeLaunch: Bool = true
     

@@ -1,6 +1,6 @@
 //
 //  CreateCategoryView.swift
-//  frilling
+//  halfhazard
 //
 //  Created by Josiah Ledbetter on 2024-03-15.
 //

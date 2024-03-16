@@ -1,6 +1,6 @@
 // This contains the *primary*, default view of the app.
 //  ContentView.swift
-//  frilling
+//  halfhazard
 //
 //  Created by Josiah Ledbetter on 2024-02-24.
 //
@@ -45,51 +45,43 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                if items.isEmpty {
-                    ContentUnavailableView("No expenses exist. Make some!",
-                                           systemImage: "archivebox")
-                } else {
-                    ForEach(filteredExpenses) { item in
-                        HStack {
-                            ExpenseView(expense: item)
 
-                            Spacer()
-                            
-                            Button(role: .destructive) {
-                                withAnimation {
-                                    context.delete(item)
-                                    
-                                }
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                                    .symbolVariant(.circle.fill)
-                                    .font(.largeTitle)
-                            }
-                            .tint(.orange)
-                            
-                            Button(role: .destructive) {
-                                withAnimation {
-                                    expenseEdit = item
-                                }
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                                    .symbolVariant(.circle.fill)
-                                    .font(.largeTitle)
-                            }
+                ForEach(filteredExpenses) { item in
+                    HStack {
+                        ExpenseView(expense: item)
 
-                            Button {
-                                withAnimation {
-                                    item.isCompleted.toggle()
-                                }
-                            } label: {
-                                Image(systemName: "checkmark")
-                                    .symbolVariant(.circle.fill)
-                                    .foregroundStyle(item.isCompleted ? .green :
-                                            .gray)
-                                    .font(.largeTitle)
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            withAnimation {
+                                context.delete(item)
+                                
                             }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                                .symbolVariant(.circle.fill)
+                        }
+                        .tint(.orange)
+                        
+                        Button(role: .destructive) {
+                            withAnimation {
+                                expenseEdit = item
+                            }
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                                .symbolVariant(.circle.fill)
                         }
 
+                        Button {
+                            withAnimation {
+                                item.isCompleted.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .symbolVariant(.circle.fill)
+                                .foregroundStyle(item.isCompleted ? .green :
+                                        .gray)
+                        }
                     }
                 }
       

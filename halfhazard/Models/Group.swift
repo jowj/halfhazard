@@ -1,6 +1,6 @@
 //
 //  Group.swift
-//  frilling
+//  halfhazard
 //
 //  Created by Josiah Ledbetter on 2024-02-24.
 //
