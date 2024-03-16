@@ -16,32 +16,35 @@ struct CreateCategoryView: View {
     @Query private var categories: [ExpenseCategory]
     
     var body: some View {
+        
         List {
-            Section("Category Title") {
-                HStack {
-                    TextField("Enter title here",
-                              text: $title)
-                    Button("Add Category") {
-                        withAnimation {
-                            let category = ExpenseCategory(title: title)
-                            modelContext.insert(category)
-                            // I'm not sure why we have to set category to empty array here
-                            // but title must be reset to "" or you live with some weird erros
-                            // and a fucked up UI.
-                            category.items = []
-                            title = ""
+            Form {
+                Section {
+                    HStack {
+                        TextField("Enter title here",
+                                  text: $title)
+                        Button("Add Category") {
+                            withAnimation {
+                                let category = ExpenseCategory(title: title)
+                                modelContext.insert(category)
+                                // I'm not sure why we have to set category to empty array here
+                                // but title must be reset to "" or you live with some weird erros
+                                // and a fucked up UI.
+                                category.items = []
+                                title = ""
+                            }
                         }
+                        .disabled(title.isEmpty)
                     }
-                    .disabled(title.isEmpty)
                 }
+
             }
             Section("Existing Categories") {
-                
                 if categories.isEmpty {
-                    HStack {
-                        ContentUnavailableView("No categories exist.",
-                        systemImage: "archivebox")
-                    }
+                        HStack {
+                            ContentUnavailableView("No categories exist.",
+                            systemImage: "archivebox")
+                        }
                 } else {
                     ForEach(categories) { category in
                         HStack {
@@ -60,8 +63,8 @@ struct CreateCategoryView: View {
                         }
                     }
                 }
-                
             }
+
         }
         .navigationTitle("Add Category")
         .toolbar {
