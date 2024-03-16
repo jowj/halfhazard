@@ -35,7 +35,7 @@
 		8AB240A12B9F8DD900E8848A /* CreateExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateExpenseView.swift; sourceTree = "<group>"; };
 		8AB240A42B9FA08700E8848A /* EditExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditExpenseView.swift; sourceTree = "<group>"; };
 		8AB240A62BA4A53E00E8848A /* CreateCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCategoryView.swift; sourceTree = "<group>"; };
-		8AB240AC2BA50C4A00E8848A /* ExpenseCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseCategory.swift; sourceTree = SOURCE_ROOT; };
+		8AB240AC2BA50C4A00E8848A /* ExpenseCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ExpenseCategory.swift; path = halfhazard/Models/ExpenseCategory.swift; sourceTree = SOURCE_ROOT; };
 		8AB240B02BA50D0400E8848A /* ExpensesContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensesContainer.swift; sourceTree = "<group>"; };
 		8AC5A2062B8D348600C69982 /* ExpenseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseView.swift; sourceTree = "<group>"; };
 		8AC5A2082B8D390700C69982 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -72,11 +72,10 @@
 		8A14F9B72B8A6C1700EAA9E2 /* halfhazard */ = {
 			isa = PBXGroup;
 			children = (
+				8AB240B02BA50D0400E8848A /* ExpensesContainer.swift */,
 				8AB240A32B9FA06300E8848A /* Views */,
 				8A72395E2B8AC81F00671984 /* Models */,
 				8A14F9B82B8A6C1700EAA9E2 /* halfhazardApp.swift */,
-				8AB240B02BA50D0400E8848A /* ExpensesContainer.swift */,
-				8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */,
 				8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */,
 				8A14F9C12B8A6C1800EAA9E2 /* halfhazard.entitlements */,
 				8A14F9BE2B8A6C1800EAA9E2 /* Preview Content */,
@@ -106,6 +105,7 @@
 		8AB240A32B9FA06300E8848A /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */,
 				8AC5A2062B8D348600C69982 /* ExpenseView.swift */,
 				8AB240A12B9F8DD900E8848A /* CreateExpenseView.swift */,
 				8AB240A42B9FA08700E8848A /* EditExpenseView.swift */,
