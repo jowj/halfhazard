@@ -23,7 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		8A14F9B52B8A6C1700EAA9E2 /* frilling.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = frilling.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A14F9B52B8A6C1700EAA9E2 /* halfhazard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A14F9B82B8A6C1700EAA9E2 /* frillingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frillingApp.swift; sourceTree = "<group>"; };
 		8A14F9BA2B8A6C1700EAA9E2 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8A14F9BC2B8A6C1800EAA9E2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -64,7 +64,7 @@
 		8A14F9B62B8A6C1700EAA9E2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8A14F9B52B8A6C1700EAA9E2 /* frilling.app */,
+				8A14F9B52B8A6C1700EAA9E2 /* halfhazard.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -117,9 +117,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		8A14F9B42B8A6C1700EAA9E2 /* frilling */ = {
+		8A14F9B42B8A6C1700EAA9E2 /* halfhazard */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8A14F9C42B8A6C1800EAA9E2 /* Build configuration list for PBXNativeTarget "frilling" */;
+			buildConfigurationList = 8A14F9C42B8A6C1800EAA9E2 /* Build configuration list for PBXNativeTarget "halfhazard" */;
 			buildPhases = (
 				8A14F9B12B8A6C1700EAA9E2 /* Sources */,
 				8A14F9B22B8A6C1700EAA9E2 /* Frameworks */,
@@ -129,9 +129,9 @@
 			);
 			dependencies = (
 			);
-			name = frilling;
+			name = halfhazard;
 			productName = frilling;
-			productReference = 8A14F9B52B8A6C1700EAA9E2 /* frilling.app */;
+			productReference = 8A14F9B52B8A6C1700EAA9E2 /* halfhazard.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -149,7 +149,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 8A14F9B02B8A6C1700EAA9E2 /* Build configuration list for PBXProject "frilling" */;
+			buildConfigurationList = 8A14F9B02B8A6C1700EAA9E2 /* Build configuration list for PBXProject "halfhazard" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -162,7 +162,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8A14F9B42B8A6C1700EAA9E2 /* frilling */,
+				8A14F9B42B8A6C1700EAA9E2 /* halfhazard */,
 			);
 		};
 /* End PBXProject section */
@@ -382,7 +382,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		8A14F9B02B8A6C1700EAA9E2 /* Build configuration list for PBXProject "frilling" */ = {
+		8A14F9B02B8A6C1700EAA9E2 /* Build configuration list for PBXProject "halfhazard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A14F9C22B8A6C1800EAA9E2 /* Debug */,
@@ -391,7 +391,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8A14F9C42B8A6C1800EAA9E2 /* Build configuration list for PBXNativeTarget "frilling" */ = {
+		8A14F9C42B8A6C1800EAA9E2 /* Build configuration list for PBXNativeTarget "halfhazard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A14F9C52B8A6C1800EAA9E2 /* Debug */,
