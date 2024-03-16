@@ -18,37 +18,45 @@ struct CreateCategoryView: View {
     var body: some View {
         List {
             Section("Category Title") {
-                TextField("Enter title here",
-                          text: $title)
-                Button("Add Category") {
-                    withAnimation {
-                        let category = ExpenseCategory(title: title)
-                        modelContext.insert(category)
-                        // I'm not sure why we have to set category to empty array here
-                        // but title must be reset to "" or you live with some weird erros
-                        // and a fucked up UI.
-                        category.items = []
-                        title = ""
+                HStack {
+                    TextField("Enter title here",
+                              text: $title)
+                    Button("Add Category") {
+                        withAnimation {
+                            let category = ExpenseCategory(title: title)
+                            modelContext.insert(category)
+                            // I'm not sure why we have to set category to empty array here
+                            // but title must be reset to "" or you live with some weird erros
+                            // and a fucked up UI.
+                            category.items = []
+                            title = ""
+                        }
                     }
+                    .disabled(title.isEmpty)
                 }
-                .disabled(title.isEmpty)
             }
             Section("Existing Categories") {
                 
                 if categories.isEmpty {
-                    ContentUnavailableView("No categories exist.",
-                    systemImage: "archivebox")
+                    HStack {
+                        ContentUnavailableView("No categories exist.",
+                        systemImage: "archivebox")
+                    }
                 } else {
                     ForEach(categories) { category in
-                        Text(category.title)
-                                            
-                        Button(role: .destructive) {
-                            withAnimation {
-                                modelContext.delete(category)
+                        HStack {
+                            Text(category.title)
+                            
+                            Spacer()
+                            
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    modelContext.delete(category)
+                                }
+                            } label: {
+                                Label("delete", systemImage: "trash")
+                                    .symbolVariant(.circle.fill)
                             }
-                        } label: {
-                            Label("delete", systemImage: "trash")
-                                .symbolVariant(.circle.fill)
                         }
                     }
                 }
