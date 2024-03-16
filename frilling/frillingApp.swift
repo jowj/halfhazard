@@ -10,12 +10,15 @@ import SwiftData
 
 @main
 struct frillingApp: App {
+    
+    @AppStorage("isFirstTimeLaunch") private var isFirstTimeLaunch: Bool = true
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 // important for SwiftData? I'm watching this video that says to do this.
                 // maybe its right?
-                .modelContainer(for: Expense.self)
+                .modelContainer(ExpensesContainer.create(shouldCreateDefaults: &isFirstTimeLaunch))
         }
     }
 }

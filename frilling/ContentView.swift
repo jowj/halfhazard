@@ -115,7 +115,7 @@ struct ContentView: View {
                         Button {
                             showCreateCategory.toggle()
                         } label: {
-                            Label("Manage Categories", systemImage: "envelope")
+                            Label("Manage Categories", systemImage: "ellipsis")
                         }
 
                     }

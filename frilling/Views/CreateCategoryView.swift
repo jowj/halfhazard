@@ -7,19 +7,6 @@
 
 import SwiftUI
 import SwiftData
-@Model
-class ExpenseCategory {
-
-    @Attribute(.unique) //
-    var title: String
-    
-    var items: [Expense]?
-    
-    init(title: String = "") {
-        self.title = title
-    }
-}
-
 
 struct CreateCategoryView: View {
     @Environment(\.dismiss) private var dismiss
