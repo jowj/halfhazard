@@ -17,15 +17,15 @@ struct ExpenseView: View {
             
             
             HStack(spacing: 3) {
-                Label("\(expense.amount)" , systemImage: "dollarsign")
+                Label("\(expense.amount.formatted(.currency(code: "USD")))" , systemImage: "dollarsign.square.fill")
             }
             .foregroundColor(.secondary)
             .font(.subheadline)
             
-        }
-        // Because expense.category MIGHT exist and might not, you need to unwrap it with this let syntax
-        if let category = expense.category {
-            Text(category.title)
+            if let category = expense.category {
+                Text(category.title)
+            }
+
         }
     }
 }
