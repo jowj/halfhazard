@@ -14,11 +14,7 @@ struct ContentView: View {
     @State private var showCreateCategory = false
     
     @State private var expenseEdit: Expense?
-    @Query(
-        filter: #Predicate { (expense: Expense) in expense.isCompleted == false },
-        sort: \.timestamp,
-        order: .reverse
-    ) private var items: [Expense]
+    @Query private var items: [Expense]
     
     @State private var searchQuery = ""
     
@@ -45,7 +41,6 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-
                 ForEach(filteredExpenses) { item in
                     HStack {
                         ExpenseView(expense: item)
@@ -86,7 +81,7 @@ struct ContentView: View {
                 }
       
             }
-                .navigationTitle("HalfHazard Budgetting")
+                .navigationTitle("Your finances are halfhazard")
                 .searchable(text: $searchQuery,
                             prompt: "Search for an expense or expense category")
                 .overlay {
@@ -119,6 +114,8 @@ struct ContentView: View {
                         CreateExpenseView()
                     }
                     .presentationDetents([.medium])
+                    // stolen from https://stackoverflow.com/questions/66216468/how-to-make-a-swiftui-sheet-size-match-the-width-height-of-window-on-macos
+                    .frame(idealWidth: NSApp.keyWindow?.contentView?.bounds.width ?? 500, idealHeight: NSApp.keyWindow?.contentView?.bounds.height ?? 500)
                 })
                 .sheet(isPresented: $showCreateCategory,
                        content: {
@@ -126,7 +123,9 @@ struct ContentView: View {
                         CreateCategoryView()
                     }
                     .presentationDetents([.medium])
+                    .frame(idealWidth: NSApp.keyWindow?.contentView?.bounds.width ?? 500, idealHeight: NSApp.keyWindow?.contentView?.bounds.height ?? 500)
                 })
+            
                 .sheet(item: $expenseEdit) {
                     expenseEdit = nil
                 } content: {item in
