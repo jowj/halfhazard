@@ -12,6 +12,7 @@ struct ContentView: View {
 
     @State private var showCreate = false
     @State private var showCreateCategory = false
+    @State private var showAccountDetails = false
     
     @State private var expenseEdit: Expense?
     @Query private var items: [Expense]
@@ -104,8 +105,17 @@ struct ContentView: View {
                         } label: {
                             Label("Manage Categories", systemImage: "ellipsis")
                         }
-
+                        
                     }
+                    ToolbarItem {
+                        Button {
+                            showAccountDetails.toggle()
+                        } label: {
+                            Label("Login", systemImage: "person")
+                        }
+                        
+                    }
+
 
                 }
                 .sheet(isPresented: $showCreate,
@@ -124,6 +134,13 @@ struct ContentView: View {
                     }
                     .presentationDetents([.medium])
                     .frame(idealWidth: NSApp.keyWindow?.contentView?.bounds.width ?? 500, idealHeight: NSApp.keyWindow?.contentView?.bounds.height ?? 500)
+                })
+                .sheet(isPresented: $showAccountDetails,
+                       content: {
+                    NavigationStack {
+                        LoginView()
+                    }
+                    .presentationDetents([.medium])
                 })
             
                 .sheet(item: $expenseEdit) {
