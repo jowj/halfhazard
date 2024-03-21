@@ -12,8 +12,7 @@ struct LoginView: View {
     @Environment(\.colorScheme) var colorScheme
     
     @AppStorage("email") var email: String = ""
-    @AppStorage("firstName") var firstName: String = ""
-    @AppStorage("lastName") var lastName: String = ""
+    @AppStorage("fullName") var fullName: String = ""
     @AppStorage("userID") var userID: String = ""
     
     var body: some View {
@@ -39,14 +38,16 @@ struct LoginView: View {
                             // Just misc stuff, but if you don't save it after they auth one time you never get it again!!
                             // Store in your DB.
                             let email = cred.email
-                            let firstName = cred.fullName?.givenName
-                            let lastName = cred.fullName?.familyName
+                            let fullName = cred.fullName
                             
                             // assigns these values to local storage, which is important, i guess?
+                            // I'm also coalescening here, which is useful for User init, I suppose.
                             self.email = email ?? ""
                             self.userID = userID
-                            self.firstName = firstName ?? ""
-                            self.lastName = lastName ?? ""
+                            self.fullName = fullName ?? ""
+                            
+                            //init a user obj
+                            User(userID: userID, emailAddress: email, fullName: fullName)
                             
                         default:
                             break
@@ -66,8 +67,12 @@ struct LoginView: View {
                 }
                 Button(role: .destructive) {
                     withAnimation {
+                        email = ""
+                        firstName = ""
+                        lastName = ""
                         userID = ""
-                        // There HAS to be a better way of reasoning about this, right?? 
+                        // There HAS to be a better way of reasoning about this, right??
+                        // Like, just setting everythign to empty string CAN'T be correct?
                     }
                 } label: {
                     Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")

@@ -12,15 +12,16 @@ import SwiftData
 
 @Model
 class User: Identifiable{
-    let id = UUID()
+    let id: String
     let emailAddress: String
-    var name: String
+    var fullName: String
     var groups: [Group]? // users won't necessarily have groups
-    var expenses: [Expense] // new users won't have any expenses
+    var expenses: [Expense]? // new users won't have any expenses
     
-    init(emailAddress: String, name: String, groups: [Group], expenses: [Expense]) {
+    init(id: String, emailAddress: String, fullName: String, groups: [Group]?, expenses: [Expense]?) {
+        self.id = id
         self.emailAddress = emailAddress
-        self.name = name
+        self.fullName = fullName
         self.groups = groups
         self.expenses = expenses
     }
