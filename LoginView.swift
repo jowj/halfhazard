@@ -9,15 +9,15 @@ import SwiftUI
 import AuthenticationServices
 
 struct LoginView: View {
+     
     @Environment(\.colorScheme) var colorScheme
-    
+    @Environment(\.modelContext) var context
+
     @AppStorage("email") var email: String = ""
-    @AppStorage("fullName") var fullName: String = ""
     @AppStorage("userID") var userID: String = ""
-    
+        
     var body: some View {
         VStack {
-            
             if userID.isEmpty {
                 Text("Login. or don't. i'm not your mom.!")
 
@@ -32,25 +32,9 @@ struct LoginView: View {
                     case .success(let auth):
                         switch auth.credential {
                         case let cred as ASAuthorizationAppleIDCredential:
-                            // Actually important!!
-                            let userID = cred.user
-                            
-                            // Just misc stuff, but if you don't save it after they auth one time you never get it again!!
-                            // Store in your DB.
-                            let email = cred.email
-                            let fullName = cred.fullName
-                            
-                            // assigns these values to local storage, which is important, i guess?
-                            // I'm also coalescening here, which is useful for User init, I suppose.
-                            self.email = email ?? ""
-                            self.userID = userID
-                            self.fullName = fullName ?? ""
-                            
-                            //init a user obj
-                            User(userID: userID, emailAddress: email, fullName: fullName)
-                            
+                            save(credential: cred)
                         default:
-                            break
+                            print("its not working")
                         }
                     case .failure(let error):
                         print(error)
@@ -67,12 +51,11 @@ struct LoginView: View {
                 }
                 Button(role: .destructive) {
                     withAnimation {
+                        // As far as I can tell, apple offers no logout button, so if I want the user to be able to logout
+                        // then i need to just, de-initialize all their related state.
+                        // super weird.
                         email = ""
-                        firstName = ""
-                        lastName = ""
                         userID = ""
-                        // There HAS to be a better way of reasoning about this, right??
-                        // Like, just setting everythign to empty string CAN'T be correct?
                     }
                 } label: {
                     Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
@@ -91,7 +74,19 @@ struct LoginView: View {
     }
 }
     
+private extension LoginView{
+    func save(credential: ASAuthorizationAppleIDCredential) {
+        // Actually important!!
+        // Just misc stuff, but if you don't save it after they auth one time you never get it again!!
+        // Store in your DB.
+        let userID = credential.user
+        let email = credential.email
 
+        // assigns these values to local storage, which is important, i guess?
+        self.email = email ?? ""
+        self.userID = userID
+    }
+}
 
 
 #Preview {
