@@ -22,9 +22,8 @@ class Expense: Identifiable {
     var timestamp: Date
     
     
-    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items) // this line differs from tutorials because the deleteRule label didn't used to be necessary.
-    var category: ExpenseCategory?
-    
+    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items) var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
+   
     init(name: String = "",
          amount: Double = 0.0,
          author: User? = nil,
