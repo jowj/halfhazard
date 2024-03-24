@@ -6,22 +6,21 @@
 //
 // Should add UUIDs
 
-
 import Foundation
 import SwiftData
 
 @Model
-class User: Identifiable{
-    let id: String
-    let emailAddress: String
-    var groups: [Group]? // users won't necessarily have groups
+class User: Identifiable {
+    
+    @Attribute(.unique) let id: String
+    var name: String?
+
+    @Relationship(deleteRule: .nullify, inverse: \Group.members) var groups: [Group]? // users won't necessarily have groups
     var expenses: [Expense]? // new users won't have any expenses
         
-    init(id: String, emailAddress: String, groups: [Group]?, expenses: [Expense]?) {
+    init(id: String, name: String?) {
         self.id = id
-        self.emailAddress = emailAddress
-        self.groups = groups
-        self.expenses = expenses
+        self.name = name
     }
 }
 

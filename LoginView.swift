@@ -12,8 +12,8 @@ struct LoginView: View {
      
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.modelContext) var context
-
-    @AppStorage("email") var email: String = ""
+    
+    @AppStorage("name") var name: String = ""
     @AppStorage("userID") var userID: String = ""
         
     var body: some View {
@@ -44,40 +44,44 @@ struct LoginView: View {
                     colorScheme == .dark ? .white : .black
                 )
             } else {
-                Text("You are logged in!")
-                List {
-                    Text("UserID is \(userID)")
-                    Text("email is \(email)")
-                }
-                Button(role: .destructive) {
-                    withAnimation {
-                        // As far as I can tell, apple offers no logout button, so if I want the user to be able to logout
-                        // then i need to just, de-initialize all their related state.
-                        // super weird.
-                        email = ""
-                        userID = ""
+                VStack {
+                    Text("You are logged in!")
+                    List {
+                        Text("UserID is \(userID)")
+                        Text("name is \(name)")
                     }
-                } label: {
-                    Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
-                        .symbolVariant(.circle.fill)
+                    Button(role: .destructive) {
+                        withAnimation {
+                            // As far as I can tell, apple offers no logout button, so if I want the user to be able to logout``
+                            // then i need to just, de-initialize all their related state.
+                            // super weird.
+                            name = ""
+                            userID = ""
+                        }
+                    } label: {
+                        Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+                            .symbolVariant(.circle.fill)
+                    }
                 }
 
             }
         }
-        .navigationTitle("Sign In")
+        .navigationTitle("Account Management")
     }
 }
     
 private extension LoginView{
     func save(credential: ASAuthorizationAppleIDCredential) {
-        // Actually important!!
-        // Just misc stuff, but if you don't save it after they auth one time you never get it again!!
-        // Store in your DB.
+        
         let userID = credential.user
-        let email = credential.email
+        let name = credential.fullName?.givenName ?? ""
 
-        // assigns these values to local storage, which is important, i guess?
-        self.email = email ?? ""
+
+        let currentUser = User(id: userID, name: name)
+        context.insert(currentUser)
+        
+        // Put stuff in local storage
+        self.name = name
         self.userID = userID
     }
 }
