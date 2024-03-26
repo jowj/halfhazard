@@ -28,8 +28,7 @@ class Expense: Identifiable {
     init(name: String = "",
          amount: Double = 0.0,
          isCompleted: Bool = false,
-         timestamp: Date = .now,
-         category: ExpenseCategory? = nil
+         timestamp: Date = .now
     ) {
         self.name = name
         self.amount = amount

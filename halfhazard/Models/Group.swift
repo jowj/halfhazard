@@ -17,9 +17,7 @@ class Group {
     
     var members: [User]? // New groups may not have any users
     
-    init(name: String, expenses: [Expense], members: [User], picture: Any) {
+    init(name: String, picture: Any) {
         self.name = name
-        self.expenses = expenses 
-        self.members = members
     }
 }
