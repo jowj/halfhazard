@@ -10,6 +10,9 @@ import SwiftData
 
 struct CreateExpenseView: View {
     
+    @AppStorage("name") var name: String = ""
+    @AppStorage("userID") var userID: String = ""
+    
     @FocusState private var costIsFocused: Bool
     
     @Environment(\.dismiss) var dismiss
@@ -17,8 +20,10 @@ struct CreateExpenseView: View {
     
     @State private var item = Expense()
     @State var selectedCategory: ExpenseCategory?
-    @Query private var categories: [ExpenseCategory]
     
+    @Query private var categories: [ExpenseCategory]
+    @Query private var users: [User]
+        
     var body: some View {
         List {
             Form {
@@ -67,15 +72,22 @@ struct CreateExpenseView: View {
 }
 
 private extension CreateExpenseView {
+    
     func save() {
         context.insert(item)
         item.category = selectedCategory
+        item.author = currentUser(users: users, currentUserID: userID)
         selectedCategory?.items?.append(item)
     }
-}
-
-#Preview {
-    CreateExpenseView()
-        .modelContainer(for: Expense.self)
+    
+    func currentUser (users: [User], currentUserID: String) -> User {
+        // Return the currently logged in user if the currentUserID field is not empty.
+        // If it is, just return the first user.
+        // A recipe for bugs if i ever found one.
+        guard !currentUserID.isEmpty else { return users[0] } // THIS IS A DUMB HACK THAT SHOULD BREAK.
+        return users.filter { user in
+            user.id == currentUserID
+        }[0]
+    }
 }
 
