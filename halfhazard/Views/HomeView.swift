@@ -121,32 +121,27 @@ struct HomeView: View {
                 .sheet(isPresented: $showCreate,
                        content: {
                     NavigationStack {
-                        CreateExpenseView()
+                        CreateExpenseView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
                     }
-                    .presentationDetents([.medium])
                     // stolen from https://stackoverflow.com/questions/66216468/how-to-make-a-swiftui-sheet-size-match-the-width-height-of-window-on-macos
-                    .frame(idealWidth: NSApp.keyWindow?.contentView?.bounds.width ?? 500, idealHeight: NSApp.keyWindow?.contentView?.bounds.height ?? 500)
                 })
                 .sheet(isPresented: $showCreateCategory,
                        content: {
                     NavigationStack {
-                        CreateCategoryView()
+                        CreateCategoryView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
                     }
-                    .presentationDetents([.medium])
-                    .frame(idealWidth: NSApp.keyWindow?.contentView?.bounds.width ?? 500, idealHeight: NSApp.keyWindow?.contentView?.bounds.height ?? 500)
                 })
                 .sheet(isPresented: $showAccountDetails,
                        content: {
                     NavigationStack {
-                        LoginView()
+                        LoginView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
                     }
-                    .presentationDetents([.medium])
                 })
             
                 .sheet(item: $expenseEdit) {
                     expenseEdit = nil
                 } content: {item in
-                    EditExpenseView(item: item)
+                    EditExpenseView(item: item).frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
             }
         }
     }
