@@ -22,20 +22,17 @@ class Expense: Identifiable {
     var timestamp: Date
     
     
-    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items) var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
+    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)  var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
    
+    
     init(name: String = "",
          amount: Double = 0.0,
-         author: User? = nil,
-         group: Group? = nil,
          isCompleted: Bool = false,
          timestamp: Date = .now,
          category: ExpenseCategory? = nil
     ) {
         self.name = name
         self.amount = amount
-        self.author = author
-        self.group = group
         self.isCompleted = isCompleted
         self.timestamp = timestamp
     }
