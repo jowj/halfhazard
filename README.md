@@ -10,9 +10,9 @@ Also its funny to think of your finances as haphazard.
     - is this even possible, or do I just, imply this somehow?
 2. [X] Fix account management .sheet initial size
 3. [X] Change all .sheet view modifications to Papa's, better, view size settings
-4. [ ] Start using `query` more - that's the right way to reference anything in the db
+4. [X] Start using `query` more - that's the right way to reference anything in the db
     - i think current user can and maybe even should be in appstorage, but everything else we should be persisting to db
-5. [ ] Specifically, use a `Query` to make it so the only expenses you see by default have your name on them
+5. [X] Specifically, use a `Query` to make it so the only expenses you see by default have your name on them
 6. [ ] Create "Manage Groups View" and an add group button
 ..
 ..

@@ -10,23 +10,41 @@ import SwiftData
 
 struct HomeView: View {
 
+    @AppStorage("userID") var userID: String = ""
+
     @State private var showCreate = false
     @State private var showCreateCategory = false
     @State private var showAccountDetails = false
-    
+    @State private var showManageGroups = false
     @State private var expenseEdit: Expense?
-    @Query private var items: [Expense]
-    
     @State private var searchQuery = ""
+
+    @Query private var items: [Expense]
+    @Query private var users: [User]
     
     @Environment(\.modelContext) var context
     
+    var filteredExpensesByUser: [Expense] {
+        var filteredExpensesByUser = [Expense]()
+        if userID.isEmpty {
+            return filteredExpensesByUser
+        } else {
+            let currentUser = currentUser(users: users, currentUserID: userID)
+            for expense in filteredExpenses {
+                if expense.author?.id == currentUser.id {
+                    filteredExpensesByUser.append(expense)
+                }
+            }
+            return filteredExpensesByUser
+        }
+    }
+        
     var filteredExpenses: [Expense] {
         if searchQuery.isEmpty {
             return items
         }
         
-        let filteredExpenses = items.compactMap { item in
+        let filteredExpenses = filteredExpensesByUser.compactMap { item in
             let titleContainsQuery = item.name.range(of: searchQuery, options:
                     .caseInsensitive) != nil
             
@@ -42,6 +60,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             List {
+                // This ForEach shows each Expense and some buttons.
                 ForEach(filteredExpenses) { item in
                     HStack {
                         ExpenseView(expense: item)
@@ -89,7 +108,7 @@ struct HomeView: View {
                     if filteredExpenses.isEmpty {
                         ContentUnavailableView.search // this is, quite nice.
                     }
-                }
+                } // This Tool bar section configures just the tool bar buttons
                 .toolbar {
                     ToolbarItem {
                         Button {
@@ -109,6 +128,14 @@ struct HomeView: View {
                     }
                     ToolbarItem {
                         Button {
+                            showManageGroups.toggle()
+                        } label: {
+                            Label("Manage Groups", systemImage: "person.3.fill")
+                        }
+                        
+                    }
+                    ToolbarItem {
+                        Button {
                             showAccountDetails.toggle()
                         } label: {
                             Label("Login", systemImage: "person")
@@ -117,7 +144,7 @@ struct HomeView: View {
                     }
 
 
-                }
+                } // THese .sheets are all related to the toolbar stuff above.
                 .sheet(isPresented: $showCreate,
                        content: {
                     NavigationStack {
@@ -129,6 +156,12 @@ struct HomeView: View {
                        content: {
                     NavigationStack {
                         CreateCategoryView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                    }
+                })
+                .sheet(isPresented: $showManageGroups,
+                       content: {
+                    NavigationStack {
+                        ManageGroupsView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
                     }
                 })
                 .sheet(isPresented: $showAccountDetails,
@@ -145,6 +178,10 @@ struct HomeView: View {
             }
         }
     }
+}
+
+private extension HomeView {
+    
 }
 
 #Preview {

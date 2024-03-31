@@ -19,16 +19,15 @@ struct LoginView: View {
     var body: some View {
         VStack {
             if userID.isEmpty {
-                Text("Login. or don't. i'm not your mom.!")
-
-                Spacer()
                 
+                Spacer()
+
+                Text("You have to log in or the app won't work!")
                 SignInWithAppleButton(.continue) { request in
-                    
                     request.requestedScopes = [.email, .fullName]
-                    
                 } onCompletion: { result in
                     switch result {
+                        
                     case .success(let auth):
                         switch auth.credential {
                         case let cred as ASAuthorizationAppleIDCredential:
@@ -36,6 +35,7 @@ struct LoginView: View {
                         default:
                             print("its not working")
                         }
+                        
                     case .failure(let error):
                         print(error)
                     }
@@ -43,6 +43,9 @@ struct LoginView: View {
                 .signInWithAppleButtonStyle(
                     colorScheme == .dark ? .white : .black
                 )
+                
+                Spacer()
+
             } else {
                 VStack {
                     Text("You are logged in!")

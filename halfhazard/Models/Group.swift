@@ -17,7 +17,7 @@ class Group {
     
     var members: [User]? // New groups may not have any users
     
-    init(name: String, picture: Any) {
+    init(name: String) {
         self.name = name
     }
 }
