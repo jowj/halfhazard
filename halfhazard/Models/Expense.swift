@@ -33,11 +33,9 @@ class Expense: Identifiable {
             return amount / 1
         }
         
-        
     }
     
     @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)  var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
-   
     
     init(name: String = "",
          amount: Double = 0.0,

@@ -15,14 +15,18 @@ actor ExpensesContainer {
     
         let schema = Schema([Expense.self])
         let configuration = ModelConfiguration()
-        let container = try! ModelContainer(for: schema, configurations: configuration)
-        
-        if shouldCreateDefaults {
-            ExpenseCategory.defaults.forEach { container.mainContext.insert($0) }
-            shouldCreateDefaults = false
-        }
-        return container
+        do {
+            let container = try ModelContainer(for: schema, configurations: configuration)
+            if shouldCreateDefaults {
+                ExpenseCategory.defaults.forEach { container.mainContext.insert($0) }
+                shouldCreateDefaults = false
+            }
+            return container
 
+        } catch {
+            fatalError("Failed to init model container: \(error)")
+        }
+        
     }
 }
 

@@ -11,7 +11,6 @@ import SwiftData
 @Model
 class ExpenseCategory {
 
-    @Attribute(.unique) //
     var title: String
     
     var items: [Expense]?
