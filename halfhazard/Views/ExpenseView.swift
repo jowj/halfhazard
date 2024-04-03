@@ -35,7 +35,10 @@ struct ExpenseView: View {
             }
             
             if let amountOwed = expense.amountOwed {
-                Text("\(amountOwed.formatted(.currency(code: "USD")))")
+                Text("You owe \(amountOwed.formatted(.currency(code: "USD")))")
+                    .font(.subheadline)
+                    .underline(color: Color("red")) // this doesn't appear to work, but seems like it should?
+
             }
 
 

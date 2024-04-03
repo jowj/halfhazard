@@ -21,7 +21,20 @@ class Expense: Identifiable {
     var isCompleted: Bool
     var timestamp: Date
     
-    var amountOwed: Double?
+    var amountOwed: Double? {
+        // I'll have to figure out a split percentage deal, too, but for now just focus on even splits.
+        guard ((group?.members?.isEmpty) == nil) else { return nil }
+        
+        if let people = group?.members?.count {
+            let evenSplit =  amount / Double(people)
+            
+            return evenSplit
+        } else {
+            return amount / 1
+        }
+        
+        
+    }
     
     @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)  var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
    
