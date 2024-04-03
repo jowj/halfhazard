@@ -19,13 +19,16 @@ struct CreateExpenseView: View {
     @Environment(\.modelContext) var context
     
     @State private var item = Expense()
+    
     @State var selectedCategory: ExpenseCategory?
+    @State var selectedGroup: Group?
     
     @Query private var categories: [ExpenseCategory]
     @Query private var users: [User]
+    @Query private var groups: [Group]
         
     var body: some View {
-        List {
+        VStack {
             Form {
                 Section("What did you spend money on?") {
                     TextField("Name", text: $item.name)
@@ -46,6 +49,24 @@ struct CreateExpenseView: View {
                             ForEach(categories) {category in
                                 Text(category.title)
                                     .tag(category as ExpenseCategory?) // same as above, waht is this
+                            }
+                        }
+                        .pickerStyle(.inline)
+                    }
+                }
+                
+                if groups.isEmpty {
+                    ContentUnavailableView("No groups exist. Go make some!",
+                    systemImage: "archivebox")
+                } else {
+                    Section("What group is the expense related to?") {
+                        Picker("", selection: $selectedGroup) {
+                            
+                            Text("None")
+                                .tag(nil as Group?) // I don't understand this but copied from a tutorial
+                            ForEach(groups) {group in
+                                Text(group.name)
+                                    .tag(group as Group?) // same as above, waht is this
                             }
                         }
                         .pickerStyle(.inline)

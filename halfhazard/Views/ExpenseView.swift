@@ -33,6 +33,11 @@ struct ExpenseView: View {
             if let category = expense.category {
                 Text(category.title)
             }
+            
+            if let amountOwed = expense.amountOwed {
+                Text("\(amountOwed.formatted(.currency(code: "USD")))")
+            }
+
 
         }
     }

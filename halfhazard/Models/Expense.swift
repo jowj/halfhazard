@@ -21,6 +21,7 @@ class Expense: Identifiable {
     var isCompleted: Bool
     var timestamp: Date
     
+    var amountOwed: Double?
     
     @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)  var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
    
