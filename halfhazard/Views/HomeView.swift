@@ -103,7 +103,7 @@ struct HomeView: View {
             }
                 .navigationTitle("Your finances are halfhazard")
                 .searchable(text: $searchQuery,
-                            prompt: "Search for an expense or expense category")
+                            prompt: "Search for an expense")
                 .overlay {
                     if filteredExpenses.isEmpty {
                         ContentUnavailableView.search // this is, quite nice.
@@ -148,33 +148,52 @@ struct HomeView: View {
                 .sheet(isPresented: $showCreate,
                        content: {
                     NavigationStack {
-                        CreateExpenseView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                        CreateExpenseView()
+#if os(macOS)
+.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+#endif
+
                     }
                     // stolen from https://stackoverflow.com/questions/66216468/how-to-make-a-swiftui-sheet-size-match-the-width-height-of-window-on-macos
                 })
                 .sheet(isPresented: $showCreateCategory,
                        content: {
                     NavigationStack {
-                        CreateCategoryView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                        CreateCategoryView()
+#if os(macOS)
+.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+#endif
                     }
                 })
                 .sheet(isPresented: $showManageGroups,
                        content: {
                     NavigationStack {
-                        ManageGroupsView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                        ManageGroupsView()
+#if os(macOS)
+.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+#endif
+
                     }
                 })
                 .sheet(isPresented: $showAccountDetails,
                        content: {
                     NavigationStack {
-                        LoginView().frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                        LoginView()
+#if os(macOS)
+.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+#endif
+
                     }
                 })
             
                 .sheet(item: $expenseEdit) {
                     expenseEdit = nil
                 } content: {item in
-                    EditExpenseView(item: item).frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+                    EditExpenseView(item: item)
+#if os(macOS)
+.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+#endif
+
             }
         }
     }
