@@ -13,12 +13,25 @@ struct halfhazard: App {
     
     @AppStorage("isFirstTimeLaunch") private var isFirstTimeLaunch: Bool = true
     
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            Expense.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
                 // important for SwiftData? I'm watching this video that says to do this.
                 // maybe its right?
-                .modelContainer(ExpensesContainer.create(shouldCreateDefaults: &isFirstTimeLaunch))
+                .modelContainer(sharedModelContainer)
         }
     }
 }

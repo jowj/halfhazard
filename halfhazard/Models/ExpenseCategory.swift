@@ -12,9 +12,7 @@ import SwiftData
 class ExpenseCategory {
 
     var title: String
-    
     var items: [Expense]?
-    
     init(title: String = "") {
         self.title = title
     }
