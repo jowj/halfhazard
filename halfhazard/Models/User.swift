@@ -12,14 +12,14 @@ import SwiftData
 @Model
 class User: Identifiable {
     
-    let id: String
+    let userID: String
     var name: String?
 
     @Relationship(deleteRule: .nullify, inverse: \Group.members) var groups: [Group]? // users won't necessarily have groups
     var expenses: [Expense]? // new users won't have any expenses
         
-    init(id: String) {
-        self.id = id
+    init(userID: String) {
+        self.userID = userID
     }
 }
 

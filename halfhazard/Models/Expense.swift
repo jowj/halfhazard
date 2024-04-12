@@ -13,7 +13,7 @@ import SwiftData
 @Model
 class Expense: Identifiable {
     // A class that models all the metadata we might want attached to /an expense/.
-    let id = UUID()
+    let expenseID = UUID()
     var name: String
     var amount: Double
     var author: User?

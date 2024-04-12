@@ -80,7 +80,7 @@ private extension LoginView{
         let name = credential.fullName?.givenName ?? ""
 
 
-        let currentUser = User(id: userID)
+        let currentUser = User(userID: userID)
         context.insert(currentUser)
         
         // Put stuff in local storage

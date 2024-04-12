@@ -13,6 +13,6 @@ func currentUser (users: [User], currentUserID: String) -> User {
     // A recipe for bugs if i ever found one.
     guard !currentUserID.isEmpty else { return users[0] } // THIS IS A DUMB HACK THAT SHOULD BREAK.
     return users.filter { user in
-        user.id == currentUserID
+        user.userID == currentUserID
     }[0]
 }
