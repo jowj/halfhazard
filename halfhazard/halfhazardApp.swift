@@ -16,6 +16,9 @@ struct halfhazard: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Expense.self,
+            User.self,
+            Group.self,
+            ExpenseCategory.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
