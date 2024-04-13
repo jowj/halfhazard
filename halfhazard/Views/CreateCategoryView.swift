@@ -36,18 +36,16 @@ struct CreateCategoryView: View {
                         HStack {
                             Text(category.title)
                             
-                            Spacer()
-                            
-                            Button(role: .destructive) {
-                                withAnimation {
-                                    context.delete(category)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            context.delete(category)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                            .symbolVariant(.circle.fill)
+                                    }
                                 }
-                            } label: {
-                                Label("delete", systemImage: "trash")
-                                    .symbolVariant(.circle.fill)
-                            }
-                            .tint(.orange)
-
                         }
                     }
                 }
