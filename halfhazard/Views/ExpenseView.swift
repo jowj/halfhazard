@@ -22,7 +22,7 @@ struct ExpenseView: View {
             .foregroundColor(.secondary)
             .font(.subheadline)
             
-            if let author = expense.author?.id {
+            if let author = expense.author?.userID {
                 HStack(spacing: 3) {
                     Label("\(author)" , systemImage: "person.crop.square.fill")
                 }

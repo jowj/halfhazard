@@ -31,7 +31,7 @@ struct HomeView: View {
         } else {
             let currentUser = currentUser(users: users, currentUserID: userID)
             for expense in filteredExpenses {
-                if expense.author?.id == currentUser.id {
+                if expense.author?.userID == currentUser.userID {
                     filteredExpensesByUser.append(expense)
                 }
             }

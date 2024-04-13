@@ -12,12 +12,13 @@ import SwiftData
 @Model
 class Group {
     
-    @Attribute(.unique) var name: String
-    var expenses: [Expense]? // New groups might not have any expenses
+    var name: String = ""
+    var expenses: [Expense]? = [Expense]() // New groups might not have any expenses
+    var members: [User]? = [User]() // New groups may not have any users
     
-    var members: [User]? // New groups may not have any users
-    
-    init(name: String) {
+    init(name: String, expenses: [Expense]? = [Expense](), members: [User]? = [User]()) {
         self.name = name
+        self.expenses = expenses
+        self.members = members
     }
 }

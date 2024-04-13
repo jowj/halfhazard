@@ -13,13 +13,18 @@ import SwiftData
 @Model
 class Expense: Identifiable {
     // A class that models all the metadata we might want attached to /an expense/.
-    let id = UUID()
-    var name: String
-    var amount: Double
-    var author: User?
-    var group: Group?
-    var isCompleted: Bool
-    var timestamp: Date
+    let expenseID = UUID()
+    var name: String = ""
+    var amount: Double = 0.0
+    var isCompleted: Bool = false
+    var timestamp: Date = Date.now
+    
+    @Relationship(deleteRule: .nullify, inverse: \User.expenses)
+        var author: User? = nil
+    @Relationship(deleteRule: .nullify, inverse: \Group.expenses)
+        var group: Group? = nil
+    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)
+        var category: ExpenseCategory? = nil
     
     var amountOwed: Double? {
         // I'll have to figure out a split percentage deal, too, but for now just focus on even splits.
@@ -33,20 +38,9 @@ class Expense: Identifiable {
             return amount / 1
         }
         
-        
     }
-    
-    @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)  var category: ExpenseCategory? // this line differs from tutorials because the deleteRule label didn't used to be necessary.
-   
-    
-    init(name: String = "",
-         amount: Double = 0.0,
-         isCompleted: Bool = false,
-         timestamp: Date = .now
-    ) {
+    init(name: String = "", amount: Double = 0.0) {
         self.name = name
         self.amount = amount
-        self.isCompleted = isCompleted
-        self.timestamp = timestamp
     }
 }
