@@ -12,7 +12,7 @@ import SwiftData
 @Model
 class Group {
     
-    var name: String
+    var name: String = ""
     var expenses: [Expense]? = [Expense]() // New groups might not have any expenses
     var members: [User]? = [User]() // New groups may not have any users
     
