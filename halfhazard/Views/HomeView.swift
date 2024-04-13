@@ -64,39 +64,38 @@ struct HomeView: View {
                 ForEach(filteredExpenses) { item in
                     HStack {
                         ExpenseView(expense: item)
-
-                        Spacer()
-                        
-                        Button(role: .destructive) {
-                            withAnimation {
-                                context.delete(item)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    withAnimation {
+                                        context.delete(item)
+                                        
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                        .symbolVariant(.circle.fill)
+                                }
+                                .tint(.orange)
                                 
+                                Button(role: .cancel) {
+                                    withAnimation {
+                                        expenseEdit = item
+                                    }
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                        .symbolVariant(.circle.fill)
+                                }
+                                
+                                Button(role: .none) {
+                                    withAnimation {
+                                        item.isCompleted.toggle()
+                                    }
+                                } label: {
+                                    Label("Mark complete", systemImage: "checkmark")
+                                        .symbolVariant(.circle.fill)
+                                        .foregroundStyle(item.isCompleted ? .green :
+                                                .gray)
+                                }
                             }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                                .symbolVariant(.circle.fill)
-                        }
-                        .tint(.orange)
-                        
-                        Button(role: .destructive) {
-                            withAnimation {
-                                expenseEdit = item
-                            }
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                                .symbolVariant(.circle.fill)
-                        }
-
-                        Button {
-                            withAnimation {
-                                item.isCompleted.toggle()
-                            }
-                        } label: {
-                            Image(systemName: "checkmark")
-                                .symbolVariant(.circle.fill)
-                                .foregroundStyle(item.isCompleted ? .green :
-                                        .gray)
-                        }
                     }
                 }
       

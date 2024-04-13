@@ -42,6 +42,7 @@ struct LoginView: View {
                 }
                 .signInWithAppleButtonStyle(
                     colorScheme == .dark ? .white : .black
+
                 )
                 
                 Spacer()
@@ -65,6 +66,7 @@ struct LoginView: View {
                         Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
                             .symbolVariant(.circle.fill)
                     }
+                    .tint(.red)
                 }
 
             }

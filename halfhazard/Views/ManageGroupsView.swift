@@ -18,27 +18,17 @@ struct ManageGroupsView: View {
     var body: some View {
         
         List {
-            Form {
-                Section {
-                    HStack {
-                        TextField("What is your group name?",
-                                  text: $groupName)
-                        Button("Add Group") {
-                            withAnimation {
-                                let group = Group(name: groupName)
-                                modelContext.insert(group)
-                                // I'm not sure why we have to set category to empty array here
-                                // but title must be reset to "" or you live with some weird erros
-                                // and a fucked up UI.
-                                group.members = []
-                                groupName = ""
-                            }
-                        }
-                        .disabled(groupName.isEmpty)
-                    }
-                }
 
+            TextField("What is your group name?",
+                      text: $groupName)
+            Button("Add Group") {
+                withAnimation {
+                    save()
+                }
             }
+            .disabled(groupName.isEmpty)
+            .tint(.green)
+            
             Section("Existing Groups") {
                 if groups.isEmpty {
                         HStack {
@@ -49,17 +39,16 @@ struct ManageGroupsView: View {
                     ForEach(groups) { group in
                         HStack {
                             Text(group.name)
-                            
-                            Spacer()
-                            
-                            Button(role: .destructive) {
-                                withAnimation {
-                                    modelContext.delete(group)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        withAnimation {
+                                            modelContext.delete(group)
+                                        }
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                            .symbolVariant(.circle.fill)
+                                    }
                                 }
-                            } label: {
-                                Label("delete", systemImage: "trash")
-                                    .symbolVariant(.circle.fill)
-                            }
                         }
                     }
                 }
@@ -76,6 +65,20 @@ struct ManageGroupsView: View {
             }
         }
     }
+}
+
+private extension ManageGroupsView {
+    
+    func save() {
+        let group = Group(name: groupName)
+        modelContext.insert(group)
+        // I'm not sure why we have to set category to empty array here
+        // but title must be reset to "" or you live with some weird erros
+        // and a fucked up UI.
+        group.members = []
+        groupName = ""
+    }
+    
 }
 
 #Preview {
