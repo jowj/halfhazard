@@ -13,10 +13,12 @@ import SwiftData
 class Group {
     
     var name: String
-    var expenses: [Expense]? // New groups might not have any expenses
-    var members: [User]? // New groups may not have any users
+    var expenses: [Expense]? = [Expense]() // New groups might not have any expenses
+    var members: [User]? = [User]() // New groups may not have any users
     
-    init(name: String) {
+    init(name: String, expenses: [Expense]? = nil, members: [User]? = nil) {
         self.name = name
+        self.expenses = expenses
+        self.members = members
     }
 }

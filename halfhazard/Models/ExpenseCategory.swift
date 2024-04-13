@@ -11,10 +11,12 @@ import SwiftData
 @Model
 class ExpenseCategory {
 
-    var title: String
-    var items: [Expense]?
-    init(title: String = "") {
+    var title: String = ""
+    var items: [Expense]? = [Expense]()
+ 
+    init(title: String, items: [Expense]? = nil) {
         self.title = title
+        self.items = items
     }
 }
 
