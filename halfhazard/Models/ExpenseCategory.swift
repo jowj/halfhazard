@@ -14,7 +14,7 @@ class ExpenseCategory {
     var title: String = ""
     var items: [Expense]? = [Expense]()
  
-    init(title: String, items: [Expense]? = [Expense]()) {
+    init(title: String = "", items: [Expense]? = [Expense]()) {
         self.title = title
         self.items = items
     }
