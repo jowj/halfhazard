@@ -66,6 +66,7 @@ struct LoginView: View {
                         Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
                             .symbolVariant(.circle.fill)
                     }
+                    .tint(.red)
                 }
 
             }

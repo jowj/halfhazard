@@ -24,14 +24,17 @@ Also its funny to think of your finances as haphazard.
 ??. [X] move every swiftdata thing to cloudkit
 ??. [ ] add fields to configure username in login screen
     - use that instead of userID in ExpenseView
-??. [ ] move all buttons to a ctrl click menu to clean up UI
+??. [X] move all buttons to a ctrl click menu to clean up UI
 ??. [ ] Add a navigation menu for each  group?
-- [ ] fix some of the UI in iOS
+- [X] fix some of the UI in iOS
     - [X] Certain user input bars have a gray box over them, which don't allow users to add input
-    - [ ] The UI in general is Too Large, and should be shrunk a bit.
-    - [ ] I should use a different input mechanism than labelled buttons on IOS. Maybe swipe to reveal?
+    - [X] The UI in general is Too Large, and should be shrunk a bit.
+    - [X] I should use a different input mechanism than labelled buttons on IOS. Maybe swipe to reveal?
+        - ended up with context menu stuff. i think i still want diff behaviors on macos vs ios but, for now i'm good.
 - [ ] Move to using a navigation stack, I think. Should make some of the UI easier to use.
+    - as part of this, get rid of sheets.
 - [ ] add user configuration page
 - [ ] Figure out why I can't tint some of my buttons appropriately:
     - See the createCategory view
 - [ ] Implement an alternative to my old "need to apply defaults" thing; papa had something that seemed good?
+- [ ] I think many of my base views are fucked up - review them, especially after we get rid of sheets
