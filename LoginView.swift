@@ -42,6 +42,7 @@ struct LoginView: View {
                 }
                 .signInWithAppleButtonStyle(
                     colorScheme == .dark ? .white : .black
+
                 )
                 
                 Spacer()
