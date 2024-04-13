@@ -21,8 +21,12 @@ Also its funny to think of your finances as haphazard.
 ??. [X] Computed property on expense that auto splits based on group memberhsip count
 ..
 ..
-??. [ ] move every swiftdata thing to cloudkit
+??. [X] move every swiftdata thing to cloudkit
 ??. [ ] add fields to configure username in login screen
     - use that instead of userID in ExpenseView
 ??. [ ] move all buttons to a ctrl click menu to clean up UI
 ??. [ ] Add a navigation menu for each  group?
+- [ ] fix some of the UI in iOS
+    - [ ] Certain user input bars have a gray box over them, which don't allow users to add input
+    - [ ] The UI in general is Too Large, and should be shrunk a bit.
+    - [ ] I should use a different input mechanism than labelled buttons on IOS. Maybe swipe to reveal?
