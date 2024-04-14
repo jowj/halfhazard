@@ -59,47 +59,48 @@ struct HomeView: View {
     
     var body: some View {
         NavigationView {
-            List {
-                // This ForEach shows each Expense and some buttons.
-                ForEach(filteredExpenses) { item in
-                    HStack {
-                        ExpenseView(expense: item)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    withAnimation {
-                                        context.delete(item)
-                                        
-                                    }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                        .symbolVariant(.circle.fill)
-                                }
-                                .tint(.orange)
-                                
-                                Button(role: .cancel) {
-                                    withAnimation {
-                                        expenseEdit = item
-                                    }
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
-                                        .symbolVariant(.circle.fill)
-                                }
-                                
-                                Button(role: .none) {
-                                    withAnimation {
-                                        item.isCompleted.toggle()
-                                    }
-                                } label: {
-                                    Label("Mark complete", systemImage: "checkmark")
-                                        .symbolVariant(.circle.fill)
-                                        .foregroundStyle(item.isCompleted ? .green :
-                                                .gray)
-                                }
-                            }
-                    }
-                }
-      
-            }
+            GroupView()
+//            List {
+//                // This ForEach shows each Expense and some buttons.
+//                ForEach(filteredExpenses) { item in
+//                    HStack {
+//                        ExpenseView(expense: item)
+//                            .contextMenu {
+//                                Button(role: .destructive) {
+//                                    withAnimation {
+//                                        context.delete(item)
+//                                        
+//                                    }
+//                                } label: {
+//                                    Label("Delete", systemImage: "trash")
+//                                        .symbolVariant(.circle.fill)
+//                                }
+//                                .tint(.orange)
+//                                
+//                                Button(role: .cancel) {
+//                                    withAnimation {
+//                                        expenseEdit = item
+//                                    }
+//                                } label: {
+//                                    Label("Edit", systemImage: "pencil")
+//                                        .symbolVariant(.circle.fill)
+//                                }
+//                                
+//                                Button(role: .none) {
+//                                    withAnimation {
+//                                        item.isCompleted.toggle()
+//                                    }
+//                                } label: {
+//                                    Label("Mark complete", systemImage: "checkmark")
+//                                        .symbolVariant(.circle.fill)
+//                                        .foregroundStyle(item.isCompleted ? .green :
+//                                                .gray)
+//                                }
+//                            }
+//                    }
+//                }
+//      
+//            }
                 .navigationTitle("Your finances are halfhazard")
                 .searchable(text: $searchQuery,
                             prompt: "Search for an expense")
@@ -126,11 +127,10 @@ struct HomeView: View {
                         
                     }
                     ToolbarItem {
-                        NavigationLink(destination:ManageGroupsView()) {
-                            Button {
-                            } label: {
-                                Label("Manage Groups", systemImage: "person.3.fill")
-                            }
+                        Button {
+                            showManageGroups.toggle()
+                        } label: {
+                            Label("Manage Groups", systemImage: "person.3.fill")
                         }
                     }
                     ToolbarItem {
