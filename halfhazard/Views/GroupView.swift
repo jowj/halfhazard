@@ -12,48 +12,82 @@ import SwiftData
 
 struct GroupView: View {
     @AppStorage("userID") var userID: String = ""
-
+    
     @State private var expenseEdit: Expense?
     @State private var searchQuery = ""
-    @State private var selectedGroup: Group
+    @State public var selectedGroup: Group
     
-    @Query private var items: [Group]
+    @Query private var groups: [Group]
+    @Query private var items: [Expense]
     @Query private var users: [User]
     
     @Environment(\.modelContext) var context
     
-    var filteredGroups: [Group] {
-        let currentUser = currentUser(users: users, currentUserID: userID)
-        if let userGroups = currentUser.groups {
-            return userGroups
-        } else {
-            return [Group]()
+    var filteredExpenses: [Expense] {
+        /* Given a group (provided by parent View), return a list of expenses assosciated with that group's name.
+         Otherwise, return an empty list of [Expense].
+         */
+        var filteredExpenses: [Expense] = [Expense]()
+        for group in groups {
+            if group.name == selectedGroup.name {
+                if (group.expenses?.isEmpty) != nil {
+                    for expense in group.expenses ?? [Expense]() {
+                        if expense.group?.name == group.name {
+                            filteredExpenses.append(expense)
+                        }
+                        return filteredExpenses
+                    }
+                } else {
+                    return [Expense]()
+                }
+            }
         }
+        return [Expense]()
     }
     
-    var filteredExpense: [Expense]() {
-        for expense in group {
-            if expense.group?.name == group.name {
-                filteredExpense.append(expense)
-            }
-        }
-    }
+    
+    
     var body: some View {
         List {
-            // This ForEach shows a group link and its child expenses.
-            Text("GroupView is called")
-            ForEach(filteredGroups) { group in
-                // I might need to make a brand new view that's provides filtered expenses
-                // Not sure how to organize that. My main view folder is getting pretty crowded.
-                // Annoying.
-
-                
-                ForEach(filteredExpense) { expense in
-                    NavigationLink(ExpenseView(expense: expense))
-
+            // This ForEach shows each Expense and some buttons.
+            ForEach(filteredExpenses) { item in
+                HStack {
+                    ExpenseView(expense: item)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                withAnimation {
+                                    context.delete(item)
+                                    
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                                    .symbolVariant(.circle.fill)
+                            }
+                            .tint(.orange)
+                            
+                            Button(role: .cancel) {
+                                withAnimation {
+                                    expenseEdit = item
+                                }
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                                    .symbolVariant(.circle.fill)
+                            }
+                            
+                            Button(role: .none) {
+                                withAnimation {
+                                    item.isCompleted.toggle()
+                                }
+                            } label: {
+                                Label("Mark complete", systemImage: "checkmark")
+                                    .symbolVariant(.circle.fill)
+                                    .foregroundStyle(item.isCompleted ? .green :
+                                            .gray)
+                            }
+                        }
                 }
-                
             }
         }
+            
     }
 }
