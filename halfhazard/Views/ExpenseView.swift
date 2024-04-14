@@ -22,13 +22,22 @@ struct ExpenseView: View {
             .foregroundColor(.secondary)
             .font(.subheadline)
             
-            if let author = expense.author?.userID {
+            if let author = expense.author?.name {
                 HStack(spacing: 3) {
                     Label("\(author)" , systemImage: "person.crop.square.fill")
                 }
                 .foregroundColor(.secondary)
                 .font(.subheadline)
             }
+            
+            if let author2 = expense.author?.userID {
+                HStack(spacing: 3) {
+                    Label("\(author2)" , systemImage: "person.crop.square.fill")
+                }
+                .foregroundColor(.secondary)
+                .font(.subheadline)
+            }
+
             
             if let category = expense.category {
                 Text(category.title)
