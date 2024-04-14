@@ -58,7 +58,7 @@ struct HomeView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
                 // This ForEach shows each Expense and some buttons.
                 ForEach(filteredExpenses) { item in
@@ -126,12 +126,12 @@ struct HomeView: View {
                         
                     }
                     ToolbarItem {
-                        Button {
-                            showManageGroups.toggle()
-                        } label: {
-                            Label("Manage Groups", systemImage: "person.3.fill")
+                        NavigationLink(destination:ManageGroupsView()) {
+                            Button {
+                            } label: {
+                                Label("Manage Groups", systemImage: "person.3.fill")
+                            }
                         }
-                        
                     }
                     ToolbarItem {
                         Button {
