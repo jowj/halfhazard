@@ -21,6 +21,15 @@ struct LoginView: View {
     var currentUserFromDB: User {
         currentUser(users: users, currentUserID: userID)
     }
+    
+    var filteredGroups: [Group] {
+        let currentUser = currentUser(users: users, currentUserID: userID)
+        if let userGroups = currentUser.groups {
+            return userGroups
+        } else {
+            return [Group]()
+        }
+    }
 
     var body: some View {
         VStack {
@@ -58,6 +67,7 @@ struct LoginView: View {
                     Text("You are logged in!")
                     List {
                         Text("UserID is \(userID)")
+                        Text("Username is \(name)")
                         
                         Section("Configure your username") {
                             TextField("", text: $name)
@@ -66,10 +76,13 @@ struct LoginView: View {
                             }
 
                         }
-                        
-                        Text("Username is \(name)")
-
+                        Section("You are a member of the following groups:") {
+                            ForEach(filteredGroups) { group in
+                                Text(group.name)
+                            }
+                        }
                     }
+                    
                     Button(role: .destructive) {
                         withAnimation {
                             // As far as I can tell, apple offers no logout button, so if I want the user to be able to logout``
