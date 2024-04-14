@@ -7,15 +7,21 @@
 
 import SwiftUI
 import AuthenticationServices
+import SwiftData
 
 struct LoginView: View {
      
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.modelContext) var context
     
+    @Query private var users: [User]
     @AppStorage("name") var name: String = ""
     @AppStorage("userID") var userID: String = ""
         
+    var currentUserFromDB: User {
+        currentUser(users: users, currentUserID: userID)
+    }
+
     var body: some View {
         VStack {
             if userID.isEmpty {
@@ -52,7 +58,17 @@ struct LoginView: View {
                     Text("You are logged in!")
                     List {
                         Text("UserID is \(userID)")
-                        Text("name is \(name)")
+                        
+                        Section("Configure your username") {
+                            TextField("", text: $name)
+                            Button("Update") {
+                                currentUserFromDB.name = name
+                            }
+
+                        }
+                        
+                        Text("Username is \(name)")
+
                     }
                     Button(role: .destructive) {
                         withAnimation {
@@ -79,19 +95,14 @@ private extension LoginView{
     func save(credential: ASAuthorizationAppleIDCredential) {
         
         let userID = credential.user
-        let name = credential.fullName?.givenName ?? ""
+        
 
 
-        let currentUser = User(userID: userID)
+        let currentUser = User(userID: userID, name: name)
         context.insert(currentUser)
         
         // Put stuff in local storage
         self.name = name
         self.userID = userID
     }
-}
-
-
-#Preview {
-    LoginView()
 }
