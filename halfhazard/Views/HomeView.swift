@@ -60,6 +60,7 @@ struct HomeView: View {
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
         if let userGroups = currentUser.groups {
+            print("Found some groups: \(userGroups.count)")
             return userGroups
         } else {
             return [Group]()
@@ -67,10 +68,15 @@ struct HomeView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             //
             ForEach(filteredGroups) {group in
-                GroupView(selectedGroup: group)
+                NavigationLink {
+                    GroupView(selectedGroup: group)
+                } label: {
+                    Text(group.name)
+                }
+
             }
         }
         .navigationTitle("Your finances are halfhazard")
