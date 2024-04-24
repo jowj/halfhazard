@@ -15,7 +15,7 @@ struct GroupView: View {
     
     @State private var expenseEdit: Expense?
     @State private var searchQuery = ""
-    @State public var selectedGroup: Group
+    @Bindable public var selectedGroup: Group
     
     @Query private var groups: [Group]
     @Query private var items: [Expense]
@@ -30,27 +30,20 @@ struct GroupView: View {
         var filteredExpenses: [Expense] = [Expense]()
         for group in groups {
             if group.name == selectedGroup.name {
-                if (group.expenses?.isEmpty) != nil {
-                    for expense in group.expenses ?? [Expense]() {
-                        if expense.group?.name == group.name {
-                            filteredExpenses.append(expense)
-                        }
-                        return filteredExpenses
-                    }
-                } else {
-                    return [Expense]()
+                print(group.unwrappedExpenses)
+                for expense in group.unwrappedExpenses {
+                    filteredExpenses.append(expense)
                 }
             }
         }
-        return [Expense]()
+        return filteredExpenses
     }
-    
-    
     
     var body: some View {
         List {
             // This ForEach shows each Expense and some buttons.
-            Text("Got to groupview")
+            Text("Got to groupview for \(selectedGroup.name)")
+            Text("There are some items in this group: \(filteredExpenses.count)")
             ForEach(filteredExpenses) { item in
                 HStack {
                     ExpenseView(expense: item)
@@ -86,6 +79,11 @@ struct GroupView: View {
                                             .gray)
                             }
                         }
+                }
+            }        
+            .overlay {
+                if filteredExpenses.isEmpty {
+                    ContentUnavailableView.search // this is, quite nice.
                 }
             }
         }

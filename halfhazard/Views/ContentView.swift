@@ -45,6 +45,7 @@ struct ContentView: View {
             return filteredExpensesByUser
         }
     }
+    
     var filteredExpenses: [Expense] {
         if searchQuery.isEmpty {
             return items
@@ -62,6 +63,7 @@ struct ContentView: View {
         }
         return filteredExpenses
     }
+    
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
         if let userGroups = currentUser.groups {
@@ -72,6 +74,7 @@ struct ContentView: View {
         }
     }
 
+    
     var body: some View {
 //        NavigationStack {
 //            if userID.isEmpty {
@@ -89,12 +92,9 @@ struct ContentView: View {
             }
         } content: {
             // Show me the list of expenses under a selected group.
-            if let mySelectedGroup = context.model(for: selectedGroup.self) as? Group{
-                GroupView(selectedGroup: mySelectedGroup)
-            } else {
-                Text("Please select a group.")
+            if let activeGroup = selectedGroup.self {
+                GroupView(selectedGroup: activeGroup)
             }
-            
         } detail: {
             // Show me all details about the selected expense!
             //ExpenseView(expense: <#T##Expense#>)
