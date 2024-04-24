@@ -42,8 +42,7 @@ struct GroupView: View {
     var body: some View {
         List {
             // This ForEach shows each Expense and some buttons.
-            Text("Got to groupview for \(selectedGroup.name)")
-            Text("There are some items in this group: \(filteredExpenses.count)")
+            Text("There are \(filteredExpenses.count) items in this group.")
             ForEach(filteredExpenses) { item in
                 HStack {
                     ExpenseView(expense: item)
