@@ -98,7 +98,7 @@ private extension CreateExpenseView {
         context.insert(item)
         item.category = selectedCategory
         item.author = currentUser(users: users, currentUserID: userID)
-        selectedCategory?.items?.append(item)
+        item.group = selectedGroup
     }
     
 }
