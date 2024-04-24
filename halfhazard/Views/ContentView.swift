@@ -66,7 +66,7 @@ struct ContentView: View {
     
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
-        if let userGroups = currentUser.groups {
+        if var userGroups = currentUser.groups {
             print("Found some groups: \(userGroups.count)")
             return userGroups
         } else {
