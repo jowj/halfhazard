@@ -23,7 +23,6 @@ struct ContentView: View {
     @State private var showAccountDetails = false
     @State private var showManageGroups = false
     @State private var selectedGroup: Group?
-    @State private var expenseEdit: Expense?
     @State private var searchQuery = ""
     
     @Query private var items: [Expense]
@@ -87,14 +86,11 @@ struct ContentView: View {
                     // show me a list of all groups!
                     NavigationLink("\(group.name)", value: group)
                 }
-            } content: {
-                // Show me the list of expenses under a selected group.
+            } detail: {
+                // Show me all the expenses inside a group
                 if let activeGroup = selectedGroup.self {
                     GroupView(selectedGroup: activeGroup)
                 }
-            } detail: {
-                // Show me all details about the selected expense!
-                //ExpenseView(expense: <#T##Expense#>)
             }
             .navigationTitle("Your finances are halfhazard")
             .searchable(text: $searchQuery,
@@ -175,17 +171,7 @@ struct ContentView: View {
                     
                 }
             })
-            
-            .sheet(item: $expenseEdit) {
-                expenseEdit = nil
-            } content: {item in
-                EditExpenseView(item: item)
-#if os(macOS)
-                    .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
                 
-            }
-            
         }
         
     }

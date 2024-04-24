@@ -30,7 +30,6 @@ struct GroupView: View {
         var filteredExpenses: [Expense] = [Expense]()
         for group in groups {
             if group.name == selectedGroup.name {
-                print(group.unwrappedExpenses)
                 for expense in group.unwrappedExpenses {
                     filteredExpenses.append(expense)
                 }
@@ -79,7 +78,17 @@ struct GroupView: View {
                             }
                         }
                 }
-            }        
+                .sheet(item: $expenseEdit) {
+                    expenseEdit = nil
+                } content: {item in
+                    EditExpenseView(item: item)
+    #if os(macOS)
+                        .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
+    #endif
+                    
+                }
+
+            }
             .overlay {
                 if filteredExpenses.isEmpty {
                     ContentUnavailableView.search // this is, quite nice.
