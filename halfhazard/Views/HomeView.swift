@@ -9,16 +9,11 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-
+    
     @AppStorage("userID") var userID: String = ""
-
-    @State private var showCreate = false
-    @State private var showCreateCategory = false
-    @State private var showAccountDetails = false
-    @State private var showManageGroups = false
-    @State private var expenseEdit: Expense?
+    
     @State private var searchQuery = ""
-
+    
     @Query private var items: [Expense]
     @Query private var users: [User]
     
@@ -38,7 +33,7 @@ struct HomeView: View {
             return filteredExpensesByUser
         }
     }
-        
+    
     var filteredExpenses: [Expense] {
         if searchQuery.isEmpty {
             return items
@@ -57,141 +52,24 @@ struct HomeView: View {
         return filteredExpenses
     }
     
+    var filteredGroups: [Group] {
+        let currentUser = currentUser(users: users, currentUserID: userID)
+        if let userGroups = currentUser.groups {
+            return userGroups
+        } else {
+            return [Group]()
+        }
+    }
+    
     var body: some View {
-        NavigationStack {
-            List {
-                // This ForEach shows each Expense and some buttons.
-                ForEach(filteredExpenses) { item in
-                    HStack {
-                        ExpenseView(expense: item)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    withAnimation {
-                                        context.delete(item)
-                                        
-                                    }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                        .symbolVariant(.circle.fill)
-                                }
-                                .tint(.orange)
-                                
-                                Button(role: .cancel) {
-                                    withAnimation {
-                                        expenseEdit = item
-                                    }
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
-                                        .symbolVariant(.circle.fill)
-                                }
-                                
-                                Button(role: .none) {
-                                    withAnimation {
-                                        item.isCompleted.toggle()
-                                    }
-                                } label: {
-                                    Label("Mark complete", systemImage: "checkmark")
-                                        .symbolVariant(.circle.fill)
-                                        .foregroundStyle(item.isCompleted ? .green :
-                                                .gray)
-                                }
-                            }
-                    }
+        List {
+            //
+            ForEach(filteredGroups) {group in
+                NavigationLink {
+                    GroupView(selectedGroup: group)
+                } label: {
+                    Text(group.name)
                 }
-      
-            }
-                .navigationTitle("Your finances are halfhazard")
-                .searchable(text: $searchQuery,
-                            prompt: "Search for an expense")
-                .overlay {
-                    if filteredExpenses.isEmpty {
-                        ContentUnavailableView.search // this is, quite nice.
-                    }
-                } // This Tool bar section configures just the tool bar buttons
-                .toolbar {
-                    ToolbarItem {
-                        Button {
-                            showCreate.toggle()
-                        } label: {
-                            Label("Add Item", systemImage: "plus")
-                        }
-
-                    }
-                    ToolbarItem {
-                        Button {
-                            showCreateCategory.toggle()
-                        } label: {
-                            Label("Manage Categories", systemImage: "ellipsis")
-                        }
-                        
-                    }
-                    ToolbarItem {
-                        Button {
-                            showManageGroups.toggle()
-                        } label: {
-                            Label("Manage Groups", systemImage: "person.3.fill")
-                        }
-                        
-                    }
-                    ToolbarItem {
-                        Button {
-                            showAccountDetails.toggle()
-                        } label: {
-                            Label("Login", systemImage: "person")
-                        }
-                        
-                    }
-
-
-                } // THese .sheets are all related to the toolbar stuff above.
-                .sheet(isPresented: $showCreate,
-                       content: {
-                    NavigationStack {
-                        CreateExpenseView()
-#if os(macOS)
-.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
-
-                    }
-                    // stolen from https://stackoverflow.com/questions/66216468/how-to-make-a-swiftui-sheet-size-match-the-width-height-of-window-on-macos
-                })
-                .sheet(isPresented: $showCreateCategory,
-                       content: {
-                    NavigationStack {
-                        CreateCategoryView()
-#if os(macOS)
-.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
-                    }
-                })
-                .sheet(isPresented: $showManageGroups,
-                       content: {
-                    NavigationStack {
-                        ManageGroupsView()
-#if os(macOS)
-.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
-
-                    }
-                })
-                .sheet(isPresented: $showAccountDetails,
-                       content: {
-                    NavigationStack {
-                        LoginView()
-#if os(macOS)
-.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
-
-                    }
-                })
-            
-                .sheet(item: $expenseEdit) {
-                    expenseEdit = nil
-                } content: {item in
-                    EditExpenseView(item: item)
-#if os(macOS)
-.frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-#endif
 
             }
         }
@@ -201,8 +79,3 @@ struct HomeView: View {
 private extension HomeView {
     
 }
-
-#Preview {
-    ContentView()
-}
-
