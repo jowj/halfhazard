@@ -27,11 +27,16 @@ Also its funny to think of your finances as haphazard.
     - [X] The UI in general is Too Large, and should be shrunk a bit.
     - [X] I should use a different input mechanism than labelled buttons on IOS. Maybe swipe to reveal?
         - ended up with context menu stuff. i think i still want diff behaviors on macos vs ios but, for now i'm good.
-- [ ] Move to using a navigation stack, I think. Should make some of the UI easier to use.
-    - as part of this, get rid of sheets.
+- [ ] get rid of sheets.
+    - might mean moving to a NavPath based navigation system, which I think requires a navstack at your root view, rather than the splitview i've just set up
 - [ ] add fields to configure username in login screen
     - use that instead of userID in ExpenseView
+    - Figure out how to actually sync this data between devices, its being dumb.
 - [ ] Figure out why I can't tint some of my buttons appropriately:
     - See the createCategory view
 - [ ] Implement an alternative to my old "need to apply defaults" thing; papa had something that seemed good?
 - [ ] I think many of my base views are fucked up - review them, especially after we get rid of sheets
+- [ ] Add details to group view:
+    - "you owe: total"
+    - "Mark all as paid"
+    - Configurable split %?
