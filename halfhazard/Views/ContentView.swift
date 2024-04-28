@@ -30,39 +30,6 @@ struct ContentView: View {
     
     @Environment(\.modelContext) var context
     
-    var filteredExpensesByUser: [Expense] {
-        var filteredExpensesByUser = [Expense]()
-        if userID.isEmpty {
-            return filteredExpensesByUser
-        } else {
-            let currentUser = currentUser(users: users, currentUserID: userID)
-            for expense in filteredExpenses {
-                if expense.author?.userID == currentUser.userID {
-                    filteredExpensesByUser.append(expense)
-                }
-            }
-            return filteredExpensesByUser
-        }
-    }
-    
-    var filteredExpenses: [Expense] {
-        if searchQuery.isEmpty {
-            return items
-        }
-        
-        let filteredExpenses = filteredExpensesByUser.compactMap { item in
-            let titleContainsQuery = item.name.range(of: searchQuery, options:
-                    .caseInsensitive) != nil
-            
-            let categoryTitleContainsQuery = item.category?.title.range(of: searchQuery, options:
-                    .caseInsensitive) != nil
-            
-            // if either thing is true, return them, otherwise return nil
-            return (titleContainsQuery || categoryTitleContainsQuery) ? item : nil
-        }
-        return filteredExpenses
-    }
-    
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
         // I *think* this has to be var, not let, because if its `let` then it can't get updated when the users .groups property is updated?
@@ -80,20 +47,25 @@ struct ContentView: View {
         if userID.isEmpty {
             NavigationStack {
                 LoginView()
-                
             }
         } else {
+//            LoginView()
+
             NavigationSplitView {
+                
                 List(filteredGroups, selection: $selectedGroup) { group in
                     // show me a list of all groups!
                     NavigationLink("\(group.name)", value: group)
+                        //.toolbar(removing: .sidebarToggle)
                 }
             } detail: {
+                Text("Detail view worked!")
                 // Show me all the expenses inside a group
                 if let activeGroup = selectedGroup.self {
                     GroupView(selectedGroup: activeGroup)
                 }
             }
+            
             .navigationTitle("Your finances are halfhazard")
             .searchable(text: $searchQuery,
                         prompt: "Search for an expense")
