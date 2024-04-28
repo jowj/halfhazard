@@ -40,3 +40,6 @@ Also its funny to think of your finances as haphazard.
     - "you owe: total"
     - "Mark all as paid"
     - Configurable split %?
+- [ ] Fix Nav Menu confusion. Works on macOS but not on iOS and I have no idea why
+    - also, how do i do things like, arch specific views? the #if os macro doesn't really seem to work with Views and multi-line configuration
+

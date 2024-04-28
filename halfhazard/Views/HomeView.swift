@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+//TODO: I'm pretty sure this is redundant now?
 struct HomeView: View {
     
     @AppStorage("userID") var userID: String = ""
