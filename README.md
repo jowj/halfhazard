@@ -29,7 +29,7 @@ Also its funny to think of your finances as haphazard.
         - ended up with context menu stuff. i think i still want diff behaviors on macos vs ios but, for now i'm good.
 - [ ] get rid of sheets.
     - might mean moving to a NavPath based navigation system, which I think requires a navstack at your root view, rather than the splitview i've just set up
-- [ ] add fields to configure username in login screen
+- [X] add fields to configure username in login screen
     - use that instead of userID in ExpenseView
     - Figure out how to actually sync this data between devices, its being dumb.
 - [ ] Figure out why I can't tint some of my buttons appropriately:
@@ -40,6 +40,6 @@ Also its funny to think of your finances as haphazard.
     - "you owe: total"
     - "Mark all as paid"
     - Configurable split %?
-- [ ] Fix Nav Menu confusion. Works on macOS but not on iOS and I have no idea why
+- [X] Fix Nav Menu confusion. Works on macOS but not on iOS and I have no idea why
     - also, how do i do things like, arch specific views? the #if os macro doesn't really seem to work with Views and multi-line configuration
 
