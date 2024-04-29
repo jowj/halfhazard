@@ -163,9 +163,6 @@ struct ContentView: View {
                         Label("Login", systemImage: "person")
                     }
                 }
-            
-                
-                
             }
         }
         
