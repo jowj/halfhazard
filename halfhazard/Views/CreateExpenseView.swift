@@ -95,9 +95,10 @@ struct CreateExpenseView: View {
 private extension CreateExpenseView {
     
     func save() {
+        let author = currentUser(users: users, currentUserID: userID)
         context.insert(item)
         item.category = selectedCategory
-        item.author = currentUser(users: users, currentUserID: userID)
+        item.author = author
         item.group = selectedGroup
     }
     
