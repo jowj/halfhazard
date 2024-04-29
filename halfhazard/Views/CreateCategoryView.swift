@@ -77,8 +77,3 @@ private extension CreateCategoryView {
     }
     
 }
-
-
-#Preview {
-    CreateCategoryView()
-}

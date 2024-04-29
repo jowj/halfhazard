@@ -106,13 +106,34 @@ struct LoginView: View {
     
 private extension LoginView{
     func save(credential: ASAuthorizationAppleIDCredential) {
-        
-        let userID = credential.user
-        let currentUser = User(userID: userID, name: name)
-        context.insert(currentUser)
-        
-        // Put stuff in local storage
-        self.name = name
-        self.userID = userID
+        var exists = false
+        for user in users {
+            if credential.user == user.userID {
+                // This handles the "you have logged in before and I don't need to insert, I just need to /load/.
+                let currentUser = user
+                // GOD this unwrapping thing is so annoying.
+                if let existingname = currentUser.name {
+                    name = existingname
+                }
+                userID = currentUser.userID
+                exists = true
+                break
+            }
+        }
+        // This handles the "you haven't logged in before and we have to make a new user for you" flow.
+        if exists == true {
+            print("holy shit you already exist! i shouldn't insert you again!")
+            return
+        } else {
+            print("Never found an existing user, lets make a new one.")
+            let userID = credential.user
+            let currentUser = User(userID: userID, name: name)
+            context.insert(currentUser)
+            
+            // Put stuff in local storage
+            currentUser.name = name
+            currentUser.userID = userID
+
+        }
     }
 }
