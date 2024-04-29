@@ -16,6 +16,7 @@ class User: Identifiable {
     var name: String? = ""
 
     @Relationship(deleteRule: .nullify, inverse: \Group.members)
+        // TODO: make sure you understand this default value, because i'm REALLY not sure I do.
         var groups: [Group]? = [Group]() // users won't necessarily have groups
     
     var expenses: [Expense]? = [Expense]() // new users won't have any expenses

@@ -5,9 +5,11 @@
 //  Created by Josiah Ledbetter on 2024-03-11.
 //
 
+
 import SwiftUI
 import SwiftData
 
+//TODO: this whole page should be revamped.
 struct EditExpenseView: View {
 
     @Bindable var item: Expense

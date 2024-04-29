@@ -24,6 +24,14 @@ class Group {
         return unwrappedExpenses
     }
     
+    var unwrappedMembers: [User] {
+        let unwrappedMembers = [User]()
+        if let unwrappedMembers = members {
+            return unwrappedMembers
+        }
+        return unwrappedMembers
+    }
+    
     init(name: String, expenses: [Expense]? = [Expense](), members: [User]? = [User]()) {
         self.name = name
         self.expenses = expenses

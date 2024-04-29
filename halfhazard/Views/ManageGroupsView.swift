@@ -77,16 +77,14 @@ private extension ManageGroupsView {
     
     func save() {
         let group = Group(name: groupName)
-        group.members = [currentUser(users: users, currentUserID: userID)]
+        // ALWAYS INSERT FIRST, THEN MODIFY
+        // no, of course that doesn't make sense.
         modelContext.insert(group)
+        group.members = [currentUser(users: users, currentUserID: userID)]
         // I'm not sure why we have to set category to empty array here
         // but title must be reset to "" or you live with some weird erros
         // and a fucked up UI.
         groupName = ""
     }
     
-}
-
-#Preview {
-    ManageGroupsView()
 }

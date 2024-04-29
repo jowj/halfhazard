@@ -108,9 +108,6 @@ private extension LoginView{
     func save(credential: ASAuthorizationAppleIDCredential) {
         
         let userID = credential.user
-        
-
-
         let currentUser = User(userID: userID, name: name)
         context.insert(currentUser)
         
