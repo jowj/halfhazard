@@ -32,9 +32,7 @@ struct ContentView: View {
     
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
-        // I *think* this has to be var, not let, because if its `let` then it can't get updated when the users .groups property is updated?
-        // I think?
-        if var userGroups = currentUser.groups {
+        if let userGroups = currentUser.groups {
             print("Found some groups: \(userGroups.count)")
             return userGroups
         } else {
