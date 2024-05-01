@@ -29,13 +29,14 @@ Also its funny to think of your finances as haphazard.
         - ended up with context menu stuff. i think i still want diff behaviors on macos vs ios but, for now i'm good.
 - [ ] get rid of sheets.
     - might mean moving to a NavPath based navigation system, which I think requires a navstack at your root view, rather than the splitview i've just set up
-- [ ] add fields to configure username in login screen
+- [X] add fields to configure username in login screen
     - use that instead of userID in ExpenseView
     - Figure out how to actually sync this data between devices, its being dumb.
-- [ ] Figure out why I can't tint some of my buttons appropriately:
+- [X] Figure out why I can't tint some of my buttons appropriately:
     - See the createCategory view
+    - Seems to be platform differences - works every time on iOS, can't make it work on macOS mostly. Moving on.
 - [ ] Implement an alternative to my old "need to apply defaults" thing; papa had something that seemed good?
-- [ ] I think many of my base views are fucked up - review them, especially after we get rid of sheets
+- [X] I think many of my base views are fucked up - review them, especially after we get rid of sheets
 - [X] Add details to group view:
     - "you owe: total"
     - "Mark all as paid"
