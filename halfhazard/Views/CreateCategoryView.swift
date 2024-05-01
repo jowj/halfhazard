@@ -20,8 +20,10 @@ struct CreateCategoryView: View {
         List {
             TextField("Enter title here",
                       text: $title)
-            Button("Add Category") {
+            Button {
                 save()
+            } label: {
+                Label("Add Category", systemImage: "plus.circle")
             }
             .disabled(title.isEmpty)
 
