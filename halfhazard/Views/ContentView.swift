@@ -32,10 +32,7 @@ struct ContentView: View {
     
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
-        // I *think* this has to be var, not let, because if its `let` then it can't get updated when the users .groups property is updated?
-        // I think?
-        if var userGroups = currentUser.groups {
-            print("Found some groups: \(userGroups.count)")
+        if let userGroups = currentUser.groups {
             return userGroups
         } else {
             return [Group]()
@@ -60,6 +57,7 @@ struct ContentView: View {
                 .searchable(text: $searchQuery,
                             prompt: "Search for an expense")
                 // This Tool bar section configures just the tool bar buttons
+#if os(iOS)
                 .toolbar {
                     ToolbarItemGroup {
                         Button {
@@ -88,7 +86,9 @@ struct ContentView: View {
                 
                     
                     
-                } // THese .sheets are all related to the toolbar stuff above
+                }
+#endif
+ // THese .sheets are all related to the toolbar stuff above
                 .sheet(isPresented: $showCreate,
                        content: {
                     NavigationStack {
@@ -138,6 +138,7 @@ struct ContentView: View {
                     GroupView(selectedGroup: activeGroup)
                 }
             }
+#if os(macOS)
             .toolbar {
                 ToolbarItemGroup {
                     Button {
@@ -164,6 +165,7 @@ struct ContentView: View {
                     }
                 }
             }
+#endif
         }
         
     }

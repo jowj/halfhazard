@@ -38,10 +38,37 @@ struct GroupView: View {
         return filteredExpenses
     }
     
+        var totalUnpaidExpense: Double {
+            // find all expesnes that haven't been marked as complete, and sum their cost
+            var totalGroupSpent = 0.0
+            for expense in filteredExpenses {
+                totalGroupSpent = totalGroupSpent + expense.amount
+            }
+            
+            return totalGroupSpent
+        }
+        
+        var totalYouOwe: Double {
+            // find all expenses that haven't been marked as complete, find what you owe by dividing by number of users in group
+            var youOwe = 0.0
+            for expense in filteredExpenses {
+                if let author = expense.author {
+                    if author.userID == userID {
+                        // don't increment you owe.
+                    } else {
+                        youOwe = youOwe + expense.amount / Double(selectedGroup.unwrappedMembers.count)
+                    }
+                }
+            }
+            return youOwe
+        }
+    
     var body: some View {
         List {
             // This ForEach shows each Expense and some buttons.
             Text("There are \(filteredExpenses.count) items in this group.")
+            Text("The group has \(totalUnpaidExpense.formatted(.currency(code: "USD"))) in remaining unpaid for items.")
+            Text("You, specifically, owe \(totalUnpaidExpense.formatted(.currency(code: "USD"))), because there are \(selectedGroup.unwrappedMembers.count) users in this group.")
             ForEach(filteredExpenses) { item in
                 HStack {
                     ExpenseView(expense: item)
