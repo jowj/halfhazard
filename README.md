@@ -36,10 +36,10 @@ Also its funny to think of your finances as haphazard.
     - See the createCategory view
 - [ ] Implement an alternative to my old "need to apply defaults" thing; papa had something that seemed good?
 - [ ] I think many of my base views are fucked up - review them, especially after we get rid of sheets
-- [ ] Add details to group view:
+- [X] Add details to group view:
     - "you owe: total"
     - "Mark all as paid"
-    - Configurable split %?
-- [ ] Fix Nav Menu confusion. Works on macOS but not on iOS and I have no idea why
+- [X] Fix Nav Menu confusion. Works on macOS but not on iOS and I have no idea why
     - also, how do i do things like, arch specific views? the #if os macro doesn't really seem to work with Views and multi-line configuration
-
+- [ ] Add configurable split % at the expense level
+    - not sure how to do this. maybe best done as an optional property that stores a dict or something?
