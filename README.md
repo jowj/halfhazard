@@ -44,3 +44,8 @@ Also its funny to think of your finances as haphazard.
     - also, how do i do things like, arch specific views? the #if os macro doesn't really seem to work with Views and multi-line configuration
 - [ ] Add configurable split % at the expense level
     - not sure how to do this. maybe best done as an optional property that stores a dict or something?
+- [ ] Add import/export capability. 
+    - i don't know that i care in general about either csv or json
+    - csv is most common in finance apps though, so worth considering
+    - maybe just do both?
+    - this might be my last breaking feature before I start using this myself.
