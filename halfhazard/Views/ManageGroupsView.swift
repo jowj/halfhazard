@@ -53,6 +53,15 @@ struct ManageGroupsView: View {
                                             Label("Delete", systemImage: "trash")
                                                 .symbolVariant(.circle.fill)
                                         }
+                                        // Need to add an edit button here?
+                                        Button(role: .none) {
+                                            withAnimation {
+                                                modelContext.delete(group)
+                                            }
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                                .symbolVariant(.circle.fill)
+                                        }
                                     }
                             }
                         }

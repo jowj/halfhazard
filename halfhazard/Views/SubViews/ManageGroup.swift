@@ -11,6 +11,7 @@ import SwiftData
 
 struct ManageGroup: View {
     @AppStorage("userID") var userID: String = ""
+    @State var userToAdd: String = ""
     var group: Group
     
     @Environment(\.modelContext) var context
@@ -24,17 +25,26 @@ struct ManageGroup: View {
         
         return totalGroupSpent
     }
-
+    
     var body: some View {
         // List members
         // delete members
         // add members
-        ForEach(group.unwrappedMembers) { member in
-            HStack {
-                Text(member.name ?? "Nothin")
+        Form {
+            Text("Currently modifying group: \(group)")
+            Section("Do you want to add a user?") {
+                TextField("Enter user here",
+                          text: $userToAdd)
             }
+            Section("These users already exist:") {
+                ForEach(group.unwrappedMembers) { member in
+                    HStack {
+                        Text(member.name ?? "Nothin")
+                    }
+                }
+            }
+            // don't list expenses
+            //
         }
-        // don't list expenses
-        //
     }
 }

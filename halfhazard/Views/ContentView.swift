@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var showManageGroups = false
     @State private var selectedGroup: Group?
     @State private var searchQuery = ""
+    @State private var editflag = false
     
     @Query private var items: [Expense]
     @Query private var users: [User]
@@ -52,7 +53,20 @@ struct ContentView: View {
                     // show me a list of all groups!
                     NavigationLink("\(group.name)", value: group)
                         //.toolbar(removing: .sidebarToggle)
+                        .contextMenu {
+                            Button(role: .none) {
+                                withAnimation {
+                                    editflag = true
+                                }
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                                    .symbolVariant(.circle.fill)
+                            }
+                        }
+
                 }
+                
+                
                 .navigationTitle("Your finances are halfhazard")
                 .searchable(text: $searchQuery,
                             prompt: "Search for an expense")
@@ -135,7 +149,12 @@ struct ContentView: View {
                 Text("Detail view worked!")
                 // Show me all the expenses inside a group
                 if let activeGroup = selectedGroup.self {
-                    GroupView(selectedGroup: activeGroup)
+                    if editflag == false {
+                        GroupView(selectedGroup: activeGroup)
+                    }
+                    if editflag == true {
+                        ManageGroup(group: activeGroup.self)
+                    }
                 }
             }
 #if os(macOS)

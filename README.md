@@ -49,3 +49,7 @@ Also its funny to think of your finances as haphazard.
     - csv is most common in finance apps though, so worth considering
     - maybe just do both?
     - this might be my last breaking feature before I start using this myself.
+- [ ] Groups should have public / private settings
+    - hard to reason about until i get a better understanding of how multi user works right now
+- [ ] build out some reporting functionality; pie charts?
+- [ ] make groups view sorted, sortable.
