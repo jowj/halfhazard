@@ -10,13 +10,11 @@ import SwiftData
 
 struct ContentView: View {
     
-    // you THINK you are re-initiatlizing variables, but because of how @AppStorage works you're not!
-    // Anytime you want to ref an appstorage var you "reinit" just like this.
     @AppStorage("email") var email: String = ""
     @AppStorage("fullName") var fullName: String = ""
     @AppStorage("userID") var userID: String = ""
     
-    var loggedIn = false
+    @Binding var navigationPath: NavigationPath
     
     @State private var showCreate = false
     @State private var showCreateCategory = false
@@ -24,7 +22,6 @@ struct ContentView: View {
     @State private var showManageGroups = false
     @State private var selectedGroup: Group?
     @State private var searchQuery = ""
-    @State private var editflag = false
     
     @Query private var items: [Expense]
     @Query private var users: [User]
@@ -33,40 +30,26 @@ struct ContentView: View {
     
     var filteredGroups: [Group] {
         let currentUser = currentUser(users: users, currentUserID: userID)
-        if let userGroups = currentUser.groups {
-            return userGroups
-        } else {
-            return [Group]()
-        }
+        return currentUser.groups ?? []
     }
+
     
     
     var body: some View {
         if userID.isEmpty {
-            NavigationStack {
-                LoginView()
-            }
+            LoginView()
         } else {
             NavigationSplitView {
-                
                 List(filteredGroups, selection: $selectedGroup) { group in
-                    // show me a list of all groups!
-                    NavigationLink("\(group.name)", value: group)
-                        //.toolbar(removing: .sidebarToggle)
+                    NavigationLink(group.name, value: group)
                         .contextMenu {
-                            Button(role: .none) {
-                                withAnimation {
-                                    editflag = true
-                                }
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                                    .symbolVariant(.circle.fill)
+                            Button("Edit") {
+                                selectedGroup = group
+                                navigationPath.append(group)
                             }
                         }
-
                 }
-                
-                
+    
                 .navigationTitle("Your finances are halfhazard")
                 .searchable(text: $searchQuery,
                             prompt: "Search for an expense")
@@ -146,14 +129,14 @@ struct ContentView: View {
 
 
             } detail: {
-                Text("Detail view worked!")
-                // Show me all the expenses inside a group
-                if let activeGroup = selectedGroup.self {
-                    if editflag == false {
+                NavigationStack(path: $navigationPath) {
+                    if let activeGroup = selectedGroup {
                         GroupView(selectedGroup: activeGroup)
-                    }
-                    if editflag == true {
-                        ManageGroup(group: activeGroup.self)
+                            .navigationDestination(for: Group.self) { group in
+                                ManageGroup(navigationPath: $navigationPath, group: group)
+                            }
+                    } else {
+                        Text("Select a group")
                     }
                 }
             }

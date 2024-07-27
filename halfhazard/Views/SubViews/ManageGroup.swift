@@ -10,41 +10,92 @@ import SwiftUI
 import SwiftData
 
 struct ManageGroup: View {
+    @Environment(\.modelContext) var context
+    @Environment(\.dismiss) private var dismiss
     @AppStorage("userID") var userID: String = ""
-    @State var userToAdd: String = ""
+    
+    @Binding var navigationPath: NavigationPath
+    
     var group: Group
     
-    @Environment(\.modelContext) var context
+    @Query private var users: [User]
     
-    var totalUnpaidExpense: Double {
-        // find all expesnes that haven't been marked as complete, and sum their cost
-        var totalGroupSpent = 0.0
-        for expense in group.unwrappedExpenses {
-            totalGroupSpent = totalGroupSpent + expense.amount
-        }
-        
-        return totalGroupSpent
-    }
+    @State private var selectedUserID: String?
     
     var body: some View {
-        // List members
-        // delete members
-        // add members
         Form {
-            Text("Currently modifying group: \(group)")
+            Text("Currently modifying group: \(group.name)") // Assuming Group has a name property
+            
             Section("Do you want to add a user?") {
-                TextField("Enter user here",
-                          text: $userToAdd)
-            }
-            Section("These users already exist:") {
-                ForEach(group.unwrappedMembers) { member in
-                    HStack {
-                        Text(member.name ?? "Nothin")
+                VStack {
+                    Picker("Assign User", selection: $selectedUserID) {
+                        Text("Select a user").tag(nil as String?)
+                        ForEach(users) { user in
+                            Text(user.name ?? "Unknown").tag(user.userID as String?)
+                        }
+                    }
+                    .onChange(of: selectedUserID) { oldValue, newValue in
+                        if let newValue = newValue {
+                            addUserToGroup(userID: newValue)
+                        }
+                    }
+                    
+                    if let selectedUserID = selectedUserID,
+                       let selectedUser = users.first(where: { $0.userID == selectedUserID }) {
+                        Text("Selected: \(selectedUser.name ?? "Unknown")")
                     }
                 }
             }
-            // don't list expenses
-            //
+            
+            Section("These users already exist:") {
+                ForEach(group.unwrappedMembers) { member in
+                    HStack {
+                        Text(member.name ?? "Unknown")
+                        Spacer()
+                        Button("Remove") {
+                            removeUserFromGroup(user: member)
+                        }
+                    }
+                }
+            }
+            Button("Done") {
+                navigationPath.removeLast()
+            }
         }
     }
+    
+    private func addUserToGroup(userID: String) {
+        guard let user = users.first(where: { $0.userID == userID }),
+              !group.unwrappedMembers.contains(where: { $0.userID == userID }) else {
+            return
+        }
+        
+        group.members?.append(user)
+        
+        do {
+            try context.save()
+            selectedUserID = nil // Reset selection after adding
+        } catch {
+            print("Failed to save context: \(error)")
+        }
+    }
+    
+    private func removeUserFromGroup(user: User) {
+        group.members?.removeAll(where: { $0.userID == user.userID })
+        
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save context: \(error)")
+        }
+    }
+}
+
+
+private extension ManageGroup {
+
+    func save(selectedGroup: Group, user: User) {
+        group.members?.append(user)
+    }
+    
 }
