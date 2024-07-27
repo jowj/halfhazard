@@ -26,6 +26,8 @@ struct CreateExpenseView: View {
     @Query private var categories: [ExpenseCategory]
     @Query private var users: [User]
     @Query private var groups: [Group]
+    
+    @Binding var navigationPath: NavigationPath
         
     var body: some View {
         VStack {
@@ -73,6 +75,9 @@ struct CreateExpenseView: View {
                     }
                 }
             }
+            .onAppear {
+                print("CreateExpenseView appeared")
+            }
             
             Button("create") {
                 save()
@@ -83,13 +88,14 @@ struct CreateExpenseView: View {
         .toolbar {
             
             ToolbarItem(placement: .cancellationAction) {
-                Button("Dismiss") {
-                    dismiss()
+                Button("Done") {
+                    navigationPath.removeLast()
                 }
             }
         }
 
     }
+    
 }
 
 private extension CreateExpenseView {
