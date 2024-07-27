@@ -43,9 +43,8 @@ struct ContentView: View {
                 List(filteredGroups, selection: $selectedGroup) { group in
                     NavigationLink(group.name, value: group)
                         .contextMenu {
-                            Button("Edit") {
-                                selectedGroup = group
-                                navigationPath.append(group)
+                            NavigationLink(destination: ManageGroup(group: group)) {
+                                Label("Edit", systemImage: "pencil")
                             }
                         }
                 }
@@ -60,7 +59,7 @@ struct ContentView: View {
                             Text("Select a group")
                         }
                     }
-                    // MARK: Toolbar 
+                    // MARK: Toolbar
                     .toolbar {
                         ToolbarItemGroup {
                             NavigationLink(destination: CreateExpenseView()) {
