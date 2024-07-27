@@ -10,16 +10,10 @@ import SwiftData
 
 struct ContentView: View {
     
-    @AppStorage("email") var email: String = ""
-    @AppStorage("fullName") var fullName: String = ""
     @AppStorage("userID") var userID: String = ""
     
     @Binding var navigationPath: NavigationPath
     
-    @State private var showCreate = false
-    @State private var showCreateCategory = false
-    @State private var showAccountDetails = false
-    @State private var showManageGroups = false
     @State private var selectedGroup: userGroup?
     @State private var searchQuery = ""
     
