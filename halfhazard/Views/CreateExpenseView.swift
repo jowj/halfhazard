@@ -26,9 +26,7 @@ struct CreateExpenseView: View {
     @Query private var categories: [ExpenseCategory]
     @Query private var users: [User]
     @Query private var groups: [userGroup]
-    
-    @Binding var navigationPath: NavigationPath
-        
+            
     var body: some View {
         VStack {
             Form {
@@ -89,7 +87,7 @@ struct CreateExpenseView: View {
             
             ToolbarItem(placement: .cancellationAction) {
                 Button("Done") {
-                    navigationPath.removeLast()
+                    dismiss()
                 }
             }
         }

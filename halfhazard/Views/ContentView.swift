@@ -37,7 +37,7 @@ struct ContentView: View {
     
     var body: some View {
         if userID.isEmpty {
-            LoginView(navigationPath: $navigationPath)
+            LoginView()
         } else {
             NavigationSplitView {
                 List(filteredGroups, selection: $selectedGroup) { group in
@@ -60,37 +60,21 @@ struct ContentView: View {
                             Text("Select a group")
                         }
                     }
-                    .navigationDestination(for: userGroup.self) { group in
-                        ManageGroup(navigationPath: $navigationPath, group: group)
-                    }
-                    .navigationDestination(for: CreateExpenseDestination.self) { _ in
-                        CreateExpenseView(navigationPath: $navigationPath)
-                    }
-                    .navigationDestination(for: CreateCategoryDestination.self) { _ in
-                        CreateCategoryView(navigationPath: $navigationPath)
-                    }
-                    .navigationDestination(for: ManageGroupsDestination.self) { _ in
-                        ManageGroupsView(navigationPath: $navigationPath)
-                    }
-                    .navigationDestination(for: AccountDetailsDestination.self) { _ in
-                        LoginView(navigationPath: $navigationPath)
-                    }
-
-                }
-                .toolbar {
-                    ToolbarItemGroup {
-                        NavigationLink(value: CreateExpenseDestination()) {
-                            Label("Add Item", systemImage: "plus")
-                        }
-                        NavigationLink(value: CreateCategoryDestination()) {
-                            Label("Manage Categories", systemImage: "ellipsis")
-                        }
-                                                                                
-                        NavigationLink(value: ManageGroupsDestination()) {
-                            Label("Manage Groups", systemImage: "person.3.fill")
-                        }
-                        NavigationLink(value: AccountDetailsDestination()) {
-                            Label("Login", systemImage: "person")
+                    // MARK: Toolbar 
+                    .toolbar {
+                        ToolbarItemGroup {
+                            NavigationLink(destination: CreateExpenseView()) {
+                                Label("Add Item", systemImage: "plus")
+                            }
+                            NavigationLink(destination: CreateCategoryView()) {
+                                Label("Manage Categories", systemImage: "ellipsis")
+                            }
+                            NavigationLink(destination: ManageGroupsView()) {
+                                Label("Manage Groups", systemImage: "person.3.fill")
+                            }
+                            NavigationLink(destination: LoginView()) {
+                                Label("Login", systemImage: "person")
+                            }
                         }
                     }
                 }
@@ -98,8 +82,3 @@ struct ContentView: View {
         }
     }
 }
-
-struct CreateExpenseDestination: Hashable {}
-struct CreateCategoryDestination: Hashable {}
-struct ManageGroupsDestination: Hashable {}
-struct AccountDetailsDestination: Hashable {}

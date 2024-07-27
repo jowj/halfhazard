@@ -13,9 +13,7 @@ struct ManageGroup: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) private var dismiss
     @AppStorage("userID") var userID: String = ""
-    
-    @Binding var navigationPath: NavigationPath
-    
+        
     var group: userGroup
     
     @Query private var users: [User]
@@ -59,7 +57,7 @@ struct ManageGroup: View {
                 }
             }
             Button("Done") {
-                navigationPath.removeLast()
+                dismiss()
             }
         }
     }

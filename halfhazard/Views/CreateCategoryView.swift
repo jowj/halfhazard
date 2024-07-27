@@ -15,7 +15,6 @@ struct CreateCategoryView: View {
     @State private var title: String = ""
     @Query private var categories: [ExpenseCategory]
     
-    @Binding var navigationPath: NavigationPath
     var body: some View {
         
         List {
