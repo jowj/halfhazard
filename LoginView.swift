@@ -17,6 +17,8 @@ struct LoginView: View {
     @Query private var users: [User]
     @AppStorage("name") var name: String = ""
     @AppStorage("userID") var userID: String = ""
+    
+    @Binding var navigationPath: NavigationPath
         
     var currentUserFromDB: User {
         currentUser(users: users, currentUserID: userID)

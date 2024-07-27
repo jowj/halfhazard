@@ -20,6 +20,8 @@ struct ManageGroupsView: View {
     @State private var groupName: String = ""
     @Query private var groups: [userGroup]
     
+    @Binding var navigationPath: NavigationPath
+    
     var body: some View {
         NavigationStack {
             List {

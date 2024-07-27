@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var showCreateCategory = false
     @State private var showAccountDetails = false
     @State private var showManageGroups = false
-    @State private var selectedGroup: Group?
+    @State private var selectedGroup: userGroup?
     @State private var searchQuery = ""
     
     @Query private var items: [Expense]
@@ -28,16 +28,16 @@ struct ContentView: View {
     
     @Environment(\.modelContext) var context
     
-    var filteredGroups: [Group] {
+    var filteredGroups: [userGroup] {
         let currentUser = currentUser(users: users, currentUserID: userID)
         return currentUser.groups ?? []
     }
-
+    
     
     
     var body: some View {
         if userID.isEmpty {
-            LoginView()
+            LoginView(navigationPath: $navigationPath)
         } else {
             NavigationSplitView {
                 List(filteredGroups, selection: $selectedGroup) { group in
@@ -49,127 +49,57 @@ struct ContentView: View {
                             }
                         }
                 }
-    
                 .navigationTitle("Your finances are halfhazard")
-                .searchable(text: $searchQuery,
-                            prompt: "Search for an expense")
-                // This Tool bar section configures just the tool bar buttons
-#if os(iOS)
+                .searchable(text: $searchQuery, prompt: "Search for an expense")
+            } detail: {
+                NavigationStack(path: $navigationPath) {
+                    Group {
+                        if let activeGroup = selectedGroup {
+                            GroupView(selectedGroup: activeGroup)
+                        } else {
+                            Text("Select a group")
+                        }
+                    }
+                    .navigationDestination(for: userGroup.self) { group in
+                        ManageGroup(navigationPath: $navigationPath, group: group)
+                    }
+                    .navigationDestination(for: CreateExpenseDestination.self) { _ in
+                        CreateExpenseView(navigationPath: $navigationPath)
+                    }
+                    .navigationDestination(for: CreateCategoryDestination.self) { _ in
+                        CreateCategoryView(navigationPath: $navigationPath)
+                    }
+                    .navigationDestination(for: ManageGroupsDestination.self) { _ in
+                        ManageGroupsView(navigationPath: $navigationPath)
+                    }
+                    .navigationDestination(for: AccountDetailsDestination.self) { _ in
+                        LoginView(navigationPath: $navigationPath)
+                    }
+
+                }
                 .toolbar {
                     ToolbarItemGroup {
-                        Button {
-                            showCreate.toggle()
-                        } label: {
+                        NavigationLink(value: CreateExpenseDestination()) {
                             Label("Add Item", systemImage: "plus")
                         }
-                        
-                        Button {
-                            showCreateCategory.toggle()
-                        } label: {
+                        NavigationLink(value: CreateCategoryDestination()) {
                             Label("Manage Categories", systemImage: "ellipsis")
                         }
-                        
-                        Button {
-                            showManageGroups.toggle()
-                        } label: {
+                                                                                
+                        NavigationLink(value: ManageGroupsDestination()) {
                             Label("Manage Groups", systemImage: "person.3.fill")
                         }
-                        Button {
-                            showAccountDetails.toggle()
-                        } label: {
+                        NavigationLink(value: AccountDetailsDestination()) {
                             Label("Login", systemImage: "person")
                         }
                     }
-                
-                    
-                    
-                }
-#endif
- // THese .sheets are all related to the toolbar stuff above
-                .sheet(isPresented: $showCreate,
-                       content: {
-                    NavigationStack {
-                        CreateExpenseView()
-    #if os(macOS)
-                            .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-    #endif
-                        
-                    }
-                    // stolen from https://stackoverflow.com/questions/66216468/how-to-make-a-swiftui-sheet-size-match-the-width-height-of-window-on-macos
-                })
-                .sheet(isPresented: $showCreateCategory,
-                       content: {
-                    NavigationStack {
-                        CreateCategoryView()
-    #if os(macOS)
-                            .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-    #endif
-                    }
-                })
-                .sheet(isPresented: $showManageGroups,
-                       content: {
-                    NavigationStack {
-                        ManageGroupsView()
-    #if os(macOS)
-                            .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-    #endif
-                        
-                    }
-                })
-                .sheet(isPresented: $showAccountDetails,
-                       content: {
-                    NavigationStack {
-                        LoginView()
-    #if os(macOS)
-                            .frame(minWidth: 800, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .center)
-    #endif
-                        
-                    }
-                })
-
-
-            } detail: {
-                NavigationStack(path: $navigationPath) {
-                    if let activeGroup = selectedGroup {
-                        GroupView(selectedGroup: activeGroup)
-                            .navigationDestination(for: Group.self) { group in
-                                ManageGroup(navigationPath: $navigationPath, group: group)
-                            }
-                    } else {
-                        Text("Select a group")
-                    }
                 }
             }
-#if os(macOS)
-            .toolbar {
-                ToolbarItemGroup {
-                    Button {
-                        showCreate.toggle()
-                    } label: {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                    
-                    Button {
-                        showCreateCategory.toggle()
-                    } label: {
-                        Label("Manage Categories", systemImage: "ellipsis")
-                    }
-                    
-                    Button {
-                        showManageGroups.toggle()
-                    } label: {
-                        Label("Manage Groups", systemImage: "person.3.fill")
-                    }
-                    Button {
-                        showAccountDetails.toggle()
-                    } label: {
-                        Label("Login", systemImage: "person")
-                    }
-                }
-            }
-#endif
         }
-        
     }
-    
 }
+
+struct CreateExpenseDestination: Hashable {}
+struct CreateCategoryDestination: Hashable {}
+struct ManageGroupsDestination: Hashable {}
+struct AccountDetailsDestination: Hashable {}
