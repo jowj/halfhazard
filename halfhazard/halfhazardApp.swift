@@ -10,7 +10,7 @@ import SwiftData
 
 @main
 struct halfhazard: App {
-    
+    @State private var navigationPath = NavigationPath()
     @AppStorage("isFirstTimeLaunch") private var isFirstTimeLaunch: Bool = true
     
     var sharedModelContainer: ModelContainer = {
@@ -31,7 +31,7 @@ struct halfhazard: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(navigationPath: $navigationPath)
                 // important for SwiftData? I'm watching this video that says to do this.
                 // maybe its right?
                 .modelContainer(sharedModelContainer)

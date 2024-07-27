@@ -12,6 +12,7 @@
 		8A14F9C02B8A6C1800EAA9E2 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A14F9BF2B8A6C1800EAA9E2 /* Preview Assets.xcassets */; };
 		8A4B2AB12BCC11D200A28878 /* GroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4B2AB02BCC11D200A28878 /* GroupView.swift */; };
 		8A4EA7DB2BAA5C7D000F08D0 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4EA7DA2BAA5C7D000F08D0 /* LoginView.swift */; };
+		8A647BDA2C1500AD0074468F /* ManageGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A647BD92C1500AD0074468F /* ManageGroup.swift */; };
 		8A7239602B8AC83600671984 /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A72395F2B8AC83600671984 /* Group.swift */; };
 		8A7239622B8AC84A00671984 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7239612B8AC84A00671984 /* Expense.swift */; };
 		8A7239642B8AC87000671984 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7239632B8AC87000671984 /* User.swift */; };
@@ -33,6 +34,7 @@
 		8A14F9C12B8A6C1800EAA9E2 /* halfhazard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = halfhazard.entitlements; sourceTree = "<group>"; };
 		8A4B2AB02BCC11D200A28878 /* GroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupView.swift; sourceTree = "<group>"; };
 		8A4EA7DA2BAA5C7D000F08D0 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = SOURCE_ROOT; };
+		8A647BD92C1500AD0074468F /* ManageGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManageGroup.swift; sourceTree = "<group>"; };
 		8A72395F2B8AC83600671984 /* Group.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		8A7239612B8AC84A00671984 /* Expense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expense.swift; sourceTree = "<group>"; };
 		8A7239632B8AC87000671984 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -99,6 +101,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		8A2B2FE92C31CDE100AD78DB /* SubViews */ = {
+			isa = PBXGroup;
+			children = (
+				8A647BD92C1500AD0074468F /* ManageGroup.swift */,
+			);
+			path = SubViews;
+			sourceTree = "<group>";
+		};
 		8A72395E2B8AC81F00671984 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -113,6 +123,7 @@
 		8AB240A32B9FA06300E8848A /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8A2B2FE92C31CDE100AD78DB /* SubViews */,
 				8A4EA7DA2BAA5C7D000F08D0 /* LoginView.swift */,
 				8A8D31142BDDCE1C0050053F /* ContentView.swift */,
 				8AC5A2062B8D348600C69982 /* ExpenseView.swift */,
@@ -206,6 +217,7 @@
 				8A7239642B8AC87000671984 /* User.swift in Sources */,
 				8AB154FB2BB8ED7C00BA2150 /* ManageGroupsView.swift in Sources */,
 				8A14F9B92B8A6C1700EAA9E2 /* halfhazardApp.swift in Sources */,
+				8A647BDA2C1500AD0074468F /* ManageGroup.swift in Sources */,
 				8A7239602B8AC83600671984 /* Group.swift in Sources */,
 				8A7239622B8AC84A00671984 /* Expense.swift in Sources */,
 				8AC5A2072B8D348600C69982 /* ExpenseView.swift in Sources */,
