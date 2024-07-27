@@ -21,8 +21,8 @@ class Expense: Identifiable {
     
     @Relationship(deleteRule: .nullify, inverse: \User.expenses)
         var author: User? = nil
-    @Relationship(deleteRule: .nullify, inverse: \Group.expenses)
-        var group: Group? = nil
+    @Relationship(deleteRule: .nullify, inverse: \userGroup.expenses)
+        var group: userGroup? = nil
     @Relationship(deleteRule: .nullify, inverse: \ExpenseCategory.items)
         var category: ExpenseCategory? = nil
     

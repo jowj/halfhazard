@@ -22,12 +22,12 @@ struct LoginView: View {
         currentUser(users: users, currentUserID: userID)
     }
     
-    var filteredGroups: [Group] {
+    var filteredGroups: [userGroup] {
         let currentUser = currentUser(users: users, currentUserID: userID)
         if let userGroups = currentUser.groups {
             return userGroups
         } else {
-            return [Group]()
+            return [userGroup]()
         }
     }
 

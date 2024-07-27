@@ -15,9 +15,9 @@ struct GroupView: View {
     
     @State private var expenseEdit: Expense?
     @State private var searchQuery = ""
-    @Bindable public var selectedGroup: Group
+    @Bindable public var selectedGroup: userGroup
     
-    @Query private var groups: [Group]
+    @Query private var groups: [userGroup]
     @Query private var items: [Expense]
     @Query private var users: [User]
     

@@ -16,7 +16,7 @@ struct ManageGroup: View {
     
     @Binding var navigationPath: NavigationPath
     
-    var group: Group
+    var group: userGroup
     
     @Query private var users: [User]
     
@@ -94,7 +94,7 @@ struct ManageGroup: View {
 
 private extension ManageGroup {
 
-    func save(selectedGroup: Group, user: User) {
+    func save(selectedGroup: userGroup, user: User) {
         group.members?.append(user)
     }
     

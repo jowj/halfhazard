@@ -17,7 +17,7 @@ struct halfhazard: App {
         let schema = Schema([
             Expense.self,
             User.self,
-            Group.self,
+            userGroup.self,
             ExpenseCategory.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

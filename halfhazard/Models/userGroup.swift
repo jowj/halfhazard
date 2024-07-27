@@ -10,7 +10,7 @@ import Foundation
 import SwiftData
 
 @Model
-class Group {
+class userGroup {
     
     var name: String = ""
     var expenses: [Expense]? = [Expense]() // New groups might not have any expenses

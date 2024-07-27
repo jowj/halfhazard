@@ -18,7 +18,7 @@ struct ManageGroupsView: View {
 
     
     @State private var groupName: String = ""
-    @Query private var groups: [Group]
+    @Query private var groups: [userGroup]
     
     var body: some View {
         NavigationStack {
@@ -85,7 +85,7 @@ struct ManageGroupsView: View {
 private extension ManageGroupsView {
     
     func save() {
-        let group = Group(name: groupName)
+        let group = userGroup(name: groupName)
         // ALWAYS INSERT FIRST, THEN MODIFY
         // no, of course that doesn't make sense.
         modelContext.insert(group)

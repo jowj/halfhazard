@@ -21,11 +21,11 @@ struct CreateExpenseView: View {
     @State private var item = Expense()
     
     @State var selectedCategory: ExpenseCategory?
-    @State var selectedGroup: Group?
+    @State var selectedGroup: userGroup?
     
     @Query private var categories: [ExpenseCategory]
     @Query private var users: [User]
-    @Query private var groups: [Group]
+    @Query private var groups: [userGroup]
     
     @Binding var navigationPath: NavigationPath
         
@@ -65,10 +65,10 @@ struct CreateExpenseView: View {
                         Picker("", selection: $selectedGroup) {
                             
                             Text("None")
-                                .tag(nil as Group?) // I don't understand this but copied from a tutorial
+                                .tag(nil as userGroup?) // I don't understand this but copied from a tutorial
                             ForEach(groups) {group in
                                 Text(group.name)
-                                    .tag(group as Group?) // same as above, waht is this
+                                    .tag(group as userGroup?) // same as above, waht is this
                             }
                         }
                         .pickerStyle(.inline)
