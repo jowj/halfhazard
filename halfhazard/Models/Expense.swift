@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-struct Expense: Codable {
+struct Expense: Codable, Identifiable, Hashable {
     let id: String
     var amount: Double
     let description: String?
@@ -18,5 +18,13 @@ struct Expense: Codable {
     let createdAt: Timestamp
     var splitType: SplitType
     var splits: [String: Double]
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Expense, rhs: Expense) -> Bool {
+        return lhs.id == rhs.id
+    }
 }
 

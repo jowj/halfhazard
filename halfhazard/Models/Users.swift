@@ -9,7 +9,8 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-struct User: Codable {
+struct User: Codable, Identifiable, Hashable {
+    var id: String { uid }
     let uid: String
     var displayName: String?
     let email: String
