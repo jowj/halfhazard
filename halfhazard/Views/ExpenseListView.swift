@@ -1,0 +1,84 @@
+//
+//  ExpenseListView.swift
+//  halfhazard
+//
+//  Created by Claude on 2025-03-21.
+//
+
+import SwiftUI
+import FirebaseFirestore
+
+struct ExpenseListView: View {
+    let group: Group
+    @ObservedObject var expenseViewModel: ExpenseViewModel
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            List {
+                ForEach(expenseViewModel.expenses, id: \.id) { expense in
+                    ExpenseRow(expense: expense, group: group)
+                        .onTapGesture {
+                            expenseViewModel.selectExpense(expense)
+                        }
+                }
+            }
+            .listStyle(.plain)
+            .navigationTitle(group.name)
+            
+            // Expense-specific button without using toolbar modifier
+            HStack {
+                Spacer()
+                
+                Button(action: {
+                    expenseViewModel.showingCreateExpenseSheet = true
+                }) {
+                    Label("Add Expense", systemImage: "plus")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .padding(.horizontal)
+                .padding(.top, 8)
+            }
+            .overlay {
+                if expenseViewModel.expenses.isEmpty && !expenseViewModel.isLoading {
+                    ContentUnavailableView("No Expenses", 
+                                         systemImage: "dollarsign.circle",
+                                         description: Text("Add an expense to get started"))
+                }
+                
+                if expenseViewModel.isLoading {
+                    ProgressView()
+                }
+            }
+        }
+        .sheet(isPresented: $expenseViewModel.showingCreateExpenseSheet) {
+            CreateExpenseForm(viewModel: expenseViewModel)
+                .frame(minWidth: 700, maxWidth: .infinity, minHeight: 700, maxHeight: .infinity)
+        }
+        .sheet(isPresented: $expenseViewModel.showingExpenseDetailSheet) {
+            if let selectedExpense = expenseViewModel.selectedExpense {
+                ExpenseDetailView(expense: selectedExpense, group: group)
+                    .frame(minWidth: 600, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            Task {
+                await expenseViewModel.loadExpenses(forGroupId: group.id)
+            }
+        }
+    }
+}
+
+#Preview {
+    ExpenseListView(
+        group: Group(
+            id: "preview-group",
+            name: "Preview Group",
+            memberIds: ["user1"],
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            settings: Settings(name: "")
+        ),
+        expenseViewModel: ExpenseViewModel(currentUser: nil, currentGroupId: "preview-group", useDevMode: true)
+    )
+}

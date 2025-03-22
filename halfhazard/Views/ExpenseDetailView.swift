@@ -42,172 +42,170 @@ struct ExpenseDetailView: View {
     }()
     
     var body: some View {
-        NavigationView {
-            List {
-                // Expense header section
-                Section {
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(expense.description ?? "Expense")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                
-                                if let creatorName = memberNames[expense.createdBy] {
-                                    Text("Added by \(creatorName)")
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Text(dateFormatter.string(from: expense.createdAt.dateValue()))
+        List {
+            // Expense header section
+            Section {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(expense.description ?? "Expense")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            if let creatorName = memberNames[expense.createdBy] {
+                                Text("Added by \(creatorName)")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
                             
-                            Spacer()
-                            
-                            Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
-                                .font(.title.bold())
-                        }
-                        .padding(.vertical, 4)
-                        
-                        // Split type badge
-                        HStack {
-                            Label(expense.splitType.rawValue.capitalized, systemImage: splitTypeIcon(for: expense.splitType))
+                            Text(dateFormatter.string(from: expense.createdAt.dateValue()))
                                 .font(.subheadline)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.blue.opacity(0.1))
-                                .cornerRadius(8)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
+                            .font(.title.bold())
+                    }
+                    .padding(.vertical, 4)
+                    
+                    // Split type badge
+                    HStack {
+                        Label(expense.splitType.rawValue.capitalized, systemImage: splitTypeIcon(for: expense.splitType))
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                        
+                        Spacer()
+                    }
+                }
+            }
+            
+            // Splits section with visual indicator
+            Section(header: Text("Split Details")) {
+                if isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                } else {
+                    // Summary chart
+                    if !expense.splits.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Split Distribution")
+                                .font(.headline)
+                                .padding(.bottom, 4)
                             
-                            Spacer()
+                            splitBarChart
                         }
+                        .padding(.vertical, 12)
                     }
-                }
-                
-                // Splits section with visual indicator
-                Section(header: Text("Split Details")) {
-                    if isLoading {
-                        HStack {
-                            Spacer()
-                            ProgressView()
-                            Spacer()
-                        }
-                    } else {
-                        // Summary chart
-                        if !expense.splits.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Split Distribution")
-                                    .font(.headline)
-                                    .padding(.bottom, 4)
-                                
-                                splitBarChart
-                            }
-                            .padding(.vertical, 12)
-                        }
-                        
-                        // Individual splits
-                        ForEach(group.memberIds, id: \.self) { memberId in
-                            if let split = expense.splits[memberId], let name = memberNames[memberId] {
-                                HStack {
-                                    // Member initials or icon
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color.blue.opacity(0.2))
-                                            .frame(width: 36, height: 36)
-                                        
-                                        Text(getInitials(for: name))
-                                            .font(.caption)
-                                            .foregroundColor(.blue)
-                                    }
+                    
+                    // Individual splits
+                    ForEach(group.memberIds, id: \.self) { memberId in
+                        if let split = expense.splits[memberId], let name = memberNames[memberId] {
+                            HStack {
+                                // Member initials or icon
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.2))
+                                        .frame(width: 36, height: 36)
                                     
-                                    // Member name
-                                    VStack(alignment: .leading) {
-                                        Text(name)
-                                            .font(.body)
-                                        
-                                        // Show percentage in addition to amount
-                                        if expense.splitType == .percentage || expense.splitType == .custom {
-                                            let percentage = split / expense.amount
-                                            Text(percentFormatter.string(from: NSNumber(value: percentage)) ?? "0%")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    // Split amount
-                                    Text(currencyFormatter.string(from: NSNumber(value: split)) ?? "$0.00")
-                                        .font(.body.bold())
+                                    Text(getInitials(for: name))
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
                                 }
-                                .padding(.vertical, 6)
+                                
+                                // Member name
+                                VStack(alignment: .leading) {
+                                    Text(name)
+                                        .font(.body)
+                                    
+                                    // Show percentage in addition to amount
+                                    if expense.splitType == .percentage || expense.splitType == .custom {
+                                        let percentage = split / expense.amount
+                                        Text(percentFormatter.string(from: NSNumber(value: percentage)) ?? "0%")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                // Split amount
+                                Text(currencyFormatter.string(from: NSNumber(value: split)) ?? "$0.00")
+                                    .font(.body.bold())
                             }
+                            .padding(.vertical, 6)
                         }
                     }
-                }
-                
-                // Payment status section (placeholder for future implementation)
-                Section(header: Text("Payment Status")) {
-                    Text("Payment tracking will be available in a future update.")
-                        .font(.callout)
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.vertical, 8)
                 }
             }
-            .navigationTitle("Expense Details")
-            .toolbar {
-                // Primary button for dismissing the sheet
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
+            
+            // Payment status section (placeholder for future implementation)
+            Section(header: Text("Payment Status")) {
+                Text("Payment tracking will be available in a future update.")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            }
+        }
+        .navigationTitle("Expense Details")
+        .toolbar {
+            // Primary button for dismissing the sheet
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") {
+                    dismiss()
                 }
-                
-                // Optional - Action button for future implementation of edit/delete functionality
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            // Edit functionality (future implementation)
-                        } label: {
-                            Label("Edit Expense", systemImage: "pencil")
-                        }
-                        .disabled(true)
-                        
-                        Divider()
-                        
-                        Button(role: .destructive) {
-                            // Delete functionality (future implementation)
-                        } label: {
-                            Label("Delete Expense", systemImage: "trash")
-                        }
-                        .disabled(true)
+            }
+            
+            // Optional - Action button for future implementation of edit/delete functionality
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button {
+                        // Edit functionality (future implementation)
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Label("Edit Expense", systemImage: "pencil")
                     }
+                    .disabled(true)
+                    
+                    Divider()
+                    
+                    Button(role: .destructive) {
+                        // Delete functionality (future implementation)
+                    } label: {
+                        Label("Delete Expense", systemImage: "trash")
+                    }
+                    .disabled(true)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
-            .alert(
-                "Error",
-                isPresented: Binding<Bool>(
-                    get: { errorMessage != nil },
-                    set: { if !$0 { errorMessage = nil } }
-                ),
-                actions: {
-                    Button("OK") {
-                        errorMessage = nil
-                    }
-                },
-                message: {
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                    }
+        }
+        .alert(
+            "Error",
+            isPresented: Binding<Bool>(
+                get: { errorMessage != nil },
+                set: { if !$0 { errorMessage = nil } }
+            ),
+            actions: {
+                Button("OK") {
+                    errorMessage = nil
                 }
-            )
-            .task {
-                await loadMemberNames()
+            },
+            message: {
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                }
             }
+        )
+        .task {
+            await loadMemberNames()
         }
     }
     
