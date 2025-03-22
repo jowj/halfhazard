@@ -23,12 +23,17 @@ class GroupViewModel: ObservableObject {
     @Published var newGroupName = ""
     @Published var newGroupDescription = ""
     @Published var showingCreateGroupSheet = false
+    @Published var showingJoinGroupSheet = false
+    @Published var showingShareGroupSheet = false
+    @Published var showingLeaveConfirmation = false
+    @Published var showingDeleteConfirmation = false
+    @Published var joinGroupCode = ""
     
     // Current user
-    private var currentUser: User?
+    var currentUser: User?
     
     // Development mode
-    private var useDevMode = false
+    var useDevMode = false
     
     init(currentUser: User?, useDevMode: Bool = false) {
         self.currentUser = currentUser
@@ -69,6 +74,16 @@ class GroupViewModel: ObservableObject {
                     For development, you can use permissive rules. Make sure to use proper rules in production.
                     """
                     print("Firestore permissions error loading group \(groupId): \(error)")
+                    return
+                } else if error.domain == "GroupService" && error.code == 403 {
+                    // Access control error - user not a member of the group
+                    print("Access denied to group \(groupId): \(error.localizedDescription)")
+                    // Skip this group - don't add to loadedGroups
+                    continue
+                } else if error.domain == "GroupService" && error.code == 401 {
+                    // Authentication error
+                    errorMessage = "Authentication required: \(error.localizedDescription)"
+                    print("Authentication error loading group \(groupId): \(error)")
                     return
                 } else {
                     print("Error loading group \(groupId): \(error)")
@@ -150,6 +165,12 @@ class GroupViewModel: ObservableObject {
                 
                 For development, you can use permissive rules. Make sure to use proper rules in production.
                 """
+            } else if error.domain == "GroupService" && error.code == 403 {
+                // Access control error
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                // Authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
             } else {
                 errorMessage = "Failed to create group: \(error.localizedDescription)"
             }
@@ -157,14 +178,174 @@ class GroupViewModel: ObservableObject {
         }
     }
     
+    @MainActor
+    func joinGroup() async {
+        guard !joinGroupCode.isEmpty else { return }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Mock joining a group
+            let groupId = joinGroupCode
+            let timestamp = Timestamp()
+            let mockGroup = Group(
+                id: groupId,
+                name: "Joined Group \(joinGroupCode)",
+                memberIds: [currentUser?.uid ?? "dev-user"],
+                createdBy: "dev-creator",
+                createdAt: timestamp,
+                settings: Settings(name: "Joined via code")
+            )
+            
+            // Add to our array if not already present
+            if !groups.contains(where: { $0.id == groupId }) {
+                groups.append(mockGroup)
+                
+                // Sort the groups
+                groups.sort { $0.name < $1.name }
+                
+                // Select the new group
+                selectedGroup = mockGroup
+            } else {
+                // Group already exists, just select it
+                selectedGroup = groups.first(where: { $0.id == groupId })
+            }
+            
+            // Reset form fields
+            joinGroupCode = ""
+            
+            // Close the sheet
+            showingJoinGroupSheet = false
+            return
+        }
+        
+        do {
+            let group = try await groupService.joinGroupByCode(code: joinGroupCode)
+            
+            // Add the group to our array if not already present
+            if !groups.contains(where: { $0.id == group.id }) {
+                groups.append(group)
+                
+                // Sort the groups
+                groups.sort { $0.name < $1.name }
+                
+                // Select the new group
+                selectedGroup = group
+            } else {
+                // Group already exists, just select it
+                selectedGroup = groups.first(where: { $0.id == group.id })
+            }
+            
+            // Reset form field
+            joinGroupCode = ""
+            
+            // Close the sheet
+            showingJoinGroupSheet = false
+        } catch let error as NSError {
+            if error.domain == "GroupService" && error.code == 404 {
+                errorMessage = "Invalid group code or group not found."
+            } else if error.domain == "GroupService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to join group: \(error.localizedDescription)"
+            }
+            print("Error joining group: \(error)")
+        }
+    }
+    
+    @MainActor
+    func leaveCurrentGroup() async {
+        guard let group = selectedGroup else { return }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Remove from our array
+            groups.removeAll(where: { $0.id == group.id })
+            
+            // Update selection
+            if groups.isEmpty {
+                selectedGroup = nil
+            } else {
+                selectedGroup = groups.first
+            }
+            return
+        }
+        
+        do {
+            try await groupService.leaveGroup(groupID: group.id)
+            
+            // Remove from our array
+            groups.removeAll(where: { $0.id == group.id })
+            
+            // Update selection
+            if groups.isEmpty {
+                selectedGroup = nil
+            } else {
+                selectedGroup = groups.first
+            }
+        } catch let error as NSError {
+            if error.domain == "GroupService" && error.code == 400 {
+                // Special case for group creators - we should offer to delete the group instead
+                errorMessage = "As the group creator, you can't leave the group. You can delete the group instead."
+            } else if error.domain == "GroupService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to leave group: \(error.localizedDescription)"
+            }
+            print("Error leaving group: \(error)")
+        }
+    }
+    
+    @MainActor
+    func deleteCurrentGroup() async {
+        guard let group = selectedGroup else { return }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Remove from our array
+            groups.removeAll(where: { $0.id == group.id })
+            
+            // Update selection
+            if groups.isEmpty {
+                selectedGroup = nil
+            } else {
+                selectedGroup = groups.first
+            }
+            return
+        }
+        
+        do {
+            try await groupService.deleteGroup(groupID: group.id)
+            
+            // Remove from our array
+            groups.removeAll(where: { $0.id == group.id })
+            
+            // Update selection
+            if groups.isEmpty {
+                selectedGroup = nil
+            } else {
+                selectedGroup = groups.first
+            }
+        } catch let error as NSError {
+            if error.domain == "GroupService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to delete group: \(error.localizedDescription)"
+            }
+            print("Error deleting group: \(error)")
+        }
+    }
+    
     private func resetFormFields() {
         newGroupName = ""
         newGroupDescription = ""
+        joinGroupCode = ""
     }
     
-    // Update user
-    func updateUser(user: User?, devMode: Bool) {
-        self.currentUser = user
-        self.useDevMode = devMode
-    }
+    // We no longer need a separate update method as we access the properties directly
 }

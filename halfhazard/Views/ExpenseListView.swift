@@ -17,6 +17,7 @@ struct ExpenseListView: View {
             List {
                 ForEach(expenseViewModel.expenses, id: \.id) { expense in
                     ExpenseRow(expense: expense, group: group)
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             expenseViewModel.selectExpense(expense)
                         }
@@ -59,11 +60,18 @@ struct ExpenseListView: View {
             if let selectedExpense = expenseViewModel.selectedExpense {
                 ExpenseDetailView(expense: selectedExpense, group: group)
                     .frame(minWidth: 600, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
+                    .onDisappear {
+                        // Clear selection when sheet is dismissed
+                        expenseViewModel.clearSelectedExpense()
+                    }
             }
         }
         .onAppear {
-            Task {
-                await expenseViewModel.loadExpenses(forGroupId: group.id)
+            // Load expenses when view appears, if needed
+            if expenseViewModel.currentGroupId != group.id || expenseViewModel.expenses.isEmpty {
+                Task {
+                    await expenseViewModel.loadExpenses(forGroupId: group.id)
+                }
             }
         }
     }

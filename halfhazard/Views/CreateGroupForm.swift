@@ -14,55 +14,95 @@ struct CreateGroupForm: View {
     
     @State private var groupName = ""
     @State private var groupDescription = ""
+    @State private var isSubmitting = false
     
     var body: some View {
-        Form {
-            Section(header: Text("Group Details")) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Group Name").font(.caption).foregroundColor(.secondary)
-                    TextField("Enter a name for your group", text: $groupName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.bottom, 10)
-                        .onChange(of: groupName) { oldValue, newValue in
-                            viewModel.newGroupName = newValue
-                        }
-                    
-                    Text("Description (Optional)").font(.caption).foregroundColor(.secondary)
-                    TextField("Enter a description", text: $groupDescription)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onChange(of: groupDescription) { oldValue, newValue in
-                            viewModel.newGroupDescription = newValue
-                        }
-                }
-                .padding(.vertical, 10)
+        VStack(spacing: 20) {
+            // Header
+            VStack(spacing: 8) {
+                Text("Create New Group")
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text("Create a group to start tracking expenses with friends or colleagues")
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
             }
+            .padding(.top)
             
-            Section {
-                Button("Create Group") {
-                    Task {
-                        await viewModel.createGroup()
-                        dismiss()
+            // Form
+            Form {
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Group Name").font(.headline)
+                        TextField("Enter a name for your group", text: $groupName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onChange(of: groupName) { oldValue, newValue in
+                                viewModel.newGroupName = newValue
+                            }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Description (Optional)").font(.headline)
+                        TextField("Enter a description", text: $groupDescription)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onChange(of: groupDescription) { oldValue, newValue in
+                                viewModel.newGroupDescription = newValue
+                            }
+                    }
+                    
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.top, 4)
                     }
                 }
-                .disabled(groupName.isEmpty)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .buttonStyle(.borderedProminent)
             }
-        }
-        .navigationTitle("Create New Group")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
+            .padding(.horizontal)
+            
+            // Action Buttons
+            HStack {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.bordered)
+                .keyboardShortcut(.cancelAction)
+                
+                Spacer()
+                
+                Button("Create Group") {
+                    Task {
+                        isSubmitting = true
+                        await viewModel.createGroup()
+                        isSubmitting = false
+                        
+                        // Only dismiss if there's no error message
+                        if viewModel.errorMessage == nil {
+                            dismiss()
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(groupName.isEmpty || isSubmitting)
+                .keyboardShortcut(.defaultAction)
+                .overlay {
+                    if isSubmitting {
+                        ProgressView()
+                    }
+                }
             }
+            .padding()
         }
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(minWidth: 450, minHeight: 350)
+        .background(Color(.windowBackgroundColor))
         .onAppear {
             // Initialize form fields from viewModel
             groupName = viewModel.newGroupName
             groupDescription = viewModel.newGroupDescription
+            
+            // Clear any previous error messages when the form appears
+            viewModel.errorMessage = nil
         }
     }
 }

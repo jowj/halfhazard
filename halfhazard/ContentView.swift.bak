@@ -217,6 +217,7 @@ struct ContentView: View {
                 
                 // Update ViewModels with current user and dev mode
                 updateViewModels(user: devUser, devMode: true)
+                expenseViewModel.updateContext(user: devUser, groupId: nil, devMode: true)
                 
                 // Reset fields
                 email = ""
@@ -236,6 +237,7 @@ struct ContentView: View {
             
             // Update ViewModels with current user and dev mode
             updateViewModels(user: user, devMode: useDevMode)
+            expenseViewModel.updateContext(user: user, groupId: nil, devMode: useDevMode)
             
             // Reset fields
             email = ""
@@ -334,6 +336,7 @@ struct ContentView: View {
                 
                 // Update ViewModels with current user and dev mode
                 updateViewModels(user: devUser, devMode: true)
+                expenseViewModel.updateContext(user: devUser, groupId: nil, devMode: true)
                 
                 // Reset fields
                 email = ""
@@ -354,6 +357,7 @@ struct ContentView: View {
             
             // Update ViewModels with current user and dev mode
             updateViewModels(user: user, devMode: useDevMode)
+            expenseViewModel.updateContext(user: user, groupId: nil, devMode: useDevMode)
             
             // Reset fields
             email = ""
@@ -450,6 +454,7 @@ struct ContentView: View {
             
             // Update ViewModels
             updateViewModels(user: nil, devMode: true)
+            expenseViewModel.updateContext(user: nil, groupId: nil, devMode: true)
             return
         }
         
@@ -459,6 +464,7 @@ struct ContentView: View {
             
             // Update ViewModels
             updateViewModels(user: nil, devMode: false)
+            expenseViewModel.updateContext(user: nil, groupId: nil, devMode: false)
         } catch {
             errorMessage = "Sign out failed: \(error.localizedDescription)"
             print("Sign out error: \(error)")

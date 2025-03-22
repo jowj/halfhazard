@@ -216,7 +216,6 @@ struct ContentView: View {
                 self.currentUser = devUser
                 
                 // Update ViewModels with current user and dev mode
-                updateViewModels(user: devUser, devMode: true)
                 
                 // Reset fields
                 email = ""
@@ -235,7 +234,6 @@ struct ContentView: View {
             self.currentUser = user
             
             // Update ViewModels with current user and dev mode
-            updateViewModels(user: user, devMode: useDevMode)
             
             // Reset fields
             email = ""
@@ -333,7 +331,6 @@ struct ContentView: View {
                 self.currentUser = devUser
                 
                 // Update ViewModels with current user and dev mode
-                updateViewModels(user: devUser, devMode: true)
                 
                 // Reset fields
                 email = ""
@@ -353,7 +350,6 @@ struct ContentView: View {
             self.currentUser = user
             
             // Update ViewModels with current user and dev mode
-            updateViewModels(user: user, devMode: useDevMode)
             
             // Reset fields
             email = ""
@@ -449,7 +445,6 @@ struct ContentView: View {
             self.currentUser = nil
             
             // Update ViewModels
-            updateViewModels(user: nil, devMode: true)
             return
         }
         
@@ -458,7 +453,6 @@ struct ContentView: View {
             self.currentUser = nil
             
             // Update ViewModels
-            updateViewModels(user: nil, devMode: false)
         } catch {
             errorMessage = "Sign out failed: \(error.localizedDescription)"
             print("Sign out error: \(error)")

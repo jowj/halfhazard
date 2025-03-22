@@ -29,7 +29,8 @@ class ExpenseViewModel: ObservableObject {
     
     // Current context
     private var currentUser: User?
-    private var currentGroupId: String?
+    // Make currentGroupId public so views can access it
+    var currentGroupId: String?
     
     // Development mode
     private var useDevMode = false
@@ -97,6 +98,14 @@ class ExpenseViewModel: ObservableObject {
                 
                 For development, you can use permissive rules. Make sure to use proper rules in production.
                 """
+            } else if error.domain == "ExpenseService" && error.code == 403 {
+                // Handle access control error - user not a member of the group
+                errorMessage = "Access denied: \(error.localizedDescription)"
+                expenses = [] // Clear expenses since we don't have access
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                // Handle authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+                expenses = [] // Clear expenses since we're not authenticated
             } else {
                 // Handle generic error
                 errorMessage = "Failed to load expenses: \(error.localizedDescription)"
@@ -155,8 +164,16 @@ class ExpenseViewModel: ObservableObject {
             
             // Close the sheet
             showingCreateExpenseSheet = false
-        } catch {
-            errorMessage = "Failed to create expense: \(error.localizedDescription)"
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 403 {
+                // Access control error
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                // Authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to create expense: \(error.localizedDescription)"
+            }
             print("Error creating expense: \(error)")
         }
     }
@@ -178,8 +195,16 @@ class ExpenseViewModel: ObservableObject {
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses.remove(at: index)
             }
-        } catch {
-            errorMessage = "Failed to delete expense: \(error.localizedDescription)"
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 403 {
+                // Access control error
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                // Authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to delete expense: \(error.localizedDescription)"
+            }
             print("Error deleting expense: \(error)")
         }
     }
@@ -201,18 +226,29 @@ class ExpenseViewModel: ObservableObject {
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses[index] = expense
             }
-        } catch {
-            errorMessage = "Failed to update expense: \(error.localizedDescription)"
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 403 {
+                // Access control error
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                // Authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to update expense: \(error.localizedDescription)"
+            }
             print("Error updating expense: \(error)")
         }
     }
     
     func selectExpense(_ expense: Expense) {
+        print("ExpenseViewModel: Selecting expense \(expense.id)")
         self.selectedExpense = expense
         self.showingExpenseDetailSheet = true
+        print("ExpenseViewModel: Set showingExpenseDetailSheet to \(self.showingExpenseDetailSheet)")
     }
     
     func clearSelectedExpense() {
+        print("ExpenseViewModel: Clearing selected expense")
         self.selectedExpense = nil
         self.showingExpenseDetailSheet = false
     }
@@ -236,6 +272,7 @@ class ExpenseViewModel: ObservableObject {
     }
     
     // Update context
+    @MainActor
     func updateContext(user: User?, groupId: String?, devMode: Bool) {
         self.currentUser = user
         

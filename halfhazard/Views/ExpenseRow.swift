@@ -58,10 +58,11 @@ struct ExpenseRow: View {
                 Spacer()
                 
                 Button("Details") {
-                    // Details handled via onTapGesture in parent view
+                    // No action here - actual action is handled via onTapGesture in parent view
                 }
                 .font(.caption)
                 .buttonStyle(.bordered)
+                .allowsHitTesting(false) // Disable button hit testing to ensure parent tap gesture works
             }
         }
         .padding(.vertical, 4)
