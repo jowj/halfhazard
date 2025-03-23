@@ -36,36 +36,61 @@ struct GroupListView: View {
                     }
                     .background(groupViewModel.selectedGroup?.id == group.id ? Color.accentColor.opacity(0.1) : Color.clear)
                     .cornerRadius(4)
+                    .contextMenu {
+                        Button(action: {
+                            groupViewModel.selectedGroup = group
+                            groupViewModel.showingShareGroupSheet = true
+                        }) {
+                            Label("Manage Group", systemImage: "person.2.badge.gearshape")
+                        }
+                        
+                        if group.createdBy == groupViewModel.currentUser?.uid {
+                            // Only show delete option for group creators
+                            Divider()
+                            
+                            Button(role: .destructive, action: {
+                                groupViewModel.selectedGroup = group
+                                groupViewModel.showingDeleteConfirmation = true
+                            }) {
+                                Label("Delete Group", systemImage: "trash")
+                            }
+                        } else {
+                            // Show leave option for regular members
+                            Divider()
+                            
+                            Button(role: .destructive, action: {
+                                groupViewModel.selectedGroup = group
+                                groupViewModel.showingLeaveConfirmation = true
+                            }) {
+                                Label("Leave Group", systemImage: "rectangle.portrait.and.arrow.right")
+                            }
+                        }
+                    }
                 }
             }
             .listStyle(SidebarListStyle())
             .navigationTitle("Groups")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        groupViewModel.showingCreateGroupSheet = true
+                    }) {
+                        Label("Add Group", systemImage: "plus")
+                    }
+                }
+            }
             
             Divider()
             
-            // Group action buttons in footer
+            // Footer with Join Group button
             VStack(spacing: 8) {
-                // Create Group button
-                Button(action: {
-                    groupViewModel.showingCreateGroupSheet = true
-                }) {
-                    HStack {
-                        Image(systemName: "plus")
-                        Text("Create Group")
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .padding(.horizontal)
-                
                 // Join Group button
                 Button(action: {
                     groupViewModel.showingJoinGroupSheet = true
                 }) {
                     HStack {
                         Image(systemName: "person.badge.plus")
-                        Text("Join Group")
+                        Text("Join Existing Group")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -73,49 +98,12 @@ struct GroupListView: View {
                 .controlSize(.regular)
                 .padding(.horizontal)
                 
-                // Group actions - only visible when a group is selected
-                if let selectedGroup = groupViewModel.selectedGroup {
-                    Divider()
-                        .padding(.vertical, 4)
-                        .padding(.horizontal)
-                    
-                    // Share Group button - to let others join
-                    Button(action: {
-                        // This would typically copy the group ID to clipboard
-                        // For now just show it in a sheet
-                        groupViewModel.showingShareGroupSheet = true
-                    }) {
-                        HStack {
-                            Image(systemName: "person.2.badge.gearshape")
-                            Text("Manage \"\(selectedGroup.name)\"")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .buttonStyle(.borderless)
-                    .controlSize(.regular)
-                    .padding(.horizontal)
-                    
-                    // Leave Group button
-                    Button(action: {
-                        if selectedGroup.createdBy == groupViewModel.currentUser?.uid {
-                            // For creators, show delete confirmation instead
-                            groupViewModel.showingDeleteConfirmation = true
-                        } else {
-                            // For regular members, show leave confirmation
-                            groupViewModel.showingLeaveConfirmation = true
-                        }
-                    }) {
-                        HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                            Text("Leave \"\(selectedGroup.name)\"")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .buttonStyle(.borderless)
-                    .foregroundColor(.red)
-                    .controlSize(.regular)
-                    .padding(.horizontal)
-                }
+                // Right-click hint - always visible
+                Text("Right-click a group for more options")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
             }
             .padding(.vertical, 12)
             .background(Color(NSColor.windowBackgroundColor))

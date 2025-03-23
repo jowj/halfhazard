@@ -13,42 +13,34 @@ struct ExpenseListView: View {
     @ObservedObject var expenseViewModel: ExpenseViewModel
     
     var body: some View {
-        VStack(spacing: 0) {
-            List {
-                ForEach(expenseViewModel.expenses, id: \.id) { expense in
-                    ExpenseRow(expense: expense, group: group)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            expenseViewModel.selectExpense(expense)
-                        }
-                }
+        List {
+            ForEach(expenseViewModel.expenses, id: \.id) { expense in
+                ExpenseRow(expense: expense, group: group)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        expenseViewModel.selectExpense(expense)
+                    }
             }
-            .listStyle(.plain)
-            .navigationTitle(group.name)
+        }
+        .overlay {
+            if expenseViewModel.expenses.isEmpty && !expenseViewModel.isLoading {
+                ContentUnavailableView("No Expenses", 
+                                     systemImage: "dollarsign.circle",
+                                     description: Text("Add an expense to get started"))
+            }
             
-            // Expense-specific button without using toolbar modifier
-            HStack {
-                Spacer()
-                
+            if expenseViewModel.isLoading {
+                ProgressView()
+            }
+        }
+        .listStyle(.plain)
+        .navigationTitle(group.name)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: {
                     expenseViewModel.showingCreateExpenseSheet = true
                 }) {
                     Label("Add Expense", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .padding(.horizontal)
-                .padding(.top, 8)
-            }
-            .overlay {
-                if expenseViewModel.expenses.isEmpty && !expenseViewModel.isLoading {
-                    ContentUnavailableView("No Expenses", 
-                                         systemImage: "dollarsign.circle",
-                                         description: Text("Add an expense to get started"))
-                }
-                
-                if expenseViewModel.isLoading {
-                    ProgressView()
                 }
             }
         }
