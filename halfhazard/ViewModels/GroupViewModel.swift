@@ -11,7 +11,8 @@ import Combine
 
 class GroupViewModel: ObservableObject {
     // Services
-    private let groupService = GroupService()
+    // Make groupService public so it can be used by views
+    let groupService = GroupService()
     
     // State
     @Published var groups: [Group] = []
@@ -122,7 +123,10 @@ class GroupViewModel: ObservableObject {
     
     @MainActor
     func createGroup() async {
-        guard !newGroupName.isEmpty else { return }
+        guard !newGroupName.isEmpty else {
+            errorMessage = "Group name cannot be empty"
+            return
+        }
         
         // Handle dev mode - create mock group
         if useDevMode {
@@ -202,7 +206,10 @@ class GroupViewModel: ObservableObject {
     
     @MainActor
     func joinGroup() async {
-        guard !joinGroupCode.isEmpty else { return }
+        guard !joinGroupCode.isEmpty else {
+            errorMessage = "Group code cannot be empty"
+            return
+        }
         
         // Handle dev mode
         if useDevMode {

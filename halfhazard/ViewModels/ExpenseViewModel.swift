@@ -158,7 +158,15 @@ class ExpenseViewModel: ObservableObject {
     
     @MainActor
     func createExpense() async {
-        guard let groupId = currentGroupId, newExpenseAmount > 0 else { return }
+        guard let groupId = currentGroupId else {
+            errorMessage = "No group selected"
+            return
+        }
+        
+        guard newExpenseAmount > 0 else {
+            errorMessage = "Expense amount must be greater than zero"
+            return
+        }
         
         // For dev mode, create a mock expense
         if useDevMode {
@@ -222,6 +230,12 @@ class ExpenseViewModel: ObservableObject {
     
     @MainActor
     func deleteExpense(expense: Expense) async {
+        // Check if current user is the creator of the expense
+        guard expense.createdBy == currentUser?.uid else {
+            errorMessage = "You don't have permission to delete this expense"
+            return
+        }
+        
         // For dev mode, just remove from the array
         if useDevMode {
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {

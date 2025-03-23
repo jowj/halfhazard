@@ -18,8 +18,8 @@ struct Group: Codable, Identifiable, Hashable, Equatable {
         hasher.combine(id)
     }
     let id: String
-    let name: String
-    let memberIds: [String]
+    var name: String
+    var memberIds: [String]
     var createdBy: String // userid
     let createdAt: Timestamp
     var settings: Settings

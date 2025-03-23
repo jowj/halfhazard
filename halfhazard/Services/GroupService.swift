@@ -208,4 +208,69 @@ class GroupService: ObservableObject {
         
         return members
     }
+    
+    // Rename a group (group admin only)
+    func renameGroup(groupID: String, newName: String) async throws {
+        // Get current user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "GroupService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Validate the new name
+        guard !newName.isEmpty else {
+            throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Group name cannot be empty"])
+        }
+        
+        // Get the group
+        let groupRef = db.collection("groups").document(groupID)
+        let group = try await groupRef.getDocument(as: Group.self)
+        
+        // Check if the current user is the group creator
+        guard group.createdBy == currentUser.uid else {
+            throw NSError(domain: "GroupService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the group creator can rename the group"])
+        }
+        
+        // Update the group name
+        try await groupRef.updateData([
+            "name": newName
+        ])
+    }
+    
+    // Remove a user from a group (group admin only)
+    func removeMemberFromGroup(groupID: String, userID: String) async throws {
+        // Get current user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "GroupService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Get the group
+        let groupRef = db.collection("groups").document(groupID)
+        let group = try await groupRef.getDocument(as: Group.self)
+        
+        // Check if the current user is the group creator
+        guard group.createdBy == currentUser.uid else {
+            throw NSError(domain: "GroupService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the group creator can remove members"])
+        }
+        
+        // Cannot remove the group creator
+        if userID == group.createdBy {
+            throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "The group creator cannot be removed"])
+        }
+        
+        // Check if user is a member
+        guard group.memberIds.contains(userID) else {
+            throw NSError(domain: "GroupService", code: 404, userInfo: [NSLocalizedDescriptionKey: "User is not a member of this group"])
+        }
+        
+        // Remove user from group memberIds
+        try await groupRef.updateData([
+            "memberIds": FieldValue.arrayRemove([userID])
+        ])
+        
+        // Remove group from user's groupIds
+        let userRef = db.collection("users").document(userID)
+        try await userRef.updateData([
+            "groupIds": FieldValue.arrayRemove([groupID])
+        ])
+    }
 }
