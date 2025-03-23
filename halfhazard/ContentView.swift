@@ -78,41 +78,10 @@ struct ContentView: View {
                                       description: Text("Choose a group from the sidebar"))
             }
         }
-        .sheet(isPresented: $groupViewModel.showingCreateGroupSheet) {
-            CreateGroupForm(viewModel: groupViewModel)
-        }
-        .sheet(isPresented: $groupViewModel.showingJoinGroupSheet) {
-            JoinGroupForm(viewModel: groupViewModel)
-        }
-        .sheet(isPresented: $groupViewModel.showingShareGroupSheet) {
-            if let selectedGroup = groupViewModel.selectedGroup {
-                ManageGroupSheet(group: selectedGroup, viewModel: groupViewModel)
-            }
-        }
-        .alert("Leave Group", isPresented: $groupViewModel.showingLeaveConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Leave", role: .destructive) {
-                Task {
-                    await groupViewModel.leaveCurrentGroup()
-                }
-            }
-        } message: {
-            if let group = groupViewModel.selectedGroup {
-                Text("Are you sure you want to leave \"\(group.name)\"? You'll need an invite code to rejoin later.")
-            }
-        }
-        .alert("Delete Group", isPresented: $groupViewModel.showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete Group", role: .destructive) {
-                Task {
-                    await groupViewModel.deleteCurrentGroup()
-                }
-            }
-        } message: {
-            if let group = groupViewModel.selectedGroup {
-                Text("As the group creator, you cannot leave \"\(group.name)\". You can delete the group instead, which will remove it for all members. This action cannot be undone.")
-            }
-        }
+        // These sheets are now handled in GroupListView
+        // Keeping this comment as a reminder
+        // Alerts are now handled in GroupListView
+        // Keeping this comment as a reminder
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Menu {
@@ -139,7 +108,8 @@ struct ContentView: View {
                 await groupViewModel.loadGroups()
             }
         }
-        .onChange(of: groupViewModel.selectedGroup) { oldValue, newValue in
+        .onChange(of: groupViewModel._selectedGroup) { oldValue, newValue in
+            print("ContentView: Group selection changed from \(oldValue?.name ?? "nil") to \(newValue?.name ?? "nil")")
             if let group = newValue {
                 expenseViewModel.updateContext(user: currentUser, groupId: group.id, devMode: useDevMode)
                 Task {

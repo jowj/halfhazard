@@ -16,8 +16,27 @@ struct GroupListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            List(groupViewModel.groups, selection: $groupViewModel.selectedGroup) { group in
-                Text(group.name)
+            List {
+                ForEach(groupViewModel.groups) { group in
+                    HStack {
+                        Text(group.name)
+                            .foregroundColor(groupViewModel.selectedGroup?.id == group.id ? .accentColor : .primary)
+                            .font(groupViewModel.selectedGroup?.id == group.id ? .headline : .body)
+                        Spacer()
+                        if groupViewModel.selectedGroup?.id == group.id {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.accentColor)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 4)
+                    .onTapGesture {
+                        print("Group selected: \(group.name)")
+                        groupViewModel.selectedGroup = group
+                    }
+                    .background(groupViewModel.selectedGroup?.id == group.id ? Color.accentColor.opacity(0.1) : Color.clear)
+                    .cornerRadius(4)
+                }
             }
             .listStyle(SidebarListStyle())
             .navigationTitle("Groups")
@@ -318,20 +337,27 @@ struct ManageGroupSheet: View {
                 }
             }
             
-            // Close button
+            // Close button - only set the view model state
             Button("Close") {
-                dismiss()
+                print("ManageGroupSheet: Close button pressed")
+                // Only need to set the viewModel state, not call dismiss()
+                viewModel.showingShareGroupSheet = false
             }
             .buttonStyle(.bordered)
             .padding()
         }
         .frame(minWidth: 450, minHeight: 400)
+        .onDisappear {
+            print("ManageGroupSheet: onDisappear triggered")
+            viewModel.showingShareGroupSheet = false
+        }
         .alert("Delete Group", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 Task {
                     await viewModel.deleteCurrentGroup()
-                    dismiss()
+                    // Only need to set the viewModel state, not call dismiss()
+                    viewModel.showingShareGroupSheet = false
                 }
             }
         } message: {

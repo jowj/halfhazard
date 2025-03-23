@@ -15,16 +15,37 @@ class GroupViewModel: ObservableObject {
     
     // State
     @Published var groups: [Group] = []
-    @Published var selectedGroup: Group?
+    @Published var _selectedGroup: Group?
     @Published var isLoading = true
     @Published var errorMessage: String?
+    
+    // Custom setter/getter for selectedGroup to add debugging
+    var selectedGroup: Group? {
+        get {
+            return _selectedGroup
+        }
+        set {
+            print("GroupViewModel: Setting selected group to \(newValue?.name ?? "nil")")
+            _selectedGroup = newValue
+        }
+    }
     
     // Form state
     @Published var newGroupName = ""
     @Published var newGroupDescription = ""
     @Published var showingCreateGroupSheet = false
     @Published var showingJoinGroupSheet = false
-    @Published var showingShareGroupSheet = false
+    
+    // Use @Published with willSet/didSet for debugging
+    @Published var showingShareGroupSheet = false {
+        willSet {
+            print("GroupViewModel: About to change showingShareGroupSheet from \(showingShareGroupSheet) to \(newValue)")
+        }
+        didSet {
+            print("GroupViewModel: Changed showingShareGroupSheet from \(oldValue) to \(showingShareGroupSheet)")
+        }
+    }
+    
     @Published var showingLeaveConfirmation = false
     @Published var showingDeleteConfirmation = false
     @Published var joinGroupCode = ""
@@ -93,8 +114,9 @@ class GroupViewModel: ObservableObject {
         
         groups = loadedGroups.sorted(by: { $0.name < $1.name })
         
-        if groups.count > 0 && selectedGroup == nil {
-            selectedGroup = groups.first
+        if groups.count > 0 && _selectedGroup == nil {
+            print("GroupViewModel.loadGroups: Setting initial group to \(groups.first?.name ?? "nil")")
+            _selectedGroup = groups.first
         }
     }
     
