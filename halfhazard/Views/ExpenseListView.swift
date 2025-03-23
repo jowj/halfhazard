@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ExpenseListView: View {
     let group: Group
@@ -19,6 +20,34 @@ struct ExpenseListView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {
                         expenseViewModel.selectExpense(expense)
+                    }
+                    .contextMenu {
+                        // Only show edit option if user is the creator or group admin
+                        if let currentUserId = expenseViewModel.currentUser?.uid,
+                           (expense.createdBy == currentUserId || group.createdBy == currentUserId) {
+                            Button {
+                                expenseViewModel.prepareExpenseForEditing(expense)
+                            } label: {
+                                Label("Edit Expense", systemImage: "pencil")
+                            }
+                            
+                            Divider()
+                            
+                            Button(role: .destructive) {
+                                Task {
+                                    await expenseViewModel.deleteExpense(expense: expense)
+                                }
+                            } label: {
+                                Label("Delete Expense", systemImage: "trash")
+                            }
+                        } else {
+                            // For non-owners/non-admins, just show view details option
+                            Button {
+                                expenseViewModel.selectExpense(expense)
+                            } label: {
+                                Label("View Details", systemImage: "eye")
+                            }
+                        }
                     }
             }
         }
@@ -50,13 +79,17 @@ struct ExpenseListView: View {
         }
         .sheet(isPresented: $expenseViewModel.showingExpenseDetailSheet) {
             if let selectedExpense = expenseViewModel.selectedExpense {
-                ExpenseDetailView(expense: selectedExpense, group: group)
+                ExpenseDetailView(expense: selectedExpense, group: group, expenseViewModel: expenseViewModel)
                     .frame(minWidth: 600, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
                     .onDisappear {
                         // Clear selection when sheet is dismissed
                         expenseViewModel.clearSelectedExpense()
                     }
             }
+        }
+        .sheet(isPresented: $expenseViewModel.showingEditExpenseSheet) {
+            EditExpenseForm(viewModel: expenseViewModel)
+                .frame(minWidth: 500, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
         }
         .onAppear {
             // Load expenses when view appears, if needed

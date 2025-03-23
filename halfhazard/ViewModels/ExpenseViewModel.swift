@@ -30,9 +30,12 @@ class ExpenseViewModel: ObservableObject {
     @Published var newExpenseSplits: [String: Double] = [:]
     @Published var showingCreateExpenseSheet = false
     @Published var showingExpenseDetailSheet = false
+    @Published var showingEditExpenseSheet = false
+    @Published var editingExpense: Expense? = nil
     
     // Current context
-    private var currentUser: User?
+    // Make currentUser public so views can access it
+    var currentUser: User?
     // Make currentGroupId public so views can access it
     var currentGroupId: String?
     
@@ -292,11 +295,91 @@ class ExpenseViewModel: ObservableObject {
         self.showingExpenseDetailSheet = false
     }
     
+    func prepareExpenseForEditing(_ expense: Expense) {
+        print("ExpenseViewModel: Preparing expense for editing: \(expense.id)")
+        self.editingExpense = expense
+        self.newExpenseAmount = expense.amount
+        self.newExpenseDescription = expense.description ?? ""
+        self.newExpenseSplitType = expense.splitType
+        self.newExpenseSplits = expense.splits
+        self.showingEditExpenseSheet = true
+    }
+    
+    @MainActor
+    func saveEditedExpense() async {
+        guard let editingExpense = editingExpense, newExpenseAmount > 0 else { return }
+        
+        // Create an updated expense
+        var updatedExpense = editingExpense
+        updatedExpense.amount = newExpenseAmount
+        updatedExpense.description = newExpenseDescription.isEmpty ? nil : newExpenseDescription
+        updatedExpense.splitType = newExpenseSplitType
+        
+        // If the split type changed or amount changed, recalculate splits
+        if updatedExpense.splitType != editingExpense.splitType || updatedExpense.amount != editingExpense.amount {
+            if newExpenseSplits.isEmpty {
+                // If no custom splits were defined, create default splits
+                updatedExpense.splits = createDefaultSplits(groupId: editingExpense.groupId)
+            } else {
+                updatedExpense.splits = newExpenseSplits
+            }
+        } else {
+            // Otherwise keep the existing splits
+            updatedExpense.splits = newExpenseSplits.isEmpty ? editingExpense.splits : newExpenseSplits
+        }
+        
+        // For dev mode, just update in the array
+        if useDevMode {
+            if let index = expenses.firstIndex(where: { $0.id == updatedExpense.id }) {
+                expenses[index] = updatedExpense
+            }
+            
+            // Reset form fields
+            resetFormFields()
+            
+            // Close the sheet
+            showingEditExpenseSheet = false
+            return
+        }
+        
+        do {
+            try await expenseService.updateExpense(updatedExpense)
+            
+            // Update in our array
+            if let index = expenses.firstIndex(where: { $0.id == updatedExpense.id }) {
+                expenses[index] = updatedExpense
+            }
+            
+            // Reset form fields
+            resetFormFields()
+            
+            // Close the sheet
+            showingEditExpenseSheet = false
+            
+            // If this was the selected expense, update it
+            if selectedExpense?.id == updatedExpense.id {
+                selectedExpense = updatedExpense
+            }
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 403 {
+                // Access control error
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                // Authentication error
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to update expense: \(error.localizedDescription)"
+            }
+            print("Error updating expense: \(error)")
+        }
+    }
+    
     private func resetFormFields() {
         newExpenseAmount = 0
         newExpenseDescription = ""
         newExpenseSplitType = .equal
         newExpenseSplits = [:]
+        editingExpense = nil
     }
     
     private func createDefaultSplits(groupId: String) -> [String: Double] {

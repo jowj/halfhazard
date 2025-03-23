@@ -15,6 +15,16 @@ struct ExpenseDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var userService = UserService()
     
+    init(expense: Expense, group: Group, expenseViewModel: ExpenseViewModel? = nil) {
+        self.expense = expense
+        self.group = group
+        _userService = StateObject(wrappedValue: {
+            let service = UserService()
+            service.expenseViewModel = expenseViewModel
+            return service
+        }())
+    }
+    
     @State private var memberNames: [String: String] = [:]
     @State private var memberImages: [String: String] = [:]
     @State private var isLoading = true
@@ -167,23 +177,35 @@ struct ExpenseDetailView: View {
             // Action button for expense actions
             ToolbarItem(placement: .primaryAction) {
                 Menu {
-                    // Edit button - available to all group members
+                    // Edit button - only available to expense creator or group admin
                     Button {
-                        // Edit functionality (future implementation)
+                        // Prepare the expense for editing and show edit form
+                        userService.expenseViewModel?.prepareExpenseForEditing(expense)
+                        dismiss() // Dismiss the detail view
                     } label: {
                         Label("Edit Expense", systemImage: "pencil")
                     }
-                    .disabled(true) // Temporarily disabled until implementation
+                    // Only enable for creator or group admin
+                    .disabled(!(expense.createdBy == userService.auth.currentUser?.uid || 
+                              group.createdBy == userService.auth.currentUser?.uid))
                     
                     Divider()
                     
                     // Delete button - only enabled for expense creator or group admin
                     Button(role: .destructive) {
-                        // Delete functionality (future implementation)
+                        // Delete the expense and close the detail view
+                        if let expenseVM = userService.expenseViewModel {
+                            Task {
+                                await expenseVM.deleteExpense(expense: expense)
+                                dismiss()
+                            }
+                        }
                     } label: {
                         Label("Delete Expense", systemImage: "trash")
                     }
-                    .disabled(true) // Temporarily disabled until implementation
+                    // Only enable for creator or group admin
+                    .disabled(!(expense.createdBy == userService.auth.currentUser?.uid || 
+                               group.createdBy == userService.auth.currentUser?.uid))
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }

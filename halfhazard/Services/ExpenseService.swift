@@ -104,7 +104,7 @@ class ExpenseService: ObservableObject {
         }
     }
     
-    // Update an expense with access control - any group member can update
+    // Update an expense with access control - only expense creator or group admin can update
     func updateExpense(_ expense: Expense) async throws {
         // Get current user
         guard let currentUser = Auth.auth().currentUser else {
@@ -120,8 +120,11 @@ class ExpenseService: ObservableObject {
             throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
         }
         
-        // All group members can update expenses - membership is inherited from the group
-        // No additional checks for expense creator - any member can modify
+        // Additional check: only the creator or group creator can update the expense
+        let originalExpense = try await getExpense(expenseId: expense.id)
+        if originalExpense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can update this expense"])
+        }
         
         try db.collection("expenses").document(expense.id).setData(from: expense)
     }

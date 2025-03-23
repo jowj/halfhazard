@@ -29,43 +29,43 @@ struct ExpenseRow: View {
     }()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(expense.description ?? "Expense")
-                        .font(.headline)
-                    
-                    Text("Added by \(creatorName) • \(dateFormatter.string(from: expense.createdAt.dateValue()))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+        HStack(spacing: 12) {
+            // Main content
+            VStack(alignment: .leading, spacing: 4) {
+                // Title and date
+                Text(expense.description ?? "Expense")
+                    .font(.headline)
                 
-                Spacer()
+                // Creator and date
+                Text("Added by \(creatorName) • \(dateFormatter.string(from: expense.createdAt.dateValue()))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
-                Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
-                    .font(.title3.bold())
-            }
-            
-            Divider()
-            
-            HStack {
+                // Split type badge
                 Label("\(expense.splitType.rawValue.capitalized) split", systemImage: "person.3")
                     .font(.caption)
                     .padding(4)
                     .background(Color.blue.opacity(0.1))
                     .cornerRadius(4)
+                    .padding(.top, 2)
+            }
+            
+            Spacer()
+            
+            // Right side - amount and chevron
+            VStack(alignment: .trailing, spacing: 4) {
+                // Amount
+                Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
+                    .font(.title3.bold())
                 
-                Spacer()
-                
-                Button("Details") {
-                    // No action here - actual action is handled via onTapGesture in parent view
-                }
-                .font(.caption)
-                .buttonStyle(.bordered)
-                .allowsHitTesting(false) // Disable button hit testing to ensure parent tap gesture works
+                // Chevron
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
         .task {
             // Load creator name
             do {

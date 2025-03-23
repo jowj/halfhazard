@@ -12,7 +12,7 @@ import FirebaseAuth
 struct Expense: Codable, Identifiable, Hashable {
     let id: String
     var amount: Double
-    let description: String?
+    var description: String?
     let groupId: String
     var createdBy: String
     let createdAt: Timestamp
