@@ -164,24 +164,26 @@ struct ExpenseDetailView: View {
                 }
             }
             
-            // Optional - Action button for future implementation of edit/delete functionality
+            // Action button for expense actions
             ToolbarItem(placement: .primaryAction) {
                 Menu {
+                    // Edit button - available to all group members
                     Button {
                         // Edit functionality (future implementation)
                     } label: {
                         Label("Edit Expense", systemImage: "pencil")
                     }
-                    .disabled(true)
+                    .disabled(true) // Temporarily disabled until implementation
                     
                     Divider()
                     
+                    // Delete button - only enabled for expense creator or group admin
                     Button(role: .destructive) {
                         // Delete functionality (future implementation)
                     } label: {
                         Label("Delete Expense", systemImage: "trash")
                     }
-                    .disabled(true)
+                    .disabled(true) // Temporarily disabled until implementation
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }

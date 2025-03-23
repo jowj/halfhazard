@@ -104,7 +104,7 @@ class ExpenseService: ObservableObject {
         }
     }
     
-    // Update an expense with access control
+    // Update an expense with access control - any group member can update
     func updateExpense(_ expense: Expense) async throws {
         // Get current user
         guard let currentUser = Auth.auth().currentUser else {
@@ -120,11 +120,8 @@ class ExpenseService: ObservableObject {
             throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
         }
         
-        // Additional check: only the creator or group creator can update the expense
-        let originalExpense = try await getExpense(expenseId: expense.id)
-        if originalExpense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
-            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can update this expense"])
-        }
+        // All group members can update expenses - membership is inherited from the group
+        // No additional checks for expense creator - any member can modify
         
         try db.collection("expenses").document(expense.id).setData(from: expense)
     }
@@ -139,12 +136,18 @@ class ExpenseService: ObservableObject {
         // Get the expense first to check permissions
         let expense = try await getExpense(expenseId: expenseId)
         
-        // Get the group to check if user is admin
+        // Get the group to check membership
         let groupRef = db.collection("groups").document(expense.groupId)
         let group = try await groupRef.getDocument(as: Group.self)
         
-        // Only the expense creator or group admin can delete the expense
-        guard expense.createdBy == currentUser.uid || group.createdBy == currentUser.uid else {
+        // Check if user is a member of the group
+        guard group.memberIds.contains(currentUser.uid) else {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
+        }
+        
+        // For deletion, we'll keep some restrictions:
+        // Only the expense creator or group creator can delete
+        if expense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
             throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can delete this expense"])
         }
         

@@ -12,12 +12,16 @@ import Combine
 class ExpenseViewModel: ObservableObject {
     // Services
     private let expenseService = ExpenseService()
+    private let groupService = GroupService()
     
     // State
     @Published var expenses: [Expense] = []
     @Published var selectedExpense: Expense?
     @Published var isLoading = true
     @Published var errorMessage: String?
+    
+    // Current group data
+    @Published var currentGroup: Group?
     
     // Form state
     @Published var newExpenseAmount: Double = 0
@@ -39,6 +43,41 @@ class ExpenseViewModel: ObservableObject {
         self.currentUser = currentUser
         self.currentGroupId = currentGroupId
         self.useDevMode = useDevMode
+        
+        // If we have a group ID, load the group
+        if let groupId = currentGroupId {
+            Task {
+                await loadGroupInfo(groupId: groupId)
+            }
+        }
+    }
+    
+    @MainActor
+    private func loadGroupInfo(groupId: String) async {
+        guard !useDevMode else {
+            // Create mock group in dev mode
+            self.currentGroup = Group(
+                id: groupId,
+                name: "Mock Group",
+                memberIds: [
+                    currentUser?.uid ?? "dev-user",
+                    "dev-user-2",
+                    "dev-user-3"
+                ],
+                createdBy: currentUser?.uid ?? "dev-user",
+                createdAt: Timestamp(),
+                settings: Settings(name: "")
+            )
+            return
+        }
+        
+        do {
+            let group = try await groupService.getGroupInfo(groupID: groupId)
+            self.currentGroup = group
+        } catch {
+            print("Error loading group info: \(error)")
+            // We don't set errorMessage here to avoid UI disruption
+        }
     }
     
     @MainActor
@@ -261,14 +300,60 @@ class ExpenseViewModel: ObservableObject {
     }
     
     private func createDefaultSplits(groupId: String) -> [String: Double] {
-        // This is a placeholder. In a real implementation, we would get group members
-        // and divide the expense equally among them.
-        // For now, just assign to the current user
-        guard let currentUserId = currentUser?.uid else {
+        // Find the currently selected group to get its members
+        guard let selectedGroup = findSelectedGroup(withId: groupId) else {
+            // Fall back to current user only if we can't find the group
+            guard let currentUserId = currentUser?.uid else {
+                return [:]
+            }
+            return [currentUserId: newExpenseAmount]
+        }
+        
+        // Create equal splits for all group members
+        let memberIds = selectedGroup.memberIds
+        if memberIds.isEmpty {
             return [:]
         }
         
-        return [currentUserId: newExpenseAmount]
+        // Calculate equal amount for each member
+        let equalAmount = newExpenseAmount / Double(memberIds.count)
+        
+        // Create dictionary with equal splits for all members
+        var splits: [String: Double] = [:]
+        for memberId in memberIds {
+            splits[memberId] = equalAmount
+        }
+        
+        return splits
+    }
+    
+    // Helper method to find a group by ID
+    private func findSelectedGroup(withId groupId: String) -> Group? {
+        // First, check if this is our current group
+        if let currentGroup = self.currentGroup, currentGroup.id == groupId {
+            return currentGroup
+        }
+        
+        // If we're in dev mode, create a mock group
+        if useDevMode {
+            // In dev mode, create a mock group with the current user and some fake members
+            return Group(
+                id: groupId,
+                name: "Mock Group",
+                memberIds: [
+                    currentUser?.uid ?? "dev-user",
+                    "dev-user-2",
+                    "dev-user-3"
+                ],
+                createdBy: currentUser?.uid ?? "dev-user",
+                createdAt: Timestamp(),
+                settings: Settings(name: "")
+            )
+        }
+        
+        // In a production implementation, we'd fetch this from Firestore if needed
+        // For now we'll return nil and rely on the loadGroupInfo method to populate currentGroup
+        return nil
     }
     
     // Update context
@@ -279,6 +364,15 @@ class ExpenseViewModel: ObservableObject {
         // Only update group ID if it's different (to avoid unnecessary reloads)
         if groupId != currentGroupId {
             self.currentGroupId = groupId
+            
+            // Load the new group info
+            if let groupId = groupId {
+                Task {
+                    await loadGroupInfo(groupId: groupId)
+                }
+            } else {
+                self.currentGroup = nil
+            }
         }
         
         self.useDevMode = devMode
@@ -287,6 +381,20 @@ class ExpenseViewModel: ObservableObject {
     // Development helper methods
     private func createMockExpenses(for groupId: String) {
         let userId = currentUser?.uid ?? "dev-user"
+        
+        // Get mock group to create realistic splits
+        let mockGroup = findSelectedGroup(withId: groupId)
+        let memberIds = mockGroup?.memberIds ?? [userId]
+        
+        // Create mock splits for all group members
+        let createSplits = { (amount: Double) -> [String: Double] in
+            var splits: [String: Double] = [:]
+            let equalAmount = amount / Double(memberIds.count)
+            for memberId in memberIds {
+                splits[memberId] = equalAmount
+            }
+            return splits
+        }
         
         let mockExpenses = [
             Expense(
@@ -297,7 +405,7 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-86400)),
                 splitType: .equal,
-                splits: [userId: 50.0]
+                splits: createSplits(50.0)
             ),
             Expense(
                 id: "mock-expense-2",
@@ -307,7 +415,7 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-172800)),
                 splitType: .equal,
-                splits: [userId: 120.0]
+                splits: createSplits(120.0)
             ),
             Expense(
                 id: "mock-expense-3",
@@ -317,7 +425,7 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-259200)),
                 splitType: .equal,
-                splits: [userId: 200.0]
+                splits: createSplits(200.0)
             )
         ]
         
