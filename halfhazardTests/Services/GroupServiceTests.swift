@@ -186,7 +186,9 @@ final class GroupServiceTests: XCTestCase {
             memberIds: ["test-user-id", "other-user-id"],
             createdBy: "test-user-id",
             createdAt: Timestamp(),
-            settings: Settings(name: "Test Group Description")
+            settings: Settings(name: "Test Group Description"),
+            settled: false,
+            settledAt: nil
         )
         groupService.mockGroups = [testGroup]
         
@@ -216,5 +218,114 @@ final class GroupServiceTests: XCTestCase {
         XCTAssertEqual(members.count, 2)
         XCTAssertEqual(members[0].uid, "test-user-id")
         XCTAssertEqual(members[1].uid, "other-user-id")
+    }
+    
+    func testSettleGroup() async throws {
+        // Create a test group where the test user is the creator
+        let testGroup = Group(
+            id: "test-group-id",
+            name: "Test Group",
+            memberIds: ["test-user-id", "other-user-id"],
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Test Group Description"),
+            settled: false,
+            settledAt: nil
+        )
+        groupService.mockGroups = [testGroup]
+        
+        // Settle the group
+        try await groupService.settleGroup(groupID: "test-group-id")
+        
+        // Verify the group was settled
+        XCTAssertEqual(groupService.mockGroups.count, 1)
+        XCTAssertTrue(groupService.mockGroups[0].settled)
+        XCTAssertNotNil(groupService.mockGroups[0].settledAt)
+    }
+    
+    func testSettleGroupAlreadySettled() async throws {
+        // Create a test group that is already settled
+        let timestamp = Timestamp()
+        let testGroup = Group(
+            id: "test-group-id",
+            name: "Test Group",
+            memberIds: ["test-user-id", "other-user-id"],
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Test Group Description"),
+            settled: true,
+            settledAt: timestamp
+        )
+        groupService.mockGroups = [testGroup]
+        
+        // Try to settle the group
+        do {
+            try await groupService.settleGroup(groupID: "test-group-id")
+            XCTFail("Expected an error when settling an already settled group")
+        } catch let error as NSError {
+            // Verify we got the expected error
+            XCTAssertEqual(error.domain, "GroupService")
+            XCTAssertEqual(error.code, 400)
+            XCTAssertTrue(error.localizedDescription.contains("already settled"))
+        }
+        
+        // Verify the group is still settled and the timestamp hasn't changed
+        XCTAssertEqual(groupService.mockGroups.count, 1)
+        XCTAssertTrue(groupService.mockGroups[0].settled)
+        XCTAssertEqual(groupService.mockGroups[0].settledAt, timestamp)
+    }
+    
+    func testUnsettleGroup() async throws {
+        // Create a test group that is already settled
+        let testGroup = Group(
+            id: "test-group-id",
+            name: "Test Group",
+            memberIds: ["test-user-id", "other-user-id"],
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Test Group Description"),
+            settled: true,
+            settledAt: Timestamp()
+        )
+        groupService.mockGroups = [testGroup]
+        
+        // Unsettle the group
+        try await groupService.unsettleGroup(groupID: "test-group-id")
+        
+        // Verify the group was unsettled
+        XCTAssertEqual(groupService.mockGroups.count, 1)
+        XCTAssertFalse(groupService.mockGroups[0].settled)
+        XCTAssertNil(groupService.mockGroups[0].settledAt)
+    }
+    
+    func testUnsettleGroupAlreadyUnsettled() async throws {
+        // Create a test group that is already unsettled
+        let testGroup = Group(
+            id: "test-group-id",
+            name: "Test Group",
+            memberIds: ["test-user-id", "other-user-id"],
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Test Group Description"),
+            settled: false,
+            settledAt: nil
+        )
+        groupService.mockGroups = [testGroup]
+        
+        // Try to unsettle the group
+        do {
+            try await groupService.unsettleGroup(groupID: "test-group-id")
+            XCTFail("Expected an error when unsettling an already unsettled group")
+        } catch let error as NSError {
+            // Verify we got the expected error
+            XCTAssertEqual(error.domain, "GroupService")
+            XCTAssertEqual(error.code, 400)
+            XCTAssertTrue(error.localizedDescription.contains("already unsettled"))
+        }
+        
+        // Verify the group is still unsettled
+        XCTAssertEqual(groupService.mockGroups.count, 1)
+        XCTAssertFalse(groupService.mockGroups[0].settled)
+        XCTAssertNil(groupService.mockGroups[0].settledAt)
     }
 }

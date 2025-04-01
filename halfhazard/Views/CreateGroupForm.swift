@@ -7,6 +7,11 @@
 
 import SwiftUI
 import FirebaseFirestore
+#if os(macOS)
+import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct CreateGroupForm: View {
     @Environment(\.dismiss) private var dismiss
@@ -95,7 +100,11 @@ struct CreateGroupForm: View {
             .padding()
         }
         .frame(minWidth: 450, minHeight: 350)
-        .background(Color(.windowBackgroundColor))
+        #if os(macOS)
+        .background(Color(NSColor.windowBackgroundColor))
+        #else
+        .background(Color(.systemBackground))
+        #endif
         .onAppear {
             // Initialize form fields from viewModel
             groupName = viewModel.newGroupName

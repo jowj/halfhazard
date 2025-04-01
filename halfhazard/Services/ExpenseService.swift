@@ -34,7 +34,9 @@ class ExpenseService: ObservableObject {
             createdBy: currentUser.uid,
             createdAt: Timestamp(),
             splitType: splitType,
-            splits: splits
+            splits: splits,
+            settled: false,
+            settledAt: nil
         )
         
         // Save expense to Firestore
@@ -177,5 +179,117 @@ class ExpenseService: ObservableObject {
         }
         
         return expense
+    }
+    
+    // Settle a specific expense
+    func settleExpense(expenseId: String) async throws {
+        // Get current user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "ExpenseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Get the expense
+        let expense = try await getExpense(expenseId: expenseId)
+        
+        // Check if expense is already settled
+        if expense.settled {
+            throw NSError(domain: "ExpenseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This expense is already settled"])
+        }
+        
+        // Get the group to check permissions
+        let groupRef = db.collection("groups").document(expense.groupId)
+        let group = try await groupRef.getDocument(as: Group.self)
+        
+        // Check if user is a member of the group
+        guard group.memberIds.contains(currentUser.uid) else {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
+        }
+        
+        // For settling, allow both expense creator and group creator
+        if expense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can settle this expense"])
+        }
+        
+        // Mark the expense as settled
+        try await db.collection("expenses").document(expenseId).updateData([
+            "settled": true,
+            "settledAt": Timestamp()
+        ])
+    }
+    
+    // Unsettle a specific expense
+    func unsettleExpense(expenseId: String) async throws {
+        // Get current user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "ExpenseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // Get the expense
+        let expense = try await getExpense(expenseId: expenseId)
+        
+        // Check if expense is already unsettled
+        if !expense.settled {
+            throw NSError(domain: "ExpenseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This expense is already unsettled"])
+        }
+        
+        // Get the group to check permissions
+        let groupRef = db.collection("groups").document(expense.groupId)
+        let group = try await groupRef.getDocument(as: Group.self)
+        
+        // Check if user is a member of the group
+        guard group.memberIds.contains(currentUser.uid) else {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
+        }
+        
+        // For unsettling, allow both expense creator and group creator
+        if expense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can unsettle this expense"])
+        }
+        
+        // If the group is settled, we need to unsettle it too
+        if group.settled {
+            try await db.collection("groups").document(expense.groupId).updateData([
+                "settled": false,
+                "settledAt": FieldValue.delete()
+            ])
+        }
+        
+        // Mark the expense as unsettled
+        try await db.collection("expenses").document(expenseId).updateData([
+            "settled": false,
+            "settledAt": FieldValue.delete()
+        ])
+    }
+    
+    // Get all unsettled expenses for a group
+    func getUnsettledExpensesForGroup(groupId: String) async throws -> [Expense] {
+        // Get current user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "ExpenseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+        }
+        
+        // First, verify the user is a member of this group
+        let groupRef = db.collection("groups").document(groupId)
+        let group = try await groupRef.getDocument(as: Group.self)
+        
+        // Check if the current user is a member of this group
+        guard group.memberIds.contains(currentUser.uid) else {
+            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this group"])
+        }
+        
+        // User is authorized, proceed with getting unsettled expenses
+        let querySnapshot = try await db.collection("expenses")
+            .whereField("groupId", isEqualTo: groupId)
+            .whereField("settled", isEqualTo: false)
+            .order(by: "createdAt", descending: true)
+            .getDocuments()
+        
+        var expenses: [Expense] = []
+        for document in querySnapshot.documents {
+            let expense = try document.data(as: Expense.self)
+            expenses.append(expense)
+        }
+        
+        return expenses
     }
 }

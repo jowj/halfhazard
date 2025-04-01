@@ -8,7 +8,11 @@
 import SwiftUI
 import FirebaseFirestore
 import FirebaseAuth
+#if os(macOS)
 import AppKit
+#elseif os(iOS)
+import UIKit
+#endif
 
 struct GroupListView: View {
     @ObservedObject var groupViewModel: GroupViewModel
@@ -19,10 +23,25 @@ struct GroupListView: View {
             List {
                 ForEach(groupViewModel.groups) { group in
                     HStack {
+                        // Group name
                         Text(group.name)
                             .foregroundColor(groupViewModel.selectedGroup?.id == group.id ? .accentColor : .primary)
                             .font(groupViewModel.selectedGroup?.id == group.id ? .headline : .body)
+                        
+                        // Settlement indicator
+                        if group.settled {
+                            Text("Settled")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.green.opacity(0.1))
+                                .cornerRadius(4)
+                        }
+                        
                         Spacer()
+                        
+                        // Selected indicator
                         if groupViewModel.selectedGroup?.id == group.id {
                             Image(systemName: "checkmark")
                                 .foregroundColor(.accentColor)
@@ -106,7 +125,11 @@ struct GroupListView: View {
                     .padding(.top, 4)
             }
             .padding(.vertical, 12)
+            #if os(macOS)
             .background(Color(NSColor.windowBackgroundColor))
+            #else
+            .background(Color(.systemBackground))
+            #endif
             
             // Overlay for empty state or loading
             .overlay {
@@ -234,7 +257,11 @@ struct JoinGroupForm: View {
             .padding()
         }
         .frame(minWidth: 400, minHeight: 280)
+        #if os(macOS)
         .background(Color(NSColor.windowBackgroundColor))
+        #else
+        .background(Color(.systemBackground))
+        #endif
         .onAppear {
             // Clear any previous error messages when the form appears
             viewModel.errorMessage = nil
@@ -308,6 +335,8 @@ struct ManageGroupSheet: View {
                                 let pasteboard = NSPasteboard.general
                                 pasteboard.clearContents()
                                 pasteboard.setString(group.id, forType: .string)
+                                #elseif os(iOS)
+                                UIPasteboard.general.string = group.id
                                 #endif
                                 
                                 // Show copied animation
@@ -409,6 +438,37 @@ struct ManageGroupSheet: View {
                     }
                 }
                 
+                // Settlement status display - for all users
+                Section(header: Text("Settlement Status")) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            // Status label
+                            if group.settled {
+                                Label("Settled", systemImage: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                    .fontWeight(.medium)
+                            } else {
+                                Label("Active", systemImage: "circle")
+                                    .foregroundColor(.blue)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        
+                        // Settlement timestamp if available
+                        if let settledAt = group.settledAt {
+                            Text("Settled on: \(settledAt.dateValue().formatted(date: .abbreviated, time: .shortened))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text("You can manage the group's settlement status directly from the expense list.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .padding(.top, 3)
+                    }
+                    .padding(.vertical, 8)
+                }
+                
                 // Danger Zone section
                 if group.createdBy == viewModel.currentUser?.uid {
                     Section(header: Text("Danger Zone").foregroundColor(.red)) {
@@ -476,6 +536,7 @@ struct ManageGroupSheet: View {
                 Text("Are you sure you want to remove this member from the group?")
             }
         }
+        
         // Error alert
         .alert("Error", isPresented: Binding<Bool>(
             get: { errorMessage != nil },

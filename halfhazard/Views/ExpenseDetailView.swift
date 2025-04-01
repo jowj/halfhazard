@@ -156,13 +156,63 @@ struct ExpenseDetailView: View {
                 }
             }
             
-            // Payment status section (placeholder for future implementation)
+            // Payment status section
             Section(header: Text("Payment Status")) {
-                Text("Payment tracking will be available in a future update.")
-                    .font(.callout)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 8)
+                VStack(alignment: .leading, spacing: 12) {
+                    // Status indicator
+                    HStack {
+                        Image(systemName: expense.settled ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(expense.settled ? .green : .secondary)
+                            .font(.title2)
+                        
+                        VStack(alignment: .leading) {
+                            Text(expense.settled ? "Settled" : "Unsettled")
+                                .font(.headline)
+                                .foregroundColor(expense.settled ? .green : .primary)
+                            
+                            if expense.settled, let settledAt = expense.settledAt {
+                                Text("Settled on \(dateFormatter.string(from: settledAt.dateValue()))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 4)
+                    
+                    // Settle/unsettle button
+                    if let expenseVM = userService.expenseViewModel {
+                        if expense.settled {
+                            Button {
+                                Task {
+                                    await expenseVM.unsettleExpense(expense: expense)
+                                    // Note: The sheet will dismiss when the expense is updated
+                                    dismiss()
+                                }
+                            } label: {
+                                Label("Mark as Unsettled", systemImage: "arrow.counterclockwise.circle.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.orange)
+                        } else {
+                            Button {
+                                Task {
+                                    await expenseVM.settleExpense(expense: expense)
+                                    // Note: The sheet will dismiss when the expense is updated
+                                    dismiss()
+                                }
+                            } label: {
+                                Label("Mark as Settled", systemImage: "checkmark.circle.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.green)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
             }
         }
         .navigationTitle("Expense Details")

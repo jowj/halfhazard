@@ -16,9 +16,13 @@ class ExpenseViewModel: ObservableObject {
     
     // State
     @Published var expenses: [Expense] = []
+    @Published var filteredExpenses: [Expense] = []
     @Published var selectedExpense: Expense?
     @Published var isLoading = true
     @Published var errorMessage: String?
+    
+    // Filter state
+    @Published var showOnlyActive = false
     
     // Current group data
     @Published var currentGroup: Group?
@@ -69,7 +73,9 @@ class ExpenseViewModel: ObservableObject {
                 ],
                 createdBy: currentUser?.uid ?? "dev-user",
                 createdAt: Timestamp(),
-                settings: Settings(name: "")
+                settings: Settings(name: ""),
+                settled: false,
+                settledAt: nil
             )
             return
         }
@@ -105,6 +111,7 @@ class ExpenseViewModel: ObservableObject {
             if expenses.isEmpty {
                 createMockExpenses(for: targetGroupId)
             }
+            applyFilters()
             isLoading = false
             return
         }
@@ -115,6 +122,7 @@ class ExpenseViewModel: ObservableObject {
         do {
             let loadedExpenses = try await expenseService.getExpensesForGroup(groupId: targetGroupId)
             expenses = loadedExpenses
+            applyFilters()
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 9,
                let indexURL = error.userInfo["indexURL"] as? String {
@@ -180,11 +188,14 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: currentUser?.uid ?? "dev-user",
                 createdAt: timestamp,
                 splitType: newExpenseSplitType,
-                splits: newExpenseSplits.isEmpty ? createDefaultSplits(groupId: groupId) : newExpenseSplits
+                splits: newExpenseSplits.isEmpty ? createDefaultSplits(groupId: groupId) : newExpenseSplits,
+                settled: false,
+                settledAt: nil
             )
             
             // Add to our array
             expenses.insert(mockExpense, at: 0)
+            applyFilters()
             
             // Reset form fields
             resetFormFields()
@@ -208,6 +219,7 @@ class ExpenseViewModel: ObservableObject {
             
             // Add the new expense to our array
             expenses.insert(expense, at: 0)
+            applyFilters()
             
             // Reset form fields
             resetFormFields()
@@ -240,6 +252,7 @@ class ExpenseViewModel: ObservableObject {
         if useDevMode {
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses.remove(at: index)
+                applyFilters()
             }
             return
         }
@@ -250,6 +263,7 @@ class ExpenseViewModel: ObservableObject {
             // Remove from our array
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses.remove(at: index)
+                applyFilters()
             }
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 403 {
@@ -271,6 +285,7 @@ class ExpenseViewModel: ObservableObject {
         if useDevMode {
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses[index] = expense
+                applyFilters()
             }
             return
         }
@@ -281,6 +296,7 @@ class ExpenseViewModel: ObservableObject {
             // Update in our array
             if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
                 expenses[index] = expense
+                applyFilters()
             }
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 403 {
@@ -444,7 +460,9 @@ class ExpenseViewModel: ObservableObject {
                 ],
                 createdBy: currentUser?.uid ?? "dev-user",
                 createdAt: Timestamp(),
-                settings: Settings(name: "")
+                settings: Settings(name: ""),
+                settled: false,
+                settledAt: nil
             )
         }
         
@@ -475,6 +493,213 @@ class ExpenseViewModel: ObservableObject {
         self.useDevMode = devMode
     }
     
+    @MainActor
+    func settleExpense(expense: Expense) async {
+        // Check if expense is already settled
+        guard !expense.settled else {
+            errorMessage = "This expense is already settled"
+            return
+        }
+        
+        // For dev mode, just update in the array
+        if useDevMode {
+            if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
+                var updatedExpense = expense
+                updatedExpense.settled = true
+                updatedExpense.settledAt = Timestamp()
+                expenses[index] = updatedExpense
+                applyFilters()
+                
+                // Update selected expense if it's the one we just settled
+                if selectedExpense?.id == expense.id {
+                    selectedExpense = updatedExpense
+                }
+            }
+            return
+        }
+        
+        do {
+            try await expenseService.settleExpense(expenseId: expense.id)
+            
+            // Update in our array
+            if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
+                var updatedExpense = expense
+                updatedExpense.settled = true
+                updatedExpense.settledAt = Timestamp()
+                expenses[index] = updatedExpense
+                applyFilters()
+                
+                // Update selected expense if it's the one we just settled
+                if selectedExpense?.id == expense.id {
+                    selectedExpense = updatedExpense
+                }
+            }
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 400 {
+                errorMessage = "This expense is already settled"
+            } else if error.domain == "ExpenseService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to settle expense: \(error.localizedDescription)"
+            }
+            print("Error settling expense: \(error)")
+        }
+    }
+    
+    @MainActor
+    func unsettleExpense(expense: Expense) async {
+        // Check if expense is already unsettled
+        guard expense.settled else {
+            errorMessage = "This expense is already unsettled"
+            return
+        }
+        
+        // For dev mode, just update in the array
+        if useDevMode {
+            if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
+                var updatedExpense = expense
+                updatedExpense.settled = false
+                updatedExpense.settledAt = nil
+                expenses[index] = updatedExpense
+                applyFilters()
+                
+                // Update selected expense if it's the one we just unsettled
+                if selectedExpense?.id == expense.id {
+                    selectedExpense = updatedExpense
+                }
+            }
+            return
+        }
+        
+        do {
+            try await expenseService.unsettleExpense(expenseId: expense.id)
+            
+            // Update in our array
+            if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
+                var updatedExpense = expense
+                updatedExpense.settled = false
+                updatedExpense.settledAt = nil
+                expenses[index] = updatedExpense
+                applyFilters()
+                
+                // Update selected expense if it's the one we just unsettled
+                if selectedExpense?.id == expense.id {
+                    selectedExpense = updatedExpense
+                }
+            }
+        } catch let error as NSError {
+            if error.domain == "ExpenseService" && error.code == 400 {
+                errorMessage = "This expense is already unsettled"
+            } else if error.domain == "ExpenseService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "ExpenseService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to unsettle expense: \(error.localizedDescription)"
+            }
+            print("Error unsettling expense: \(error)")
+        }
+    }
+    
+    @MainActor
+    func loadUnsettledExpenses(forGroupId groupId: String? = nil) async {
+        // Use provided groupId or fall back to the stored one
+        let targetGroupId = groupId ?? currentGroupId
+        
+        // Update the stored group ID if a new one was provided
+        if let groupId = groupId {
+            currentGroupId = groupId
+        }
+        
+        // Make sure we have a group ID
+        guard let targetGroupId = targetGroupId else {
+            errorMessage = "No group selected"
+            return
+        }
+        
+        // Skip for dev mode - filter existing expenses
+        if useDevMode {
+            if expenses.isEmpty {
+                createMockExpenses(for: targetGroupId)
+            }
+            // Filter to only show unsettled expenses
+            expenses = expenses.filter { !$0.settled }
+            isLoading = false
+            return
+        }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            let loadedExpenses = try await expenseService.getUnsettledExpensesForGroup(groupId: targetGroupId)
+            expenses = loadedExpenses
+        } catch let error as NSError {
+            handleExpenseLoadingError(error)
+        }
+    }
+    
+    private func handleExpenseLoadingError(_ error: NSError) {
+        if error.domain == "ExpenseService" && error.code == 9,
+           let indexURL = error.userInfo["indexURL"] as? String {
+            // Handle missing Firestore index
+            errorMessage = """
+            Missing Firestore index for expenses.
+            
+            Create the index using this link:
+            \(indexURL)
+            
+            After creating the index, restart the app.
+            """
+        } else if error.domain == "FIRFirestoreErrorDomain" && error.code == 7 {
+            // Handle permissions error
+            errorMessage = """
+            Firestore permissions error.
+            
+            You need to set up Firestore security rules. Please:
+            1. Go to Firebase Console -> Firestore Database
+            2. Go to the Rules tab
+            3. Replace rules with the content from the firestore.rules.dev file for development
+            4. Publish the rules
+            
+            For development, you can use permissive rules. Make sure to use proper rules in production.
+            """
+        } else if error.domain == "ExpenseService" && error.code == 403 {
+            // Handle access control error - user not a member of the group
+            errorMessage = "Access denied: \(error.localizedDescription)"
+            expenses = [] // Clear expenses since we don't have access
+            filteredExpenses = []
+        } else if error.domain == "ExpenseService" && error.code == 401 {
+            // Handle authentication error
+            errorMessage = "Authentication required: \(error.localizedDescription)"
+            expenses = [] // Clear expenses since we're not authenticated
+            filteredExpenses = []
+        } else {
+            // Handle generic error
+            errorMessage = "Failed to load expenses: \(error.localizedDescription)"
+        }
+        print("Error loading expenses: \(error)")
+    }
+    
+    // Apply filters to the expenses array and update filteredExpenses
+    private func applyFilters() {
+        if showOnlyActive {
+            // Only show unsettled (active) expenses
+            filteredExpenses = expenses.filter { !$0.settled }
+        } else {
+            // Show all expenses
+            filteredExpenses = expenses
+        }
+    }
+    
+    // Toggle between showing all expenses or only active (unsettled) ones
+    func toggleActiveFilter() {
+        showOnlyActive.toggle()
+        applyFilters()
+    }
+    
     // Development helper methods
     private func createMockExpenses(for groupId: String) {
         let userId = currentUser?.uid ?? "dev-user"
@@ -502,7 +727,8 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-86400)),
                 splitType: .equal,
-                splits: createSplits(50.0)
+                splits: createSplits(50.0),
+                settled: false
             ),
             Expense(
                 id: "mock-expense-2",
@@ -512,7 +738,8 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-172800)),
                 splitType: .equal,
-                splits: createSplits(120.0)
+                splits: createSplits(120.0),
+                settled: false
             ),
             Expense(
                 id: "mock-expense-3",
@@ -522,7 +749,9 @@ class ExpenseViewModel: ObservableObject {
                 createdBy: userId,
                 createdAt: Timestamp(date: Date().addingTimeInterval(-259200)),
                 splitType: .equal,
-                splits: createSplits(200.0)
+                splits: createSplits(200.0),
+                settled: true,
+                settledAt: Timestamp(date: Date().addingTimeInterval(-86400))
             )
         ]
         

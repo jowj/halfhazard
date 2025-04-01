@@ -32,7 +32,9 @@ class MockGroupService: GroupService {
             memberIds: ["test-user-id"],
             createdBy: "test-user-id",
             createdAt: timestamp,
-            settings: Settings(name: groupDescription ?? "")
+            settings: Settings(name: groupDescription ?? ""),
+            settled: false,
+            settledAt: nil
         )
         
         mockGroups.append(newGroup)
@@ -71,7 +73,9 @@ class MockGroupService: GroupService {
             memberIds: ["test-user-id", "other-user"],
             createdBy: "other-user",
             createdAt: timestamp,
-            settings: Settings(name: "")
+            settings: Settings(name: ""),
+            settled: false,
+            settledAt: nil
         )
         
         mockGroups.append(newGroup)
@@ -125,6 +129,44 @@ class MockGroupService: GroupService {
         
         mockGroupMembers.removeAll { $0.uid == userID }
     }
+    
+    override func settleGroup(groupID: String) async throws {
+        if let error = mockError {
+            throw error
+        }
+        
+        if let index = mockGroups.firstIndex(where: { $0.id == groupID }) {
+            // Check if group is already settled
+            if mockGroups[index].settled {
+                throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This group is already settled"])
+            }
+            
+            // Update the group
+            mockGroups[index].settled = true
+            mockGroups[index].settledAt = Timestamp()
+        } else {
+            throw NSError(domain: "GroupService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Group not found"])
+        }
+    }
+    
+    override func unsettleGroup(groupID: String) async throws {
+        if let error = mockError {
+            throw error
+        }
+        
+        if let index = mockGroups.firstIndex(where: { $0.id == groupID }) {
+            // Check if group is already unsettled
+            if !mockGroups[index].settled {
+                throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This group is already unsettled"])
+            }
+            
+            // Update the group
+            mockGroups[index].settled = false
+            mockGroups[index].settledAt = nil
+        } else {
+            throw NSError(domain: "GroupService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Group not found"])
+        }
+    }
 }
 
 // MARK: - Mock Expense Service
@@ -155,7 +197,9 @@ class MockExpenseService: ExpenseService {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: splitType,
-            splits: splits
+            splits: splits,
+            settled: false,
+            settledAt: nil
         )
         
         mockExpenses.append(newExpense)
@@ -190,6 +234,52 @@ class MockExpenseService: ExpenseService {
         }
         
         throw NSError(domain: "ExpenseService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Expense not found"])
+    }
+    
+    override func settleExpense(expenseId: String) async throws {
+        if let error = mockError {
+            throw error
+        }
+        
+        if let index = mockExpenses.firstIndex(where: { $0.id == expenseId }) {
+            // Check if expense is already settled
+            if mockExpenses[index].settled {
+                throw NSError(domain: "ExpenseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This expense is already settled"])
+            }
+            
+            // Update the expense
+            mockExpenses[index].settled = true
+            mockExpenses[index].settledAt = Timestamp()
+        } else {
+            throw NSError(domain: "ExpenseService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Expense not found"])
+        }
+    }
+    
+    override func unsettleExpense(expenseId: String) async throws {
+        if let error = mockError {
+            throw error
+        }
+        
+        if let index = mockExpenses.firstIndex(where: { $0.id == expenseId }) {
+            // Check if expense is already unsettled
+            if !mockExpenses[index].settled {
+                throw NSError(domain: "ExpenseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This expense is already unsettled"])
+            }
+            
+            // Update the expense
+            mockExpenses[index].settled = false
+            mockExpenses[index].settledAt = nil
+        } else {
+            throw NSError(domain: "ExpenseService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Expense not found"])
+        }
+    }
+    
+    override func getUnsettledExpensesForGroup(groupId: String) async throws -> [Expense] {
+        if let error = mockError {
+            throw error
+        }
+        
+        return mockExpenses.filter { $0.groupId == groupId && !$0.settled }
     }
 }
 

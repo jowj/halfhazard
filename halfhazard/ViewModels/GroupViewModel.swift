@@ -138,7 +138,9 @@ class GroupViewModel: ObservableObject {
                 memberIds: [currentUser?.uid ?? "dev-user"],
                 createdBy: currentUser?.uid ?? "dev-user",
                 createdAt: timestamp,
-                settings: Settings(name: newGroupDescription.isEmpty ? "" : newGroupDescription)
+                settings: Settings(name: newGroupDescription.isEmpty ? "" : newGroupDescription),
+                settled: false,
+                settledAt: nil
             )
             
             // Add to our array
@@ -222,7 +224,9 @@ class GroupViewModel: ObservableObject {
                 memberIds: [currentUser?.uid ?? "dev-user"],
                 createdBy: "dev-creator",
                 createdAt: timestamp,
-                settings: Settings(name: "Joined via code")
+                settings: Settings(name: "Joined via code"),
+                settled: false,
+                settledAt: nil
             )
             
             // Add to our array if not already present
@@ -374,6 +378,96 @@ class GroupViewModel: ObservableObject {
         newGroupName = ""
         newGroupDescription = ""
         joinGroupCode = ""
+    }
+    
+    @MainActor
+    func settleCurrentGroup() async {
+        guard let group = selectedGroup else { return }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Update in our array
+            if let index = groups.firstIndex(where: { $0.id == group.id }) {
+                var updatedGroup = group
+                updatedGroup.settled = true
+                updatedGroup.settledAt = Timestamp()
+                groups[index] = updatedGroup
+                selectedGroup = updatedGroup
+            }
+            return
+        }
+        
+        do {
+            try await groupService.settleGroup(groupID: group.id)
+            
+            // Update in our array
+            if let index = groups.firstIndex(where: { $0.id == group.id }) {
+                var updatedGroup = group
+                updatedGroup.settled = true
+                updatedGroup.settledAt = Timestamp()
+                groups[index] = updatedGroup
+                selectedGroup = updatedGroup
+            }
+        } catch let error as NSError {
+            if error.domain == "GroupService" && error.code == 400 {
+                errorMessage = "This group is already settled"
+            } else if error.domain == "GroupService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to settle group: \(error.localizedDescription)"
+            }
+            print("Error settling group: \(error)")
+        }
+    }
+    
+    @MainActor
+    func unsettleCurrentGroup() async {
+        guard let group = selectedGroup else { return }
+        
+        // Check if the group is already unsettled
+        guard group.settled else {
+            errorMessage = "This group is already unsettled"
+            return
+        }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Update in our array
+            if let index = groups.firstIndex(where: { $0.id == group.id }) {
+                var updatedGroup = group
+                updatedGroup.settled = false
+                updatedGroup.settledAt = nil
+                groups[index] = updatedGroup
+                selectedGroup = updatedGroup
+            }
+            return
+        }
+        
+        do {
+            try await groupService.unsettleGroup(groupID: group.id)
+            
+            // Update in our array
+            if let index = groups.firstIndex(where: { $0.id == group.id }) {
+                var updatedGroup = group
+                updatedGroup.settled = false
+                updatedGroup.settledAt = nil
+                groups[index] = updatedGroup
+                selectedGroup = updatedGroup
+            }
+        } catch let error as NSError {
+            if error.domain == "GroupService" && error.code == 400 {
+                errorMessage = "This group is already unsettled"
+            } else if error.domain == "GroupService" && error.code == 403 {
+                errorMessage = "Access denied: \(error.localizedDescription)"
+            } else if error.domain == "GroupService" && error.code == 401 {
+                errorMessage = "Authentication required: \(error.localizedDescription)"
+            } else {
+                errorMessage = "Failed to unsettle group: \(error.localizedDescription)"
+            }
+            print("Error unsettling group: \(error)")
+        }
     }
     
     // We no longer need a separate update method as we access the properties directly

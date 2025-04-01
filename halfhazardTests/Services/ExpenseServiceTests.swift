@@ -39,7 +39,9 @@ final class ExpenseServiceTests: XCTestCase {
             memberIds: ["test-user-id", "other-user-id"],
             createdBy: "test-user-id",
             createdAt: Timestamp(),
-            settings: Settings(name: "Test Group Description")
+            settings: Settings(name: "Test Group Description"),
+            settled: false,
+            settledAt: nil
         )
         groupService.mockGroups = [testGroup]
         
@@ -87,7 +89,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["test-user-id": 50.0, "other-user-id": 50.0]
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
         )
         let expense2 = Expense(
             id: "expense2-id",
@@ -97,7 +101,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "other-user-id",
             createdAt: Timestamp(),
             splitType: .percentage,
-            splits: ["test-user-id": 100.0, "other-user-id": 100.0]
+            splits: ["test-user-id": 100.0, "other-user-id": 100.0],
+            settled: false,
+            settledAt: nil
         )
         let expense3 = Expense(
             id: "expense3-id",
@@ -107,7 +113,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["test-user-id": 75.0, "other-user-id": 75.0]
+            splits: ["test-user-id": 75.0, "other-user-id": 75.0],
+            settled: false,
+            settledAt: nil
         )
         expenseService.mockExpenses = [expense1, expense2, expense3]
         
@@ -131,7 +139,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["test-user-id": 50.0, "other-user-id": 50.0]
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
         )
         expenseService.mockExpenses = [expense]
         
@@ -163,7 +173,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["test-user-id": 50.0, "other-user-id": 50.0]
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
         )
         expenseService.mockExpenses = [expense]
         
@@ -184,7 +196,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "test-user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["test-user-id": 50.0, "other-user-id": 50.0]
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
         )
         let expense2 = Expense(
             id: "expense2-id",
@@ -194,7 +208,9 @@ final class ExpenseServiceTests: XCTestCase {
             createdBy: "other-user-id",
             createdAt: Timestamp(),
             splitType: .percentage,
-            splits: ["test-user-id": 100.0, "other-user-id": 100.0]
+            splits: ["test-user-id": 100.0, "other-user-id": 100.0],
+            settled: false,
+            settledAt: nil
         )
         expenseService.mockExpenses = [expense1, expense2]
         
@@ -217,5 +233,191 @@ final class ExpenseServiceTests: XCTestCase {
             XCTAssertEqual(error.domain, "ExpenseService")
             XCTAssertEqual(error.code, 404)
         }
+    }
+    
+    func testSettleExpense() async throws {
+        // Create a test expense
+        let expense = Expense(
+            id: "test-expense-id",
+            amount: 100.0,
+            description: "Test Expense",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
+        )
+        expenseService.mockExpenses = [expense]
+        
+        // Settle the expense
+        try await expenseService.settleExpense(expenseId: "test-expense-id")
+        
+        // Verify the expense was settled
+        XCTAssertEqual(expenseService.mockExpenses.count, 1)
+        XCTAssertTrue(expenseService.mockExpenses[0].settled)
+        XCTAssertNotNil(expenseService.mockExpenses[0].settledAt)
+    }
+    
+    func testSettleExpenseAlreadySettled() async throws {
+        // Create a test expense that is already settled
+        let timestamp = Timestamp()
+        let expense = Expense(
+            id: "test-expense-id",
+            amount: 100.0,
+            description: "Test Expense",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: true,
+            settledAt: timestamp
+        )
+        expenseService.mockExpenses = [expense]
+        
+        // Try to settle the expense
+        do {
+            try await expenseService.settleExpense(expenseId: "test-expense-id")
+            XCTFail("Expected an error when settling an already settled expense")
+        } catch let error as NSError {
+            // Verify we got the expected error
+            XCTAssertEqual(error.domain, "ExpenseService")
+            XCTAssertEqual(error.code, 400)
+            XCTAssertTrue(error.localizedDescription.contains("already settled"))
+        }
+        
+        // Verify the expense is still settled and the timestamp hasn't changed
+        XCTAssertEqual(expenseService.mockExpenses.count, 1)
+        XCTAssertTrue(expenseService.mockExpenses[0].settled)
+        XCTAssertEqual(expenseService.mockExpenses[0].settledAt, timestamp)
+    }
+    
+    func testUnsettleExpense() async throws {
+        // Create a test expense that is already settled
+        let expense = Expense(
+            id: "test-expense-id",
+            amount: 100.0,
+            description: "Test Expense",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: true,
+            settledAt: Timestamp()
+        )
+        expenseService.mockExpenses = [expense]
+        
+        // Unsettle the expense
+        try await expenseService.unsettleExpense(expenseId: "test-expense-id")
+        
+        // Verify the expense was unsettled
+        XCTAssertEqual(expenseService.mockExpenses.count, 1)
+        XCTAssertFalse(expenseService.mockExpenses[0].settled)
+        XCTAssertNil(expenseService.mockExpenses[0].settledAt)
+    }
+    
+    func testUnsettleExpenseAlreadyUnsettled() async throws {
+        // Create a test expense that is already unsettled
+        let expense = Expense(
+            id: "test-expense-id",
+            amount: 100.0,
+            description: "Test Expense",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
+        )
+        expenseService.mockExpenses = [expense]
+        
+        // Try to unsettle the expense
+        do {
+            try await expenseService.unsettleExpense(expenseId: "test-expense-id")
+            XCTFail("Expected an error when unsettling an already unsettled expense")
+        } catch let error as NSError {
+            // Verify we got the expected error
+            XCTAssertEqual(error.domain, "ExpenseService")
+            XCTAssertEqual(error.code, 400)
+            XCTAssertTrue(error.localizedDescription.contains("already unsettled"))
+        }
+        
+        // Verify the expense is still unsettled
+        XCTAssertEqual(expenseService.mockExpenses.count, 1)
+        XCTAssertFalse(expenseService.mockExpenses[0].settled)
+        XCTAssertNil(expenseService.mockExpenses[0].settledAt)
+    }
+    
+    func testGetUnsettledExpensesForGroup() async throws {
+        // Create test expenses with different settled states
+        let unsettledExpense1 = Expense(
+            id: "unsettled1-id",
+            amount: 100.0,
+            description: "Unsettled Expense 1",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 50.0, "other-user-id": 50.0],
+            settled: false,
+            settledAt: nil
+        )
+        let unsettledExpense2 = Expense(
+            id: "unsettled2-id",
+            amount: 150.0,
+            description: "Unsettled Expense 2",
+            groupId: "test-group-id",
+            createdBy: "other-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 75.0, "other-user-id": 75.0],
+            settled: false,
+            settledAt: nil
+        )
+        let settledExpense = Expense(
+            id: "settled-id",
+            amount: 200.0,
+            description: "Settled Expense",
+            groupId: "test-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 100.0, "other-user-id": 100.0],
+            settled: true,
+            settledAt: Timestamp()
+        )
+        let unsettledExpenseOtherGroup = Expense(
+            id: "unsettled-other-group-id",
+            amount: 120.0,
+            description: "Unsettled Expense Other Group",
+            groupId: "other-group-id",
+            createdBy: "test-user-id",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["test-user-id": 60.0, "other-user-id": 60.0],
+            settled: false,
+            settledAt: nil
+        )
+        
+        expenseService.mockExpenses = [
+            unsettledExpense1,
+            unsettledExpense2,
+            settledExpense,
+            unsettledExpenseOtherGroup
+        ]
+        
+        // Test getting unsettled expenses for a specific group
+        let unsettledExpenses = try await expenseService.getUnsettledExpensesForGroup(groupId: "test-group-id")
+        
+        // Verify only unsettled expenses for the specified group were returned
+        XCTAssertEqual(unsettledExpenses.count, 2)
+        XCTAssertTrue(unsettledExpenses.contains { $0.id == "unsettled1-id" })
+        XCTAssertTrue(unsettledExpenses.contains { $0.id == "unsettled2-id" })
+        XCTAssertFalse(unsettledExpenses.contains { $0.id == "settled-id" })
+        XCTAssertFalse(unsettledExpenses.contains { $0.id == "unsettled-other-group-id" })
     }
 }

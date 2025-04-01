@@ -96,7 +96,9 @@ final class ModelsTests: XCTestCase {
             memberIds: ["user1", "user2"],
             createdBy: "user1",
             createdAt: Timestamp(),
-            settings: Settings(name: "Test Description")
+            settings: Settings(name: "Test Description"),
+            settled: false,
+            settledAt: nil
         )
         
         // Test group properties
@@ -105,6 +107,26 @@ final class ModelsTests: XCTestCase {
         XCTAssertEqual(group.memberIds, ["user1", "user2"])
         XCTAssertEqual(group.createdBy, "user1")
         XCTAssertEqual(group.settings.name, "Test Description")
+        XCTAssertFalse(group.settled)
+        XCTAssertNil(group.settledAt)
+        
+        // Create a settled group
+        let settledTimestamp = Timestamp()
+        let settledGroup = Group(
+            id: "settled-group",
+            name: "Settled Group",
+            memberIds: ["user1", "user2"],
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Settled Group"),
+            settled: true,
+            settledAt: settledTimestamp
+        )
+        
+        // Test settled group properties
+        XCTAssertEqual(settledGroup.id, "settled-group")
+        XCTAssertTrue(settledGroup.settled)
+        XCTAssertEqual(settledGroup.settledAt, settledTimestamp)
         
         // Test equality
         let sameGroup = Group(
@@ -113,7 +135,9 @@ final class ModelsTests: XCTestCase {
             memberIds: ["user1", "user3"], // Different members but should still be equal
             createdBy: "user1",
             createdAt: Timestamp(),
-            settings: Settings(name: "Different Description")
+            settings: Settings(name: "Different Description"),
+            settled: true, // Different settled status but should still be equal
+            settledAt: Timestamp() // Different timestamp but should still be equal
         )
         XCTAssertEqual(group, sameGroup) // Groups with same ID should be equal
         
@@ -124,7 +148,9 @@ final class ModelsTests: XCTestCase {
             memberIds: ["user1", "user2"],
             createdBy: "user1",
             createdAt: Timestamp(),
-            settings: Settings(name: "Test Description")
+            settings: Settings(name: "Test Description"),
+            settled: false,
+            settledAt: nil
         )
         XCTAssertNotEqual(group, differentGroup) // Groups with different IDs should not be equal
     }
@@ -142,7 +168,9 @@ final class ModelsTests: XCTestCase {
             splits: [
                 "user1": 50.0,
                 "user2": 50.0
-            ]
+            ],
+            settled: false,
+            settledAt: nil
         )
         
         // Test expense properties
@@ -154,6 +182,30 @@ final class ModelsTests: XCTestCase {
         XCTAssertEqual(expense.splitType, .equal)
         XCTAssertEqual(expense.splits["user1"], 50.0)
         XCTAssertEqual(expense.splits["user2"], 50.0)
+        XCTAssertFalse(expense.settled)
+        XCTAssertNil(expense.settledAt)
+        
+        // Create a settled expense
+        let settledTimestamp = Timestamp()
+        let settledExpense = Expense(
+            id: "settled-expense",
+            amount: 100.0,
+            description: "Settled Expense",
+            groupId: "test-group",
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: [
+                "user1": 50.0,
+                "user2": 50.0
+            ],
+            settled: true,
+            settledAt: settledTimestamp
+        )
+        
+        // Test settled expense properties
+        XCTAssertTrue(settledExpense.settled)
+        XCTAssertEqual(settledExpense.settledAt, settledTimestamp)
         
         // Test equality
         let sameExpense = Expense(
@@ -164,7 +216,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user2", // Different creator but should still be equal
             createdAt: Timestamp(),
             splitType: .percentage, // Different split type but should still be equal
-            splits: ["user1": 100.0, "user2": 100.0] // Different splits but should still be equal
+            splits: ["user1": 100.0, "user2": 100.0], // Different splits but should still be equal
+            settled: true, // Different settled status but should still be equal
+            settledAt: Timestamp() // Different settled timestamp but should still be equal
         )
         XCTAssertEqual(expense, sameExpense) // Expenses with same ID should be equal
         
@@ -177,7 +231,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user1",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["user1": 50.0, "user2": 50.0]
+            splits: ["user1": 50.0, "user2": 50.0],
+            settled: false,
+            settledAt: nil
         )
         XCTAssertNotEqual(expense, differentExpense) // Expenses with different IDs should not be equal
     }
@@ -192,7 +248,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user1",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["user1": 37.5, "user2": 37.5]
+            splits: ["user1": 37.5, "user2": 37.5],
+            settled: false,
+            settledAt: nil
         )
         
         // Test that nil description is handled correctly
@@ -210,7 +268,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user1",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["user1": 0.0, "user2": 0.0]
+            splits: ["user1": 0.0, "user2": 0.0],
+            settled: false,
+            settledAt: nil
         )
         
         // Test that zero amount is handled correctly
@@ -229,7 +289,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user1",
             createdAt: Timestamp(),
             splitType: .custom,
-            splits: ["user1": 75.0, "user2": 25.0]
+            splits: ["user1": 75.0, "user2": 25.0],
+            settled: false,
+            settledAt: nil
         )
         
         // Test that custom splits are handled correctly
@@ -252,7 +314,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user1",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["user1": 25.0, "user2": 25.0]
+            splits: ["user1": 25.0, "user2": 25.0],
+            settled: false,
+            settledAt: nil
         )
         
         let expense2 = Expense(
@@ -263,7 +327,9 @@ final class ModelsTests: XCTestCase {
             createdBy: "user2",
             createdAt: Timestamp(),
             splitType: .percentage,
-            splits: ["user1": 60.0, "user2": 40.0]
+            splits: ["user1": 60.0, "user2": 40.0],
+            settled: true,
+            settledAt: Timestamp()
         )
         
         // Test that hash values are equal (since they're based on ID)
@@ -275,6 +341,76 @@ final class ModelsTests: XCTestCase {
         // And verify that they're considered equal by Set
         let expenseSet = Set([expense1, expense2])
         XCTAssertEqual(expenseSet.count, 1) // Only one unique expense should be in the set
+    }
+    
+    func testExpenseSettled() {
+        // Test the settled property functionality
+        let settledTimestamp = Timestamp()
+        let settledExpense = Expense(
+            id: "settled-test-expense",
+            amount: 100.0,
+            description: "Settled Expense Test",
+            groupId: "test-group",
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["user1": 50.0, "user2": 50.0],
+            settled: true,
+            settledAt: settledTimestamp
+        )
+        
+        XCTAssertTrue(settledExpense.settled)
+        XCTAssertEqual(settledExpense.settledAt, settledTimestamp)
+        
+        // Create an unsettled expense
+        let unsettledExpense = Expense(
+            id: "unsettled-test-expense",
+            amount: 100.0,
+            description: "Unsettled Expense Test",
+            groupId: "test-group",
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            splitType: .equal,
+            splits: ["user1": 50.0, "user2": 50.0],
+            settled: false,
+            settledAt: nil
+        )
+        
+        XCTAssertFalse(unsettledExpense.settled)
+        XCTAssertNil(unsettledExpense.settledAt)
+    }
+    
+    func testGroupSettled() {
+        // Test the settled property functionality for groups
+        let settledTimestamp = Timestamp()
+        let settledGroup = Group(
+            id: "settled-test-group",
+            name: "Settled Group Test",
+            memberIds: ["user1", "user2"],
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Settled Group Test"),
+            settled: true,
+            settledAt: settledTimestamp
+        )
+        
+        XCTAssertTrue(settledGroup.settled)
+        XCTAssertEqual(settledGroup.settledAt, settledTimestamp)
+        
+        // Create an unsettled group
+        let unsettledGroup = Group(
+            id: "unsettled-test-group",
+            name: "Unsettled Group Test",
+            memberIds: ["user1", "user2"],
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Unsettled Group Test"),
+            settled: false,
+            settledAt: nil
+        )
+        
+        XCTAssertFalse(unsettledGroup.settled)
+        XCTAssertNil(unsettledGroup.settledAt)
     }
     
     func testSplitTypeModel() {

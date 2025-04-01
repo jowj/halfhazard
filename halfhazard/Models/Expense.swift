@@ -18,6 +18,8 @@ struct Expense: Codable, Identifiable, Hashable {
     let createdAt: Timestamp
     var splitType: SplitType
     var splits: [String: Double]
+    var settled: Bool = false
+    var settledAt: Timestamp?
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)

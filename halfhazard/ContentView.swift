@@ -60,6 +60,15 @@ struct ContentView: View {
     }
     
     var mainAppView: some View {
+        #if os(macOS)
+        macOSMainView
+        #else
+        iOSMainView
+        #endif
+    }
+    
+    // macOS-specific main view
+    var macOSMainView: some View {
         NavigationSplitView {
             // Sidebar - Groups
             GroupListView(
@@ -70,7 +79,11 @@ struct ContentView: View {
         } detail: {
             // Detail view
             if let selectedGroup = groupViewModel.selectedGroup {
-                ExpenseListView(group: selectedGroup, expenseViewModel: expenseViewModel)
+                ExpenseListView(
+                    group: selectedGroup, 
+                    expenseViewModel: expenseViewModel,
+                    groupViewModel: groupViewModel
+                )
             } else {
                 // Test view for debugging layout
                 ContentUnavailableView("Select a Group",
@@ -78,10 +91,6 @@ struct ContentView: View {
                                       description: Text("Choose a group from the sidebar"))
             }
         }
-        // These sheets are now handled in GroupListView
-        // Keeping this comment as a reminder
-        // Alerts are now handled in GroupListView
-        // Keeping this comment as a reminder
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Menu {
@@ -128,6 +137,122 @@ struct ContentView: View {
             }
         }
     }
+    
+    // iOS-specific main view
+    #if os(iOS)
+    var iOSMainView: some View {
+        TabView {
+            // Groups tab
+            NavigationView {
+                GroupListView(
+                    groupViewModel: groupViewModel,
+                    expenseViewModel: expenseViewModel
+                )
+                .navigationBarTitleDisplayMode(.inline)
+            }
+            .tabItem {
+                Label("Groups", systemImage: "folder")
+            }
+            
+            // Selected group expenses tab (only active when a group is selected)
+            Group {
+                if let selectedGroup = groupViewModel.selectedGroup {
+                    NavigationView {
+                        ExpenseListView(
+                            group: selectedGroup, 
+                            expenseViewModel: expenseViewModel,
+                            groupViewModel: groupViewModel
+                        )
+                        .navigationBarTitleDisplayMode(.inline)
+                    }
+                } else {
+                    ContentUnavailableView("Select a Group",
+                                          systemImage: "list.bullet.circle",
+                                          description: Text("Choose a group from the Groups tab"))
+                }
+            }
+            .tabItem {
+                Label("Expenses", systemImage: "creditcard")
+            }
+            
+            // Profile/Settings tab
+            NavigationView {
+                List {
+                    if let user = currentUser {
+                        Section(header: Text("Account")) {
+                            VStack(alignment: .leading) {
+                                Text(user.displayName ?? "User")
+                                    .font(.headline)
+                                Text(user.email)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    
+                    Section {
+                        Button("Sign Out") {
+                            Task {
+                                await signOut()
+                            }
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .navigationTitle("Profile")
+            }
+            .tabItem {
+                Label("Profile", systemImage: "person.circle")
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Menu {
+                    if let user = currentUser {
+                        Text(user.displayName ?? user.email)
+                        Divider()
+                    }
+                    
+                    Button("Sign Out") {
+                        Task {
+                            await signOut()
+                        }
+                    }
+                } label: {
+                    Label("Account", systemImage: "person.circle")
+                }
+            }
+        }
+        .onAppear {
+            // Update ViewModels with current user and dev mode
+            updateViewModels(user: currentUser, devMode: useDevMode)
+            
+            Task {
+                await groupViewModel.loadGroups()
+            }
+        }
+        .onChange(of: groupViewModel._selectedGroup) { oldValue, newValue in
+            print("ContentView: Group selection changed from \(oldValue?.name ?? "nil") to \(newValue?.name ?? "nil")")
+            if let group = newValue {
+                expenseViewModel.updateContext(user: currentUser, groupId: group.id, devMode: useDevMode)
+                Task {
+                    await expenseViewModel.loadExpenses(forGroupId: group.id)
+                }
+            }
+        }
+        .onChange(of: groupViewModel.errorMessage) { _, newValue in
+            if let error = newValue {
+                errorMessage = error
+            }
+        }
+        .onChange(of: expenseViewModel.errorMessage) { _, newValue in
+            if let error = newValue {
+                errorMessage = error
+            }
+        }
+    }
+    #endif
     
     var authView: some View {
         AuthView(

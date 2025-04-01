@@ -7,6 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A2A27D12D9C807F00685911 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CE2D9C807F00685911 /* GoogleService-Info.plist */; };
+		8A2A27D22D9C807F00685911 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CA2D9C807F00685911 /* Preview Assets.xcassets */; };
+		8A2A27D32D9C807F00685911 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CC2D9C807F00685911 /* Assets.xcassets */; };
+		8A2A27D52D9C807F00685911 /* halfhazard_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */; };
+		8A2A27D92D9C809400685911 /* halfhazard_iosUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */; };
+		8A2A27DA2D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */; };
+		8A2A27DD2D9C80AF00685911 /* halfhazard_iosTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */; };
+		8A2A27DF2D9C80EB00685911 /* ios-setup-guide.md in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */; };
+		8A2A27E12D9C812600685911 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27E02D9C812600685911 /* iOSContentView.swift */; };
+		8A2A27E42D9C825500685911 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E32D9C825500685911 /* FirebaseAuth */; };
+		8A2A27E62D9C825500685911 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E52D9C825500685911 /* FirebaseFirestore */; };
 		8A91AC782D35F95F001A47C0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A91AC772D35F95F001A47C0 /* FirebaseAuth */; };
 		8A91AC7A2D35F95F001A47C0 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8A91AC792D35F95F001A47C0 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
@@ -19,12 +30,54 @@
 			remoteGlobalIDString = 8A91AC5A2D342734001A47C0;
 			remoteInfo = halfhazard;
 		};
+		8A2A277C2D94C8AB00685911 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A91AC532D342734001A47C0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A2A276B2D94C8A800685911;
+			remoteInfo = halfhazard_ios;
+		};
+		8A2A27862D94C8AB00685911 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8A91AC532D342734001A47C0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8A2A276B2D94C8A800685911;
+			remoteInfo = halfhazard_ios;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		8A2A272B2D90627000685911 /* halfhazardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = halfhazardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A2A276C2D94C8A800685911 /* halfhazard_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A2A277B2D94C8AB00685911 /* halfhazard_iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = halfhazard_iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A2A27852D94C8AB00685911 /* halfhazard_iosUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = halfhazard_iosUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A2A27CA2D9C807F00685911 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		8A2A27CC2D9C807F00685911 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8A2A27CE2D9C807F00685911 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosApp.swift; sourceTree = "<group>"; };
+		8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITests.swift; sourceTree = "<group>"; };
+		8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosTests.swift; sourceTree = "<group>"; };
+		8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ios-setup-guide.md"; sourceTree = "<group>"; };
+		8A2A27E02D9C812600685911 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
 		8A91AC5B2D342734001A47C0 /* halfhazard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8A2A27E22D9C818600685911 /* Exceptions for "halfhazard" folder in "halfhazard_ios" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+				ContentView.swift,
+				ContentView.swift.bak,
+				ContentView.swift.orig,
+				"GoogleService-Info.plist",
+				halfhazardApp.swift,
+				"Preview Content/Preview Assets.xcassets",
+			);
+			target = 8A2A276B2D94C8A800685911 /* halfhazard_ios */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8A2A272C2D90627000685911 /* halfhazardTests */ = {
@@ -34,6 +87,9 @@
 		};
 		8A91AC5D2D342734001A47C0 /* halfhazard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8A2A27E22D9C818600685911 /* Exceptions for "halfhazard" folder in "halfhazard_ios" target */,
+			);
 			path = halfhazard;
 			sourceTree = "<group>";
 		};
@@ -41,6 +97,29 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		8A2A27282D90627000685911 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27692D94C8A800685911 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A2A27E42D9C825500685911 /* FirebaseAuth in Frameworks */,
+				8A2A27E62D9C825500685911 /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27782D94C8AB00685911 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27822D94C8AB00685911 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -59,9 +138,50 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8A2A27CB2D9C807F00685911 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				8A2A27CA2D9C807F00685911 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		8A2A27D02D9C807F00685911 /* halfhazard_ios */ = {
+			isa = PBXGroup;
+			children = (
+				8A2A27CB2D9C807F00685911 /* Preview Content */,
+				8A2A27CC2D9C807F00685911 /* Assets.xcassets */,
+				8A2A27CE2D9C807F00685911 /* GoogleService-Info.plist */,
+				8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */,
+				8A2A27E02D9C812600685911 /* iOSContentView.swift */,
+			);
+			path = halfhazard_ios;
+			sourceTree = "<group>";
+		};
+		8A2A27D82D9C809400685911 /* halfhazard_iosUITests */ = {
+			isa = PBXGroup;
+			children = (
+				8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */,
+				8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */,
+			);
+			path = halfhazard_iosUITests;
+			sourceTree = "<group>";
+		};
+		8A2A27DC2D9C80AF00685911 /* halfhazard_iosTests */ = {
+			isa = PBXGroup;
+			children = (
+				8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */,
+			);
+			path = halfhazard_iosTests;
+			sourceTree = "<group>";
+		};
 		8A91AC522D342734001A47C0 = {
 			isa = PBXGroup;
 			children = (
+				8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */,
+				8A2A27DC2D9C80AF00685911 /* halfhazard_iosTests */,
+				8A2A27D82D9C809400685911 /* halfhazard_iosUITests */,
+				8A2A27D02D9C807F00685911 /* halfhazard_ios */,
 				8A91AC5D2D342734001A47C0 /* halfhazard */,
 				8A2A272C2D90627000685911 /* halfhazardTests */,
 				8A91AC5C2D342734001A47C0 /* Products */,
@@ -73,6 +193,9 @@
 			children = (
 				8A91AC5B2D342734001A47C0 /* halfhazard.app */,
 				8A2A272B2D90627000685911 /* halfhazardTests.xctest */,
+				8A2A276C2D94C8A800685911 /* halfhazard_ios.app */,
+				8A2A277B2D94C8AB00685911 /* halfhazard_iosTests.xctest */,
+				8A2A27852D94C8AB00685911 /* halfhazard_iosUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,6 +225,70 @@
 			productName = halfhazardTests;
 			productReference = 8A2A272B2D90627000685911 /* halfhazardTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8A2A276B2D94C8A800685911 /* halfhazard_ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A2A278D2D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_ios" */;
+			buildPhases = (
+				8A2A27682D94C8A800685911 /* Sources */,
+				8A2A27692D94C8A800685911 /* Frameworks */,
+				8A2A276A2D94C8A800685911 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8A91AC5D2D342734001A47C0 /* halfhazard */,
+			);
+			name = halfhazard_ios;
+			packageProductDependencies = (
+				8A2A27E32D9C825500685911 /* FirebaseAuth */,
+				8A2A27E52D9C825500685911 /* FirebaseFirestore */,
+			);
+			productName = halfhazard_ios;
+			productReference = 8A2A276C2D94C8A800685911 /* halfhazard_ios.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8A2A277A2D94C8AB00685911 /* halfhazard_iosTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A2A27902D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_iosTests" */;
+			buildPhases = (
+				8A2A27772D94C8AB00685911 /* Sources */,
+				8A2A27782D94C8AB00685911 /* Frameworks */,
+				8A2A27792D94C8AB00685911 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A2A277D2D94C8AB00685911 /* PBXTargetDependency */,
+			);
+			name = halfhazard_iosTests;
+			packageProductDependencies = (
+			);
+			productName = halfhazard_iosTests;
+			productReference = 8A2A277B2D94C8AB00685911 /* halfhazard_iosTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8A2A27842D94C8AB00685911 /* halfhazard_iosUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8A2A27932D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_iosUITests" */;
+			buildPhases = (
+				8A2A27812D94C8AB00685911 /* Sources */,
+				8A2A27822D94C8AB00685911 /* Frameworks */,
+				8A2A27832D94C8AB00685911 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8A2A27872D94C8AB00685911 /* PBXTargetDependency */,
+			);
+			name = halfhazard_iosUITests;
+			packageProductDependencies = (
+			);
+			productName = halfhazard_iosUITests;
+			productReference = 8A2A27852D94C8AB00685911 /* halfhazard_iosUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		8A91AC5A2D342734001A47C0 /* halfhazard */ = {
 			isa = PBXNativeTarget;
@@ -141,6 +328,17 @@
 						CreatedOnToolsVersion = 16.2;
 						TestTargetID = 8A91AC5A2D342734001A47C0;
 					};
+					8A2A276B2D94C8A800685911 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					8A2A277A2D94C8AB00685911 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 8A2A276B2D94C8A800685911;
+					};
+					8A2A27842D94C8AB00685911 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 8A2A276B2D94C8A800685911;
+					};
 					8A91AC5A2D342734001A47C0 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -165,12 +363,40 @@
 			targets = (
 				8A91AC5A2D342734001A47C0 /* halfhazard */,
 				8A2A272A2D90627000685911 /* halfhazardTests */,
+				8A2A276B2D94C8A800685911 /* halfhazard_ios */,
+				8A2A277A2D94C8AB00685911 /* halfhazard_iosTests */,
+				8A2A27842D94C8AB00685911 /* halfhazard_iosUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		8A2A27292D90627000685911 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A276A2D94C8A800685911 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A2A27DF2D9C80EB00685911 /* ios-setup-guide.md in Resources */,
+				8A2A27D12D9C807F00685911 /* GoogleService-Info.plist in Resources */,
+				8A2A27D22D9C807F00685911 /* Preview Assets.xcassets in Resources */,
+				8A2A27D32D9C807F00685911 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27792D94C8AB00685911 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27832D94C8AB00685911 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -194,6 +420,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8A2A27682D94C8A800685911 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A2A27E12D9C812600685911 /* iOSContentView.swift in Sources */,
+				8A2A27D52D9C807F00685911 /* halfhazard_iosApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27772D94C8AB00685911 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A2A27DD2D9C80AF00685911 /* halfhazard_iosTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8A2A27812D94C8AB00685911 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A2A27D92D9C809400685911 /* halfhazard_iosUITests.swift in Sources */,
+				8A2A27DA2D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8A91AC572D342734001A47C0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -208,6 +460,16 @@
 			isa = PBXTargetDependency;
 			target = 8A91AC5A2D342734001A47C0 /* halfhazard */;
 			targetProxy = 8A2A272F2D90627000685911 /* PBXContainerItemProxy */;
+		};
+		8A2A277D2D94C8AB00685911 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A2A276B2D94C8A800685911 /* halfhazard_ios */;
+			targetProxy = 8A2A277C2D94C8AB00685911 /* PBXContainerItemProxy */;
+		};
+		8A2A27872D94C8AB00685911 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8A2A276B2D94C8A800685911 /* halfhazard_ios */;
+			targetProxy = 8A2A27862D94C8AB00685911 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -245,6 +507,149 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/halfhazard.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/halfhazard";
+			};
+			name = Release;
+		};
+		8A2A278E2D94C8AB00685911 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"halfhazard_ios/Preview Content\"";
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8A2A278F2D94C8AB00685911 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"halfhazard_ios/Preview Content\"";
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8A2A27912D94C8AB00685911 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-iosTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/halfhazard_ios.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/halfhazard_ios";
+			};
+			name = Debug;
+		};
+		8A2A27922D94C8AB00685911 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-iosTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/halfhazard_ios.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/halfhazard_ios";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8A2A27942D94C8AB00685911 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-iosUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = halfhazard_ios;
+			};
+			name = Debug;
+		};
+		8A2A27952D94C8AB00685911 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 625V8DUDMK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-iosUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = halfhazard_ios;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -432,6 +837,33 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		8A2A278D2D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A2A278E2D94C8AB00685911 /* Debug */,
+				8A2A278F2D94C8AB00685911 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A2A27902D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_iosTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A2A27912D94C8AB00685911 /* Debug */,
+				8A2A27922D94C8AB00685911 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8A2A27932D94C8AB00685911 /* Build configuration list for PBXNativeTarget "halfhazard_iosUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8A2A27942D94C8AB00685911 /* Debug */,
+				8A2A27952D94C8AB00685911 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		8A91AC562D342734001A47C0 /* Build configuration list for PBXProject "halfhazard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -464,6 +896,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		8A2A27E32D9C825500685911 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A91AC762D35F95F001A47C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		8A2A27E52D9C825500685911 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8A91AC762D35F95F001A47C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
 		8A91AC772D35F95F001A47C0 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 8A91AC762D35F95F001A47C0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

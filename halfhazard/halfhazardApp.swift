@@ -30,7 +30,20 @@ struct halfhazardApp: App {
         FirebaseApp.configure()
         print("Firebase configured successfully")
         
-        // Add keychain workaround for development
+        // Platform-specific initialization
+        #if os(macOS)
+        configureMacOS()
+        #elseif os(iOS)
+        configureIOS()
+        #endif
+        
+        // Check if Auth is configured
+        print("Auth current user: \(String(describing: Auth.auth().currentUser))")
+    }
+    
+    #if os(macOS)
+    private func configureMacOS() {
+        // Add keychain workaround for macOS development
         do {
             if let authOptions = Auth.auth().settings {
                 authOptions.appVerificationDisabledForTesting = true
@@ -39,14 +52,30 @@ struct halfhazardApp: App {
         } catch let error as NSError {
             print("Error setting up Auth user access group: \(error)")
         }
-        
-        // Check if Auth is configured
-        print("Auth current user: \(String(describing: Auth.auth().currentUser))")
     }
+    #elseif os(iOS)
+    private func configureIOS() {
+        // iOS-specific Firebase initialization if needed
+        if let authOptions = Auth.auth().settings {
+            authOptions.appVerificationDisabledForTesting = true
+        }
+    }
+    #endif
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                #if os(iOS)
+                .preferredColorScheme(.light) // Default to light mode on iOS
+                .statusBar(hidden: true) // Hide status bar
+                #endif
         }
+        #if os(macOS)
+        .windowStyle(HiddenTitleBarWindowStyle()) // macOS-specific window style
+        .commands {
+            // Add macOS-specific menu commands
+            CommandGroup(replacing: .newItem) { }
+        }
+        #endif
     }
 }

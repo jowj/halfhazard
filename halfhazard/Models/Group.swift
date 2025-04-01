@@ -23,4 +23,6 @@ struct Group: Codable, Identifiable, Hashable, Equatable {
     var createdBy: String // userid
     let createdAt: Timestamp
     var settings: Settings
+    var settled: Bool = false
+    var settledAt: Timestamp?
 }

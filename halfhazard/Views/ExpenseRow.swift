@@ -41,13 +41,25 @@ struct ExpenseRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                // Split type badge
-                Label("\(expense.splitType.rawValue.capitalized) split", systemImage: "person.3")
-                    .font(.caption)
-                    .padding(4)
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(4)
-                    .padding(.top, 2)
+                HStack(spacing: 8) {
+                    // Split type badge
+                    Label("\(expense.splitType.rawValue.capitalized) split", systemImage: "person.3")
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(4)
+                    
+                    // Settled badge (if settled)
+                    if expense.settled {
+                        Label("Settled", systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                            .padding(4)
+                            .background(Color.green.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                }
+                .padding(.top, 2)
             }
             
             Spacer()
@@ -88,7 +100,9 @@ struct ExpenseRow: View {
             createdBy: "user-id",
             createdAt: Timestamp(),
             splitType: .equal,
-            splits: ["user-id": 100.0]
+            splits: ["user-id": 100.0],
+            settled: false,
+            settledAt: nil
         ),
         group: Group(
             id: "group-id",
@@ -96,7 +110,9 @@ struct ExpenseRow: View {
             memberIds: ["user-id"],
             createdBy: "user-id",
             createdAt: Timestamp(),
-            settings: Settings(name: "")
+            settings: Settings(name: ""),
+            settled: false,
+            settledAt: nil
         )
     )
     .padding()
