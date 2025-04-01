@@ -70,26 +70,11 @@ struct ContentView: View {
     // macOS-specific main view
     var macOSMainView: some View {
         NavigationSplitView {
-            // Sidebar - Groups
-            GroupListView(
-                groupViewModel: groupViewModel,
-                expenseViewModel: expenseViewModel
-            )
-            .frame(minWidth: 250)
+            // Sidebar - Groups (without its own NavigationStack)
+            macOSSidebarContent
         } detail: {
-            // Detail view
-            if let selectedGroup = groupViewModel.selectedGroup {
-                ExpenseListView(
-                    group: selectedGroup, 
-                    expenseViewModel: expenseViewModel,
-                    groupViewModel: groupViewModel
-                )
-            } else {
-                // Test view for debugging layout
-                ContentUnavailableView("Select a Group",
-                                      systemImage: "arrow.left",
-                                      description: Text("Choose a group from the sidebar"))
-            }
+            // Detail view with NavigationStack for forms
+            macOSDetailContent
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -138,6 +123,100 @@ struct ContentView: View {
         }
     }
     
+    // Sidebar content for macOS
+    private var macOSSidebarContent: some View {
+        GroupListView(
+            groupViewModel: groupViewModel,
+            expenseViewModel: expenseViewModel,
+            isInSplitView: true
+        )
+        .frame(minWidth: 250)
+    }
+    
+    // Helper function for group destinations
+    @ViewBuilder
+    private func macOSGroupDestination(_ destination: GroupViewModel.Destination) -> some View {
+        switch destination {
+        case .createGroup:
+            CreateGroupForm(viewModel: groupViewModel)
+                .navigationTitle("Create Group")
+        case .joinGroup:
+            JoinGroupForm(viewModel: groupViewModel)
+                .navigationTitle("Join Group")
+        case .manageGroup(let group):
+            ManageGroupSheet(group: group, viewModel: groupViewModel)
+                .navigationTitle("Manage Group")
+        }
+    }
+    
+    // Helper function for expense destinations
+    @ViewBuilder
+    private func macOSExpenseDestination(_ destination: ExpenseViewModel.Destination) -> some View {
+        switch destination {
+        case .createExpense:
+            CreateExpenseForm(viewModel: expenseViewModel)
+                .navigationTitle("Add Expense")
+        case .editExpense:
+            EditExpenseForm(viewModel: expenseViewModel)
+                .navigationTitle("Edit Expense")
+        case .expenseDetail(let expense):
+            if let group = groupViewModel.selectedGroup {
+                ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
+                    .navigationTitle("Expense Details")
+            } else {
+                EmptyView()
+            }
+        }
+    }
+    
+    // Detail content for macOS
+    private var macOSDetailContent: some View {
+        NavigationStack(path: $groupViewModel.navigationPath) {
+            DetailContentRoot(
+                selectedGroup: groupViewModel.selectedGroup,
+                expenseViewModel: expenseViewModel, 
+                groupViewModel: groupViewModel
+            )
+            .navigationDestination(for: GroupViewModel.Destination.self) { destination in
+                macOSGroupDestination(destination)
+            }
+            .navigationDestination(for: ExpenseViewModel.Destination.self) { destination in
+                macOSExpenseDestination(destination)
+            }
+        }
+    }
+    
+    // Helper view to simplify the navigation stack
+    private struct DetailContentRoot: View {
+        let selectedGroup: Group?
+        let expenseViewModel: ExpenseViewModel
+        let groupViewModel: GroupViewModel
+        
+        var body: some View {
+            if let selectedGroup = selectedGroup {
+                ExpenseListView(
+                    group: selectedGroup, 
+                    expenseViewModel: expenseViewModel,
+                    groupViewModel: groupViewModel,
+                    isInSplitView: true
+                )
+            } else {
+                // Display any forms in detail view or empty state
+                if !groupViewModel.navigationPath.isEmpty {
+                    // Show an empty view - the destinations will display properly
+                    EmptyView()
+                } else {
+                    // Empty state
+                    ContentUnavailableView(
+                        "Select a Group",
+                        systemImage: "arrow.left",
+                        description: Text("Choose a group from the sidebar")
+                    )
+                }
+            }
+        }
+    }
+    
     // iOS-specific main view
     #if os(iOS)
     var iOSMainView: some View {
@@ -146,7 +225,8 @@ struct ContentView: View {
             NavigationView {
                 GroupListView(
                     groupViewModel: groupViewModel,
-                    expenseViewModel: expenseViewModel
+                    expenseViewModel: expenseViewModel,
+                    isInSplitView: false // Use its own NavigationStack on iOS
                 )
                 .navigationBarTitleDisplayMode(.inline)
             }
@@ -161,7 +241,8 @@ struct ContentView: View {
                         ExpenseListView(
                             group: selectedGroup, 
                             expenseViewModel: expenseViewModel,
-                            groupViewModel: groupViewModel
+                            groupViewModel: groupViewModel,
+                            isInSplitView: false // Use its own NavigationStack on iOS
                         )
                         .navigationBarTitleDisplayMode(.inline)
                     }

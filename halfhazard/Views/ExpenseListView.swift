@@ -15,8 +15,21 @@ struct ExpenseListView: View {
     @ObservedObject var groupViewModel: GroupViewModel
     @State private var showSettleConfirmation = false
     @State private var showUnsettleConfirmation = false
+    var isInSplitView: Bool = false
     
     var body: some View {
+        if isInSplitView {
+            // In split view, don't wrap in NavigationStack (it's in the main view)
+            expenseListContent
+        } else {
+            // On iOS, use NavigationStack here
+            NavigationStack(path: $expenseViewModel.navigationPath) {
+                expenseListContent
+            }
+        }
+    }
+    
+    private var expenseListContent: some View {
         VStack(spacing: 0) {
             // Settlement status banner
             VStack(alignment: .leading, spacing: 8) {
@@ -156,30 +169,13 @@ struct ExpenseListView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Button(action: {
-                    expenseViewModel.showingCreateExpenseSheet = true
+                    expenseViewModel.showCreateExpenseForm()
                 }) {
                     Label("Add Expense", systemImage: "plus")
                 }
             }
         }
-        .sheet(isPresented: $expenseViewModel.showingCreateExpenseSheet) {
-            CreateExpenseForm(viewModel: expenseViewModel)
-                .frame(minWidth: 700, maxWidth: .infinity, minHeight: 700, maxHeight: .infinity)
-        }
-        .sheet(isPresented: $expenseViewModel.showingExpenseDetailSheet) {
-            if let selectedExpense = expenseViewModel.selectedExpense {
-                ExpenseDetailView(expense: selectedExpense, group: group, expenseViewModel: expenseViewModel)
-                    .frame(minWidth: 600, maxWidth: .infinity, minHeight: 500, maxHeight: .infinity)
-                    .onDisappear {
-                        // Clear selection when sheet is dismissed
-                        expenseViewModel.clearSelectedExpense()
-                    }
-            }
-        }
-        .sheet(isPresented: $expenseViewModel.showingEditExpenseSheet) {
-            EditExpenseForm(viewModel: expenseViewModel)
-                .frame(minWidth: 500, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity)
-        }
+                // NavigationDestination now defined in the main content view
         .onAppear {
             // Load expenses when view appears, if needed
             if expenseViewModel.currentGroupId != group.id || expenseViewModel.expenses.isEmpty {

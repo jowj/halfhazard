@@ -187,8 +187,10 @@ struct ExpenseDetailView: View {
                             Button {
                                 Task {
                                     await expenseVM.unsettleExpense(expense: expense)
-                                    // Note: The sheet will dismiss when the expense is updated
-                                    dismiss()
+                                    // Navigate back
+                                    if !expenseVM.navigationPath.isEmpty {
+                                        expenseVM.navigationPath.removeLast()
+                                    }
                                 }
                             } label: {
                                 Label("Mark as Unsettled", systemImage: "arrow.counterclockwise.circle.fill")
@@ -200,8 +202,10 @@ struct ExpenseDetailView: View {
                             Button {
                                 Task {
                                     await expenseVM.settleExpense(expense: expense)
-                                    // Note: The sheet will dismiss when the expense is updated
-                                    dismiss()
+                                    // Navigate back
+                                    if !expenseVM.navigationPath.isEmpty {
+                                        expenseVM.navigationPath.removeLast()
+                                    }
                                 }
                             } label: {
                                 Label("Mark as Settled", systemImage: "checkmark.circle.fill")
@@ -220,7 +224,11 @@ struct ExpenseDetailView: View {
             // Primary button for dismissing the sheet
             ToolbarItem(placement: .cancellationAction) {
                 Button("Done") {
-                    dismiss()
+                    if let expenseVM = userService.expenseViewModel, !expenseVM.navigationPath.isEmpty {
+                        expenseVM.navigationPath.removeLast()
+                    } else {
+                        dismiss()
+                    }
                 }
             }
             
@@ -231,7 +239,7 @@ struct ExpenseDetailView: View {
                     Button {
                         // Prepare the expense for editing and show edit form
                         userService.expenseViewModel?.prepareExpenseForEditing(expense)
-                        dismiss() // Dismiss the detail view
+                        // Navigation is handled in prepareExpenseForEditing
                     } label: {
                         Label("Edit Expense", systemImage: "pencil")
                     }
@@ -247,7 +255,9 @@ struct ExpenseDetailView: View {
                         if let expenseVM = userService.expenseViewModel {
                             Task {
                                 await expenseVM.deleteExpense(expense: expense)
-                                dismiss()
+                                if !expenseVM.navigationPath.isEmpty {
+                                    expenseVM.navigationPath.removeLast()
+                                }
                             }
                         }
                     } label: {

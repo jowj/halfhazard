@@ -75,7 +75,7 @@ struct EditExpenseForm: View {
                 Button("Save Changes") {
                     Task {
                         await viewModel.saveEditedExpense()
-                        dismiss()
+                        // Navigation is handled in the viewModel
                     }
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
@@ -87,7 +87,11 @@ struct EditExpenseForm: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
-                    dismiss()
+                    if !viewModel.navigationPath.isEmpty {
+                        viewModel.navigationPath.removeLast()
+                    } else {
+                        dismiss()
+                    }
                 }
             }
         }

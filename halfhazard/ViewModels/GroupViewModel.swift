@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import Combine
+import SwiftUI
 
 class GroupViewModel: ObservableObject {
     // Services
@@ -34,22 +35,18 @@ class GroupViewModel: ObservableObject {
     // Form state
     @Published var newGroupName = ""
     @Published var newGroupDescription = ""
-    @Published var showingCreateGroupSheet = false
-    @Published var showingJoinGroupSheet = false
+    @Published var joinGroupCode = ""
     
-    // Use @Published with willSet/didSet for debugging
-    @Published var showingShareGroupSheet = false {
-        willSet {
-            print("GroupViewModel: About to change showingShareGroupSheet from \(showingShareGroupSheet) to \(newValue)")
-        }
-        didSet {
-            print("GroupViewModel: Changed showingShareGroupSheet from \(oldValue) to \(showingShareGroupSheet)")
-        }
+    // Navigation state
+    enum Destination: Hashable {
+        case createGroup
+        case joinGroup
+        case manageGroup(Group)
     }
     
+    @Published var navigationPath = NavigationPath()
     @Published var showingLeaveConfirmation = false
     @Published var showingDeleteConfirmation = false
-    @Published var joinGroupCode = ""
     
     // Current user
     var currentUser: User?
@@ -155,8 +152,10 @@ class GroupViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingCreateGroupSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
             return
         }
         
@@ -178,8 +177,10 @@ class GroupViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingCreateGroupSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
         } catch let error as NSError {
             if error.domain == "FIRFirestoreErrorDomain" && error.code == 7 {
                 errorMessage = """
@@ -246,8 +247,10 @@ class GroupViewModel: ObservableObject {
             // Reset form fields
             joinGroupCode = ""
             
-            // Close the sheet
-            showingJoinGroupSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
             return
         }
         
@@ -271,8 +274,10 @@ class GroupViewModel: ObservableObject {
             // Reset form field
             joinGroupCode = ""
             
-            // Close the sheet
-            showingJoinGroupSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
         } catch let error as NSError {
             if error.domain == "GroupService" && error.code == 404 {
                 errorMessage = "Invalid group code or group not found."
@@ -378,6 +383,19 @@ class GroupViewModel: ObservableObject {
         newGroupName = ""
         newGroupDescription = ""
         joinGroupCode = ""
+    }
+    
+    // Navigation helper methods
+    func showCreateGroupForm() {
+        navigationPath.append(Destination.createGroup)
+    }
+    
+    func showJoinGroupForm() {
+        navigationPath.append(Destination.joinGroup)
+    }
+    
+    func showManageGroupForm(for group: Group) {
+        navigationPath.append(Destination.manageGroup(group))
     }
     
     @MainActor

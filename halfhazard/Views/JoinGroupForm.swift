@@ -1,35 +1,27 @@
 //
-//  CreateGroupForm.swift
+//  JoinGroupForm.swift
 //  halfhazard
 //
-//  Created by Claude on 2025-03-21.
+//  Created by Claude on 2025-04-01.
 //
 
 import SwiftUI
 import FirebaseFirestore
-#if os(macOS)
-import AppKit
-#elseif os(iOS)
-import UIKit
-#endif
 
-struct CreateGroupForm: View {
+struct JoinGroupForm: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: GroupViewModel
-    
-    @State private var groupName = ""
-    @State private var groupDescription = ""
     @State private var isSubmitting = false
     
     var body: some View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 8) {
-                Text("Create New Group")
+                Text("Join Group")
                     .font(.title)
                     .fontWeight(.bold)
                 
-                Text("Create a group to start tracking expenses with friends or colleagues")
+                Text("Enter the group code provided by the group creator")
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
             }
@@ -37,31 +29,19 @@ struct CreateGroupForm: View {
             
             // Form
             Form {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Group Name").font(.headline)
-                        TextField("Enter a name for your group", text: $groupName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onChange(of: groupName) { oldValue, newValue in
-                                viewModel.newGroupName = newValue
-                            }
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Description (Optional)").font(.headline)
-                        TextField("Enter a description", text: $groupDescription)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onChange(of: groupDescription) { oldValue, newValue in
-                                viewModel.newGroupDescription = newValue
-                            }
-                    }
-                    
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                            .padding(.top, 4)
-                    }
+                TextField("Group Code", text: $viewModel.joinGroupCode)
+                    .font(.title3)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .disableAutocorrection(true)
+                    #if os(iOS)
+                    .autocapitalization(.none)
+                    #endif
+                
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .padding(.top, 4)
                 }
             }
             .padding(.horizontal)
@@ -82,15 +62,15 @@ struct CreateGroupForm: View {
                 
                 Spacer()
                 
-                Button("Create Group") {
+                Button("Join Group") {
                     Task {
                         isSubmitting = true
-                        await viewModel.createGroup()
+                        await viewModel.joinGroup()
                         isSubmitting = false
                         
-                        // Only dismiss if there's no error message
+                        // Only navigate back if there's no error message
                         if viewModel.errorMessage == nil {
-                            // The navigation back is handled in the viewModel.createGroup() method
+                            // The navigation back is handled in the viewModel.joinGroup() method
                             // But we still need to handle sheet dismissal if we're in a sheet
                             if viewModel.navigationPath.isEmpty {
                                 dismiss()
@@ -99,7 +79,7 @@ struct CreateGroupForm: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(groupName.isEmpty || isSubmitting)
+                .disabled(viewModel.joinGroupCode.isEmpty || isSubmitting)
                 .keyboardShortcut(.defaultAction)
                 .overlay {
                     if isSubmitting {
@@ -109,17 +89,13 @@ struct CreateGroupForm: View {
             }
             .padding()
         }
-        .frame(minWidth: 450, minHeight: 350)
+        .frame(minWidth: 400, minHeight: 280)
         #if os(macOS)
         .background(Color(NSColor.windowBackgroundColor))
         #else
         .background(Color(.systemBackground))
         #endif
         .onAppear {
-            // Initialize form fields from viewModel
-            groupName = viewModel.newGroupName
-            groupDescription = viewModel.newGroupDescription
-            
             // Clear any previous error messages when the form appears
             viewModel.errorMessage = nil
         }
@@ -127,5 +103,5 @@ struct CreateGroupForm: View {
 }
 
 #Preview {
-    CreateGroupForm(viewModel: GroupViewModel(currentUser: nil, useDevMode: true))
+    JoinGroupForm(viewModel: GroupViewModel(currentUser: nil, useDevMode: true))
 }

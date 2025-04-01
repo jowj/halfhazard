@@ -14,7 +14,6 @@
 		8A2A27D92D9C809400685911 /* halfhazard_iosUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */; };
 		8A2A27DA2D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */; };
 		8A2A27DD2D9C80AF00685911 /* halfhazard_iosTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */; };
-		8A2A27DF2D9C80EB00685911 /* ios-setup-guide.md in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */; };
 		8A2A27E12D9C812600685911 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27E02D9C812600685911 /* iOSContentView.swift */; };
 		8A2A27E42D9C825500685911 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E32D9C825500685911 /* FirebaseAuth */; };
 		8A2A27E62D9C825500685911 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E52D9C825500685911 /* FirebaseFirestore */; };
@@ -58,7 +57,6 @@
 		8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITests.swift; sourceTree = "<group>"; };
 		8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosTests.swift; sourceTree = "<group>"; };
-		8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "ios-setup-guide.md"; sourceTree = "<group>"; };
 		8A2A27E02D9C812600685911 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
 		8A91AC5B2D342734001A47C0 /* halfhazard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -178,7 +176,6 @@
 		8A91AC522D342734001A47C0 = {
 			isa = PBXGroup;
 			children = (
-				8A2A27DE2D9C80EB00685911 /* ios-setup-guide.md */,
 				8A2A27DC2D9C80AF00685911 /* halfhazard_iosTests */,
 				8A2A27D82D9C809400685911 /* halfhazard_iosUITests */,
 				8A2A27D02D9C807F00685911 /* halfhazard_ios */,
@@ -382,7 +379,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A2A27DF2D9C80EB00685911 /* ios-setup-guide.md in Resources */,
 				8A2A27D12D9C807F00685911 /* GoogleService-Info.plist in Resources */,
 				8A2A27D22D9C807F00685911 /* Preview Assets.xcassets in Resources */,
 				8A2A27D32D9C807F00685911 /* Assets.xcassets in Resources */,

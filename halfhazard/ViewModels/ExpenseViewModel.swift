@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import Combine
+import SwiftUI
 
 class ExpenseViewModel: ObservableObject {
     // Services
@@ -32,10 +33,16 @@ class ExpenseViewModel: ObservableObject {
     @Published var newExpenseDescription: String = ""
     @Published var newExpenseSplitType: SplitType = .equal
     @Published var newExpenseSplits: [String: Double] = [:]
-    @Published var showingCreateExpenseSheet = false
-    @Published var showingExpenseDetailSheet = false
-    @Published var showingEditExpenseSheet = false
     @Published var editingExpense: Expense? = nil
+    
+    // Navigation state
+    enum Destination: Hashable {
+        case createExpense
+        case editExpense
+        case expenseDetail(Expense)
+    }
+    
+    @Published var navigationPath = NavigationPath()
     
     // Current context
     // Make currentUser public so views can access it
@@ -200,8 +207,10 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingCreateExpenseSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
             return
         }
         
@@ -224,8 +233,10 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingCreateExpenseSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 403 {
                 // Access control error
@@ -315,14 +326,16 @@ class ExpenseViewModel: ObservableObject {
     func selectExpense(_ expense: Expense) {
         print("ExpenseViewModel: Selecting expense \(expense.id)")
         self.selectedExpense = expense
-        self.showingExpenseDetailSheet = true
-        print("ExpenseViewModel: Set showingExpenseDetailSheet to \(self.showingExpenseDetailSheet)")
+        self.navigationPath.append(Destination.expenseDetail(expense))
+        print("ExpenseViewModel: Navigating to expense detail")
     }
     
     func clearSelectedExpense() {
         print("ExpenseViewModel: Clearing selected expense")
         self.selectedExpense = nil
-        self.showingExpenseDetailSheet = false
+        if !navigationPath.isEmpty {
+            navigationPath.removeLast()
+        }
     }
     
     func prepareExpenseForEditing(_ expense: Expense) {
@@ -332,7 +345,11 @@ class ExpenseViewModel: ObservableObject {
         self.newExpenseDescription = expense.description ?? ""
         self.newExpenseSplitType = expense.splitType
         self.newExpenseSplits = expense.splits
-        self.showingEditExpenseSheet = true
+        self.navigationPath.append(Destination.editExpense)
+    }
+    
+    func showCreateExpenseForm() {
+        navigationPath.append(Destination.createExpense)
     }
     
     @MainActor
@@ -367,8 +384,10 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingEditExpenseSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
             return
         }
         
@@ -383,8 +402,10 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Close the sheet
-            showingEditExpenseSheet = false
+            // Navigate back
+            if !navigationPath.isEmpty {
+                navigationPath.removeLast()
+            }
             
             // If this was the selected expense, update it
             if selectedExpense?.id == updatedExpense.id {

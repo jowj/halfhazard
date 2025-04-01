@@ -66,7 +66,7 @@ struct CreateExpenseForm: View {
                 Button("Create Expense") {
                     Task {
                         await viewModel.createExpense()
-                        dismiss()
+                        // Navigation is handled in the viewModel
                     }
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
@@ -78,7 +78,11 @@ struct CreateExpenseForm: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
-                    dismiss()
+                    if !viewModel.navigationPath.isEmpty {
+                        viewModel.navigationPath.removeLast()
+                    } else {
+                        dismiss()
+                    }
                 }
             }
         }
