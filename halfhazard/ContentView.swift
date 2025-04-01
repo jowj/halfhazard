@@ -169,20 +169,66 @@ struct ContentView: View {
         }
     }
     
-    // Detail content for macOS
+    // Detail content for macOS - simplified navigation approach
     private var macOSDetailContent: some View {
-        NavigationStack(path: $groupViewModel.navigationPath) {
-            DetailContentRoot(
-                selectedGroup: groupViewModel.selectedGroup,
-                expenseViewModel: expenseViewModel, 
-                groupViewModel: groupViewModel
-            )
-            .navigationDestination(for: GroupViewModel.Destination.self) { destination in
-                macOSGroupDestination(destination)
+        NavigationStack {
+            // Main content
+            if let selectedGroup = groupViewModel.selectedGroup, 
+               groupViewModel.navigationPath.isEmpty && expenseViewModel.navigationPath.isEmpty {
+                // Show the expense list when a group is selected and no navigation is active
+                ExpenseListView(
+                    group: selectedGroup, 
+                    expenseViewModel: expenseViewModel,
+                    groupViewModel: groupViewModel,
+                    isInSplitView: true
+                )
+            } else if !groupViewModel.navigationPath.isEmpty, let dest = groupViewModel.navigationDestination {
+                // Group-related navigation - using a computed property
+                switch dest {
+                case .createGroup:
+                    CreateGroupForm(viewModel: groupViewModel)
+                        .navigationTitle("Create Group")
+                case .joinGroup:
+                    JoinGroupForm(viewModel: groupViewModel)
+                        .navigationTitle("Join Group")
+                case .manageGroup(let group):
+                    ManageGroupSheet(group: group, viewModel: groupViewModel)
+                        .navigationTitle("Manage Group")
+                case nil:
+                    // Fallback - should not happen
+                    Text("Invalid navigation state - group")
+                }
+            } else if let dest = expenseViewModel.navigationDestination {
+                // Expense-related navigation
+                switch dest {
+                case .createExpense:
+                    CreateExpenseForm(viewModel: expenseViewModel)
+                        .navigationTitle("Add Expense")
+                case .editExpense:
+                    EditExpenseForm(viewModel: expenseViewModel)
+                        .navigationTitle("Edit Expense")
+                case .expenseDetail(let expense):
+                    if let group = groupViewModel.selectedGroup {
+                        ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
+                            .navigationTitle("Expense Details")
+                    } else {
+                        Text("Error: Missing group for expense detail")
+                    }
+                case nil:
+                    // Fallback - should not happen
+                    Text("Invalid navigation state - expense")
+                }
+            } else {
+                // No group selected and no navigation
+                ContentUnavailableView(
+                    "Select a Group",
+                    systemImage: "arrow.left",
+                    description: Text("Choose a group from the sidebar")
+                )
             }
-            .navigationDestination(for: ExpenseViewModel.Destination.self) { destination in
-                macOSExpenseDestination(destination)
-            }
+        }
+        .onAppear {
+            print("macOSDetailContent appeared")
         }
     }
     
@@ -191,9 +237,13 @@ struct ContentView: View {
         let selectedGroup: Group?
         let expenseViewModel: ExpenseViewModel
         let groupViewModel: GroupViewModel
+        var isShowingExpenseNavigation: Bool = true
         
         var body: some View {
-            if let selectedGroup = selectedGroup {
+            if !isShowingExpenseNavigation {
+                // If expense navigation is active, don't show the main content
+                EmptyView()
+            } else if let selectedGroup = selectedGroup {
                 ExpenseListView(
                     group: selectedGroup, 
                     expenseViewModel: expenseViewModel,

@@ -48,6 +48,14 @@ class GroupViewModel: ObservableObject {
     @Published var showingLeaveConfirmation = false
     @Published var showingDeleteConfirmation = false
     
+    // Property to store the current destination
+    @Published var currentDestination: Destination?
+    
+    // Computed property to get the current destination
+    var navigationDestination: Destination? {
+        return currentDestination
+    }
+    
     // Current user
     var currentUser: User?
     
@@ -387,15 +395,24 @@ class GroupViewModel: ObservableObject {
     
     // Navigation helper methods
     func showCreateGroupForm() {
+        currentDestination = Destination.createGroup
         navigationPath.append(Destination.createGroup)
     }
     
     func showJoinGroupForm() {
+        currentDestination = Destination.joinGroup
         navigationPath.append(Destination.joinGroup)
     }
     
     func showManageGroupForm(for group: Group) {
+        currentDestination = Destination.manageGroup(group)
         navigationPath.append(Destination.manageGroup(group))
+    }
+    
+    // Helper to clear navigation
+    func clearNavigation() {
+        currentDestination = nil
+        navigationPath = NavigationPath()
     }
     
     @MainActor

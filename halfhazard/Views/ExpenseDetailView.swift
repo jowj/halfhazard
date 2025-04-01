@@ -238,8 +238,15 @@ struct ExpenseDetailView: View {
                     // Edit button - only available to expense creator or group admin
                     Button {
                         // Prepare the expense for editing and show edit form
-                        userService.expenseViewModel?.prepareExpenseForEditing(expense)
-                        // Navigation is handled in prepareExpenseForEditing
+                        if let expenseVM = userService.expenseViewModel {
+                            print("ExpenseDetailView: Preparing expense for editing: \(expense.id)")
+                            expenseVM.prepareExpenseForEditing(expense)
+                            
+                            // Navigate to edit form
+                            expenseVM.currentDestination = ExpenseViewModel.Destination.editExpense
+                            expenseVM.navigationPath = NavigationPath()
+                            expenseVM.navigationPath.append(ExpenseViewModel.Destination.editExpense)
+                        }
                     } label: {
                         Label("Edit Expense", systemImage: "pencil")
                     }

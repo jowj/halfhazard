@@ -25,8 +25,28 @@ struct GroupListView: View {
             groupListContent
         } else {
             // On iOS, use NavigationStack here
-            NavigationStack(path: $groupViewModel.navigationPath) {
-                groupListContent
+            NavigationStack {
+                if groupViewModel.navigationPath.isEmpty {
+                    groupListContent
+                } else {
+                    // Display the correct destination based on navigation state
+                    if let dest = groupViewModel.navigationDestination {
+                        switch dest {
+                        case .createGroup:
+                            CreateGroupForm(viewModel: groupViewModel)
+                                .navigationTitle("Create Group")
+                        case .joinGroup:
+                            JoinGroupForm(viewModel: groupViewModel)
+                                .navigationTitle("Join Group")
+                        case .manageGroup(let group):
+                            ManageGroupSheet(group: group, viewModel: groupViewModel)
+                                .navigationTitle("Manage Group")
+                        }
+                    } else {
+                        // Fallback
+                        groupListContent
+                    }
+                }
             }
         }
     }

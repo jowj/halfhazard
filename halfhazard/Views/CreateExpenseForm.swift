@@ -78,22 +78,25 @@ struct CreateExpenseForm: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
-                    if !viewModel.navigationPath.isEmpty {
-                        viewModel.navigationPath.removeLast()
-                    } else {
-                        dismiss()
-                    }
+                    viewModel.clearNavigation()
                 }
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear {
-            // Initialize form fields from viewModel
-            if viewModel.newExpenseAmount > 0 {
-                amount = String(viewModel.newExpenseAmount)
+            print("CreateExpenseForm.onAppear - Form appeared")
+            
+            // Reset viewModel state for new expense
+            viewModel.newExpenseAmount = 0
+            viewModel.newExpenseDescription = ""
+            viewModel.newExpenseSplitType = .equal
+            
+            // Make sure we have a current group ID
+            if let groupId = viewModel.currentGroupId {
+                print("CreateExpenseForm.onAppear - Current group ID: \(groupId)")
+            } else {
+                print("CreateExpenseForm.onAppear - WARNING: No current group ID!")
             }
-            description = viewModel.newExpenseDescription
-            splitType = viewModel.newExpenseSplitType
         }
     }
     

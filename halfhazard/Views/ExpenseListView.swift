@@ -23,8 +23,28 @@ struct ExpenseListView: View {
             expenseListContent
         } else {
             // On iOS, use NavigationStack here
-            NavigationStack(path: $expenseViewModel.navigationPath) {
-                expenseListContent
+            NavigationStack {
+                if expenseViewModel.navigationPath.isEmpty {
+                    expenseListContent
+                } else {
+                    // Display the correct destination based on navigation state
+                    if let dest = expenseViewModel.navigationDestination {
+                        switch dest {
+                        case .createExpense:
+                            CreateExpenseForm(viewModel: expenseViewModel)
+                                .navigationTitle("Add Expense")
+                        case .editExpense:
+                            EditExpenseForm(viewModel: expenseViewModel)
+                                .navigationTitle("Edit Expense")
+                        case .expenseDetail(let expense):
+                            ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
+                                .navigationTitle("Expense Details")
+                        }
+                    } else {
+                        // Fallback
+                        expenseListContent
+                    }
+                }
             }
         }
     }
@@ -108,7 +128,11 @@ struct ExpenseListView: View {
                         if let currentUserId = expenseViewModel.currentUser?.uid,
                            (expense.createdBy == currentUserId || group.createdBy == currentUserId) {
                             Button {
+                                // Prepare the model and then navigate
                                 expenseViewModel.prepareExpenseForEditing(expense)
+                                expenseViewModel.currentDestination = ExpenseViewModel.Destination.editExpense
+                                expenseViewModel.navigationPath = NavigationPath()
+                                expenseViewModel.navigationPath.append(ExpenseViewModel.Destination.editExpense)
                             } label: {
                                 Label("Edit Expense", systemImage: "pencil")
                             }

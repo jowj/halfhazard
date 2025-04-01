@@ -87,24 +87,30 @@ struct EditExpenseForm: View {
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
-                    if !viewModel.navigationPath.isEmpty {
-                        viewModel.navigationPath.removeLast()
-                    } else {
-                        dismiss()
-                    }
+                    print("EditExpenseForm: Cancel button tapped")
+                    viewModel.clearNavigation()
                 }
             }
         }
         .frame(minWidth: 400, minHeight: 300)
         .onAppear {
+            print("EditExpenseForm.onAppear - expense amount: \(viewModel.newExpenseAmount), description: \(viewModel.newExpenseDescription)")
+            
             // Make sure form is initialized from viewModel
             if viewModel.newExpenseAmount > 0 && amount.isEmpty {
-                amount = String(viewModel.newExpenseAmount)
+                amount = String(format: "%.2f", viewModel.newExpenseAmount)
             }
             if description.isEmpty {
                 description = viewModel.newExpenseDescription
             }
             splitType = viewModel.newExpenseSplitType
+            
+            // Make sure we have an editing expense
+            if viewModel.editingExpense == nil {
+                print("EditExpenseForm.onAppear - WARNING: editingExpense is nil!")
+            } else {
+                print("EditExpenseForm.onAppear - editing expense: \(viewModel.editingExpense!.id)")
+            }
         }
     }
     

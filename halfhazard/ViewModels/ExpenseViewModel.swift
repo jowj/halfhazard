@@ -44,6 +44,14 @@ class ExpenseViewModel: ObservableObject {
     
     @Published var navigationPath = NavigationPath()
     
+    // Property to store the current destination
+    @Published var currentDestination: Destination?
+    
+    // Computed property to get the current destination
+    var navigationDestination: Destination? {
+        return currentDestination
+    }
+    
     // Current context
     // Make currentUser public so views can access it
     var currentUser: User?
@@ -207,10 +215,8 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            // Clear navigation
+            clearNavigation()
             return
         }
         
@@ -233,10 +239,8 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            // Clear navigation
+            clearNavigation()
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 403 {
                 // Access control error
@@ -326,6 +330,7 @@ class ExpenseViewModel: ObservableObject {
     func selectExpense(_ expense: Expense) {
         print("ExpenseViewModel: Selecting expense \(expense.id)")
         self.selectedExpense = expense
+        self.currentDestination = Destination.expenseDetail(expense)
         self.navigationPath.append(Destination.expenseDetail(expense))
         print("ExpenseViewModel: Navigating to expense detail")
     }
@@ -333,23 +338,41 @@ class ExpenseViewModel: ObservableObject {
     func clearSelectedExpense() {
         print("ExpenseViewModel: Clearing selected expense")
         self.selectedExpense = nil
-        if !navigationPath.isEmpty {
-            navigationPath.removeLast()
-        }
+        self.currentDestination = nil
+        navigationPath = NavigationPath()
     }
     
     func prepareExpenseForEditing(_ expense: Expense) {
         print("ExpenseViewModel: Preparing expense for editing: \(expense.id)")
+        
+        // Store the expense being edited
         self.editingExpense = expense
+        
+        // Setup form fields
         self.newExpenseAmount = expense.amount
         self.newExpenseDescription = expense.description ?? ""
         self.newExpenseSplitType = expense.splitType
         self.newExpenseSplits = expense.splits
-        self.navigationPath.append(Destination.editExpense)
+        
+        // Note: We don't modify the navigation path here anymore
+        // That's handled by the caller to support different navigation flows
     }
     
     func showCreateExpenseForm() {
+        print("ExpenseViewModel: Showing create expense form")
+        
+        // Clear any existing navigation by replacing it with a new path
+        self.currentDestination = Destination.createExpense
+        navigationPath = NavigationPath()
+        
+        // Navigate to create form
         navigationPath.append(Destination.createExpense)
+    }
+    
+    // Helper to clear navigation
+    func clearNavigation() {
+        currentDestination = nil
+        navigationPath = NavigationPath()
     }
     
     @MainActor
@@ -384,10 +407,8 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            // Clear navigation
+            clearNavigation()
             return
         }
         
@@ -402,10 +423,8 @@ class ExpenseViewModel: ObservableObject {
             // Reset form fields
             resetFormFields()
             
-            // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            // Clear navigation
+            clearNavigation()
             
             // If this was the selected expense, update it
             if selectedExpense?.id == updatedExpense.id {
