@@ -19,6 +19,18 @@ struct GroupListView: View {
     @ObservedObject var expenseViewModel: ExpenseViewModel
     var isInSplitView: Bool = false
     
+    private let currencyFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
+    
+    // Helper function to format currency
+    private func formatCurrency(_ amount: Double) -> String {
+        return currencyFormatter.string(from: NSNumber(value: amount)) ?? "$0.00"
+    }
+    
     var body: some View {
         if isInSplitView {
             // In split view, don't wrap in NavigationStack (it's in the detail pane)
@@ -57,11 +69,38 @@ struct GroupListView: View {
                 ForEach(groupViewModel.groups) { group in
                     HStack {
                         // Group name
-                        Text(group.name)
-                            .foregroundColor(groupViewModel.selectedGroup?.id == group.id ? .accentColor : .primary)
-                            .font(groupViewModel.selectedGroup?.id == group.id ? .headline : .body)
-                        
-                        // We're not showing settlement status in the group list anymore
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(group.name)
+                                .foregroundColor(groupViewModel.selectedGroup?.id == group.id ? .accentColor : .primary)
+                                .font(groupViewModel.selectedGroup?.id == group.id ? .headline : .body)
+                            
+                            // Status line showing both settlement status and balance
+                            HStack(spacing: 6) {
+                                // Settlement status indicator
+                                if let allSettled = groupViewModel.groupsWithAllExpensesSettled[group.id], allSettled {
+                                    Text("All Settled")
+                                        .font(.caption)
+                                        .foregroundColor(.green)
+                                        .padding(.horizontal, 4)
+                                        .padding(.vertical, 2)
+                                        .background(Color.green.opacity(0.1))
+                                        .cornerRadius(4)
+                                }
+                                
+                                // Balance indicator - only show if there's a non-zero balance
+                                if let balance = groupViewModel.groupBalances[group.id], abs(balance) > 0.01 {
+                                    if balance > 0 {
+                                        Text("You are owed \(formatCurrency(balance))")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Text("You owe \(formatCurrency(abs(balance)))")
+                                            .font(.caption)
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                            }
+                        }
                         
                         Spacer()
                         
@@ -205,6 +244,7 @@ struct GroupListView: View {
         }
         .task {
             await groupViewModel.loadGroups()
+            await groupViewModel.updateAllGroupBalances()
         }
     }
 }

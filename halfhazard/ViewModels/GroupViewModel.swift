@@ -20,6 +20,7 @@ class GroupViewModel: ObservableObject {
     @Published var _selectedGroup: Group?
     @Published var isLoading = true
     @Published var errorMessage: String?
+    @Published var groupBalances: [String: Double] = [:] // Map of group IDs to user balance
     
     // Custom setter/getter for selectedGroup to add debugging
     var selectedGroup: Group? {
@@ -65,6 +66,29 @@ class GroupViewModel: ObservableObject {
     init(currentUser: User?, useDevMode: Bool = false) {
         self.currentUser = currentUser
         self.useDevMode = useDevMode
+        
+        // Listen for expense changes to update balances
+        NotificationCenter.default.addObserver(self, selector: #selector(handleExpenseChanged), name: NSNotification.Name("ExpenseChangedNotification"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handleExpenseChanged(_ notification: Notification) {
+        // Get the group ID from the notification
+        if let userInfo = notification.userInfo,
+           let groupId = userInfo["groupId"] as? String {
+            // Update just this group's balance
+            Task {
+                await calculateUserBalance(for: groupId)
+            }
+        } else {
+            // If no specific group ID, update all groups
+            Task {
+                await updateAllGroupBalances()
+            }
+        }
     }
     
     @MainActor
@@ -415,6 +439,80 @@ class GroupViewModel: ObservableObject {
         navigationPath = NavigationPath()
     }
     
+    // MARK: - Balance Calculation
+    
+    // Track whether all expenses in a group are settled
+    @Published var groupsWithAllExpensesSettled: [String: Bool] = [:]
+    
+    /// Calculate the current user's balance in a group (positive means they are owed money, negative means they owe)
+    /// - Parameter groupId: The ID of the group to calculate balance for
+    /// - Returns: The user's balance in the group (or nil if there's an error)
+    @MainActor
+    func calculateUserBalance(for groupId: String) async -> Double? {
+        guard let currentUser = currentUser else { return nil }
+        
+        // Skip for dev mode - return mock data
+        if useDevMode {
+            // Generate a random balance for testing (between -100 and 100)
+            let mockBalance = Double.random(in: -100...100)
+            groupBalances[groupId] = mockBalance
+            
+            // Generate a random settled status for testing
+            groupsWithAllExpensesSettled[groupId] = Bool.random()
+            
+            return mockBalance
+        }
+        
+        do {
+            // Get all expenses for the group
+            let expenses = try await getExpensesForGroup(groupId: groupId)
+            
+            // Check if there are any unsettled expenses
+            let hasUnsettledExpenses = expenses.contains { !$0.settled }
+            
+            // Store whether all expenses are settled
+            groupsWithAllExpensesSettled[groupId] = !hasUnsettledExpenses
+            
+            // Skip settled expenses for balance calculation
+            let activeExpenses = expenses.filter { !$0.settled }
+            
+            var balance: Double = 0.0
+            
+            for expense in activeExpenses {
+                // Calculate how much the user paid vs. their share of the expense
+                let userPaid = (expense.createdBy == currentUser.uid) ? expense.amount : 0
+                let userShare = expense.splits[currentUser.uid] ?? 0
+                
+                // Add to balance (positive means they are owed, negative means they owe)
+                balance += userPaid - userShare
+            }
+            
+            // Update the stored balance
+            groupBalances[groupId] = balance
+            
+            return balance
+        } catch {
+            print("Error calculating balance for group \(groupId): \(error)")
+            return nil
+        }
+    }
+    
+    /// Get all expenses for a group
+    /// - Parameter groupId: The ID of the group
+    /// - Returns: Array of expenses
+    private func getExpensesForGroup(groupId: String) async throws -> [Expense] {
+        let expenseService = ExpenseService()
+        return try await expenseService.getExpensesForGroup(groupId: groupId)
+    }
+    
+    /// Update balances for all groups
+    @MainActor
+    func updateAllGroupBalances() async {
+        for group in groups {
+            _ = await calculateUserBalance(for: group.id)
+        }
+    }
+    
     @MainActor
     func settleCurrentGroup() async {
         guard let group = selectedGroup else { return }
@@ -431,6 +529,9 @@ class GroupViewModel: ObservableObject {
             
             // After settling all expenses, tell ExpenseViewModel to refresh
             NotificationCenter.default.post(name: NSNotification.Name("RefreshExpensesNotification"), object: nil)
+            
+            // Also notify about expense changes for balance updates
+            NotificationCenter.default.post(name: NSNotification.Name("ExpenseChangedNotification"), object: nil, userInfo: ["groupId": group.id])
             
         } catch let error as NSError {
             if error.domain == "GroupService" && error.code == 400 {

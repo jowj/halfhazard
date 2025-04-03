@@ -236,6 +236,9 @@ class ExpenseViewModel: ObservableObject {
             
             // Clear navigation
             clearNavigation()
+            
+            // Notify about expense change for balance updates
+            NotificationCenter.default.post(name: NSNotification.Name("ExpenseChangedNotification"), object: nil, userInfo: ["groupId": groupId])
             return
         }
         
@@ -260,6 +263,9 @@ class ExpenseViewModel: ObservableObject {
             
             // Clear navigation
             clearNavigation()
+            
+            // Notify about expense change for balance updates
+            NotificationCenter.default.post(name: NSNotification.Name("ExpenseChangedNotification"), object: nil, userInfo: ["groupId": groupId])
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 403 {
                 // Access control error
@@ -573,6 +579,9 @@ class ExpenseViewModel: ObservableObject {
                 if selectedExpense?.id == expense.id {
                     selectedExpense = updatedExpense
                 }
+                
+                // Notify about expense change for balance updates
+                NotificationCenter.default.post(name: NSNotification.Name("ExpenseChangedNotification"), object: nil, userInfo: ["groupId": expense.groupId])
             }
             return
         }
@@ -592,6 +601,9 @@ class ExpenseViewModel: ObservableObject {
                 if selectedExpense?.id == expense.id {
                     selectedExpense = updatedExpense
                 }
+                
+                // Notify about expense change for balance updates
+                NotificationCenter.default.post(name: NSNotification.Name("ExpenseChangedNotification"), object: nil, userInfo: ["groupId": expense.groupId])
             }
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 400 {
