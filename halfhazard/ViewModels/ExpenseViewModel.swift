@@ -72,6 +72,25 @@ class ExpenseViewModel: ObservableObject {
                 await loadGroupInfo(groupId: groupId)
             }
         }
+        
+        // Listen for refresh notifications from GroupViewModel
+        NotificationCenter.default.addObserver(self, selector: #selector(refreshExpensesFromNotification), name: NSNotification.Name("RefreshExpensesNotification"), object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func refreshExpensesFromNotification() {
+        Task {
+            await MainActor.run {
+                if let groupId = currentGroupId {
+                    Task {
+                        await loadExpenses(forGroupId: groupId)
+                    }
+                }
+            }
+        }
     }
     
     @MainActor

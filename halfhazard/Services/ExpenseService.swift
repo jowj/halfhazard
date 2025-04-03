@@ -214,10 +214,8 @@ class ExpenseService: ObservableObject {
             throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
         }
         
-        // For settling, allow both expense creator and group creator
-        if expense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
-            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can settle this expense"])
-        }
+        // Allow any group member to settle expenses
+        // Permission already checked above with group.memberIds.contains(currentUser.uid)
         
         // Mark the expense as settled
         try await db.collection("expenses").document(expenseId).updateData([
@@ -250,10 +248,8 @@ class ExpenseService: ObservableObject {
             throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "You are not a member of this expense's group"])
         }
         
-        // For unsettling, allow both expense creator and group creator
-        if expense.createdBy != currentUser.uid && group.createdBy != currentUser.uid {
-            throw NSError(domain: "ExpenseService", code: 403, userInfo: [NSLocalizedDescriptionKey: "Only the expense creator or group admin can unsettle this expense"])
-        }
+        // Allow any group member to unsettle expenses
+        // Permission already checked above with group.memberIds.contains(currentUser.uid)
         
         // If the group is settled, we need to unsettle it too
         if group.settled {

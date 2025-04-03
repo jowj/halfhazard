@@ -276,7 +276,7 @@ class GroupService: ObservableObject {
         ])
     }
     
-    // Settle a group (mark all expenses as settled and the group as settled)
+    // Settle all unsettled expenses in a group
     func settleGroup(groupID: String) async throws {
         // Get current user
         guard let currentUser = Auth.auth().currentUser else {
@@ -287,28 +287,22 @@ class GroupService: ObservableObject {
         let groupRef = db.collection("groups").document(groupID)
         let group = try await groupRef.getDocument(as: Group.self)
         
-        // Check if the group is already settled
-        if group.settled {
-            throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This group is already settled"])
-        }
-        
         // Check if the current user is a member of the group (already verified in getGroupInfo)
-        // We allow any member to settle the group now
+        // We allow any member to settle expenses
         
         // Create a timestamp for the settlement
         let settlementTime = Timestamp()
-        
-        // Update the group as settled
-        try await groupRef.updateData([
-            "settled": true,
-            "settledAt": settlementTime
-        ])
         
         // Get all expenses in this group that are not settled
         let expensesSnapshot = try await db.collection("expenses")
             .whereField("groupId", isEqualTo: groupID)
             .whereField("settled", isEqualTo: false)
             .getDocuments()
+        
+        // Check if there are any expenses to settle
+        if expensesSnapshot.documents.isEmpty {
+            throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "No unsettled expenses to settle"])
+        }
         
         // Create a batch to update all expenses at once
         let batch = db.batch()
@@ -319,33 +313,19 @@ class GroupService: ObservableObject {
             ], forDocument: document.reference)
         }
         
+        // Update the group's settledAt timestamp (but don't mark it as "settled")
+        batch.updateData([
+            "settledAt": settlementTime
+        ], forDocument: groupRef)
+        
         // Commit the batch
         try await batch.commit()
     }
     
-    // Unsettle a group (mark the group as not settled)
+    // This method is kept for backwards compatibility but is no longer used
+    // The UI no longer shows the "settled" state of groups
     func unsettleGroup(groupID: String) async throws {
-        // Get current user
-        guard let currentUser = Auth.auth().currentUser else {
-            throw NSError(domain: "GroupService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
-        }
-        
-        // Get the group
-        let groupRef = db.collection("groups").document(groupID)
-        let group = try await groupRef.getDocument(as: Group.self)
-        
-        // Check if the group is already unsettled
-        if !group.settled {
-            throw NSError(domain: "GroupService", code: 400, userInfo: [NSLocalizedDescriptionKey: "This group is already unsettled"])
-        }
-        
-        // Check if the current user is a member of the group (already verified in getGroupInfo)
-        // We allow any member to unsettle the group now
-        
-        // Update the group as unsettled
-        try await groupRef.updateData([
-            "settled": false,
-            "settledAt": FieldValue.delete()
-        ])
+        // This method is no longer needed as we don't mark groups as settled anymore
+        print("unsettleGroup is deprecated and no longer used")
     }
 }

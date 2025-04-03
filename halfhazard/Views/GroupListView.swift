@@ -61,16 +61,7 @@ struct GroupListView: View {
                             .foregroundColor(groupViewModel.selectedGroup?.id == group.id ? .accentColor : .primary)
                             .font(groupViewModel.selectedGroup?.id == group.id ? .headline : .body)
                         
-                        // Settlement indicator
-                        if group.settled {
-                            Text("Settled")
-                                .font(.caption)
-                                .foregroundColor(.green)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.1))
-                                .cornerRadius(4)
-                        }
+                        // We're not showing settlement status in the group list anymore
                         
                         Spacer()
                         

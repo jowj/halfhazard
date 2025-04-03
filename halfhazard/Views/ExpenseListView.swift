@@ -14,7 +14,6 @@ struct ExpenseListView: View {
     @ObservedObject var expenseViewModel: ExpenseViewModel
     @ObservedObject var groupViewModel: GroupViewModel
     @State private var showSettleConfirmation = false
-    @State private var showUnsettleConfirmation = false
     var isInSplitView: Bool = false
     
     var body: some View {
@@ -58,27 +57,24 @@ struct ExpenseListView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             // Status label
-                            if group.settled {
-                                Label("Settled", systemImage: "checkmark.circle.fill")
+                            if !expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
+                                Label("All Settled", systemImage: "checkmark.circle.fill")
                                     .foregroundColor(.green)
                                     .font(.headline)
                             } else {
-                                Label("Active", systemImage: "circle")
+                                Label("Has Unsettled Expenses", systemImage: "circle")
                                     .foregroundColor(.blue)
                                     .font(.headline)
-                            }
-                            
-                            // Settled date if available
-                            if let settledAt = group.settledAt {
-                                Text("on \(settledAt.dateValue().formatted(date: .abbreviated, time: .shortened))")
-                                    .foregroundColor(.secondary)
-                                    .font(.subheadline)
                             }
                         }
                         
                         // Description text based on status
-                        if group.settled {
-                            Text("All expenses in this group have been marked as settled")
+                        if !expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
+                            Text("All current expenses are settled")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else if !expenseViewModel.filteredExpenses.isEmpty {
+                            Text("Some expenses need to be settled")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -86,20 +82,14 @@ struct ExpenseListView: View {
                     
                     Spacer()
                     
-                    // Action button based on current state
-                    if group.settled {
-                        Button(action: {
-                            showUnsettleConfirmation = true
-                        }) {
-                            Label("Reactivate Group", systemImage: "arrow.counterclockwise")
-                                .foregroundColor(.blue)
-                        }
-                        .buttonStyle(.bordered)
-                    } else {
+                    // Only show the "Settle All" button if there are unsettled expenses
+                    let hasUnsettledExpenses = expenseViewModel.filteredExpenses.contains(where: { !$0.settled })
+                    
+                    if hasUnsettledExpenses {
                         Button(action: {
                             showSettleConfirmation = true
                         }) {
-                            Label("Mark All as Settled", systemImage: "checkmark.circle")
+                            Label("Settle All Expenses", systemImage: "checkmark.circle")
                                 .foregroundColor(.green)
                         }
                         .buttonStyle(.bordered)
@@ -107,7 +97,9 @@ struct ExpenseListView: View {
                 }
             }
             .padding()
-            .background(group.settled ? Color.green.opacity(0.1) : Color.gray.opacity(0.05))
+            .background(!expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) 
+                      ? Color.green.opacity(0.1) 
+                      : Color.gray.opacity(0.05))
             .overlay(
                 Rectangle()
                     .frame(height: 1)
@@ -232,7 +224,7 @@ struct ExpenseListView: View {
             }
         }
         // Settle confirmation alert
-        .alert("Settle Group", isPresented: $showSettleConfirmation) {
+        .alert("Settle All Expenses", isPresented: $showSettleConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Settle All", role: .destructive) {
                 Task {
@@ -240,20 +232,9 @@ struct ExpenseListView: View {
                 }
             }
         } message: {
-            Text("This will mark all expenses in this group as settled. Members will still be able to view the group and expenses, but they will be marked as paid. Continue?")
+            Text("This will mark all currently unsettled expenses as settled. This is useful when you've completed all payments in this group and want to start fresh. Continue?")
         }
         
-        // Unsettle confirmation alert
-        .alert("Reactivate Group", isPresented: $showUnsettleConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Reactivate", role: .none) {
-                Task {
-                    await groupViewModel.unsettleCurrentGroup()
-                }
-            }
-        } message: {
-            Text("This will mark the group as active again. Individual expenses will remain in their current state. Continue?")
-        }
         // Import preview sheet
         .sheet(isPresented: Binding<Bool>(
             get: { expenseViewModel.importState.isPreviewing },

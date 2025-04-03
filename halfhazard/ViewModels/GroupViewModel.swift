@@ -421,39 +421,28 @@ class GroupViewModel: ObservableObject {
         
         // Handle dev mode
         if useDevMode {
-            // Update in our array
-            if let index = groups.firstIndex(where: { $0.id == group.id }) {
-                var updatedGroup = group
-                updatedGroup.settled = true
-                updatedGroup.settledAt = Timestamp()
-                groups[index] = updatedGroup
-                selectedGroup = updatedGroup
-            }
+            // In dev mode, just mark all expenses as settled
+            // This would be done on the server in a real implementation
             return
         }
         
         do {
             try await groupService.settleGroup(groupID: group.id)
             
-            // Update in our array
-            if let index = groups.firstIndex(where: { $0.id == group.id }) {
-                var updatedGroup = group
-                updatedGroup.settled = true
-                updatedGroup.settledAt = Timestamp()
-                groups[index] = updatedGroup
-                selectedGroup = updatedGroup
-            }
+            // After settling all expenses, tell ExpenseViewModel to refresh
+            NotificationCenter.default.post(name: NSNotification.Name("RefreshExpensesNotification"), object: nil)
+            
         } catch let error as NSError {
             if error.domain == "GroupService" && error.code == 400 {
-                errorMessage = "This group is already settled"
+                errorMessage = "No unsettled expenses to settle"
             } else if error.domain == "GroupService" && error.code == 403 {
                 errorMessage = "Access denied: \(error.localizedDescription)"
             } else if error.domain == "GroupService" && error.code == 401 {
                 errorMessage = "Authentication required: \(error.localizedDescription)"
             } else {
-                errorMessage = "Failed to settle group: \(error.localizedDescription)"
+                errorMessage = "Failed to settle expenses: \(error.localizedDescription)"
             }
-            print("Error settling group: \(error)")
+            print("Error settling expenses: \(error)")
         }
     }
     
