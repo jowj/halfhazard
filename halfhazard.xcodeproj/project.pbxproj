@@ -66,10 +66,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
-				ContentView.swift,
-				ContentView.swift.bak,
-				ContentView.swift.orig,
-				"GoogleService-Info.plist",
 				halfhazardApp.swift,
 				"Preview Content/Preview Assets.xcassets",
 			);
