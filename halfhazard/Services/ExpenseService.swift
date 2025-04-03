@@ -16,7 +16,13 @@ class ExpenseService: ObservableObject {
     let db = Firestore.firestore()
     
     // Create a new expense
-    func createExpense(amount: Double, description: String?, groupId: String, splitType: SplitType, splits: [String: Double]) async throws -> Expense {
+    func createExpense(amount: Double, 
+                     description: String?, 
+                     groupId: String, 
+                     splitType: SplitType, 
+                     splits: [String: Double],
+                     settled: Bool = false,
+                     createdAt: Timestamp? = nil) async throws -> Expense {
         // Get current user
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "ExpenseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
@@ -25,6 +31,9 @@ class ExpenseService: ObservableObject {
         // Create a new document reference with auto-generated ID
         let expenseRef = db.collection("expenses").document()
         
+        // Use provided timestamp or create a new one
+        let timestamp = createdAt ?? Timestamp()
+        
         // Create a new expense
         let expense = Expense(
             id: expenseRef.documentID,
@@ -32,11 +41,11 @@ class ExpenseService: ObservableObject {
             description: description,
             groupId: groupId,
             createdBy: currentUser.uid,
-            createdAt: Timestamp(),
+            createdAt: timestamp,
             splitType: splitType,
             splits: splits,
-            settled: false,
-            settledAt: nil
+            settled: settled,
+            settledAt: settled ? Timestamp() : nil
         )
         
         // Save expense to Firestore

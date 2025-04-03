@@ -740,7 +740,158 @@ class ExpenseViewModel: ObservableObject {
         applyFilters()
     }
     
-    // Development helper methods
+    // MARK: - CSV Import
+    
+    /// Model for tracking the state of expense import
+    struct ImportState {
+        var isImporting = false
+        var isPreviewing = false
+        var parsedExpenses: [Expense] = []
+        var invalidRows: [Int] = []
+        var errorMessages: [String] = []
+        var fileName: String = ""
+        
+        var previewCount: Int {
+            // Show maximum 5 expenses in preview
+            return min(parsedExpenses.count, 5)
+        }
+        
+        var hasErrors: Bool {
+            return !errorMessages.isEmpty
+        }
+        
+        var summary: String {
+            let validCount = parsedExpenses.count
+            let invalidCount = invalidRows.count
+            
+            var result = "Successfully parsed \(validCount) expense(s)"
+            if invalidCount > 0 {
+                result += " with \(invalidCount) invalid row(s)"
+            }
+            return result
+        }
+        
+        mutating func reset() {
+            isImporting = false
+            isPreviewing = false
+            parsedExpenses = []
+            invalidRows = []
+            errorMessages = []
+            fileName = ""
+        }
+    }
+    
+    @Published var importState = ImportState()
+    
+    /// Starts the import process by opening a file picker for CSV selection
+    @MainActor
+    func startImportExpenses() async {
+        guard let groupId = currentGroupId, let currentUser = currentUser else {
+            errorMessage = "No group selected or user not logged in"
+            return
+        }
+        
+        // Reset the import state
+        importState.reset()
+        importState.isImporting = true
+        
+        // Open file picker and get CSV content
+        if let csvData = await FileExportManager.importCSV() {
+            let content = csvData.content
+            importState.fileName = csvData.fileName
+            
+            // Get the current group to access member IDs
+            guard let group = findSelectedGroup(withId: groupId) else {
+                errorMessage = "Could not find the current group information"
+                importState.reset()
+                return
+            }
+            
+            // Parse the CSV
+            let result = Expense.importFromCSV(
+                csvString: content, 
+                groupId: groupId, 
+                creatorId: currentUser.uid, 
+                memberIds: group.memberIds
+            )
+            
+            // Update the import state
+            importState.parsedExpenses = result.validExpenses
+            importState.invalidRows = result.invalidRowIndices
+            importState.errorMessages = result.errorMessages
+            
+            if result.validExpenses.isEmpty {
+                // No valid expenses to import
+                errorMessage = "No valid expenses found in the CSV file: \(result.errorMessages.joined(separator: ", "))"
+                importState.reset()
+            } else {
+                // Show preview before final import
+                importState.isPreviewing = true
+            }
+        } else {
+            // User cancelled or error occurred
+            importState.reset()
+        }
+    }
+    
+    /// Confirms the import after preview and saves the expenses
+    @MainActor
+    func confirmImportExpenses() async {
+        guard importState.isImporting && importState.isPreviewing else { return }
+        
+        // Handle dev mode
+        if useDevMode {
+            // Just add the parsed expenses to our local array
+            expenses.append(contentsOf: importState.parsedExpenses)
+            applyFilters()
+            
+            // Reset import state
+            importState.reset()
+            return
+        }
+        
+        // Actually save the expenses to Firestore
+        var createdCount = 0
+        var failedCount = 0
+        
+        for expense in importState.parsedExpenses {
+            do {
+                // Create each expense in Firestore
+                _ = try await expenseService.createExpense(
+                    amount: expense.amount,
+                    description: expense.description,
+                    groupId: expense.groupId,
+                    splitType: expense.splitType,
+                    splits: expense.splits,
+                    settled: expense.settled,
+                    createdAt: expense.createdAt
+                )
+                createdCount += 1
+            } catch {
+                failedCount += 1
+                print("Error creating imported expense: \(error)")
+            }
+        }
+        
+        // Reload expenses after import to get the newly created ones
+        await loadExpenses()
+        
+        // Show a summary message
+        if failedCount > 0 {
+            errorMessage = "Imported \(createdCount) expense(s), but \(failedCount) failed to import."
+        }
+        
+        // Reset import state
+        importState.reset()
+    }
+    
+    /// Cancels the import process
+    func cancelImportExpenses() {
+        importState.reset()
+    }
+    
+    // MARK: - Development helper methods
+    
     private func createMockExpenses(for groupId: String) {
         let userId = currentUser?.uid ?? "dev-user"
         

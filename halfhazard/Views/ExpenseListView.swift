@@ -192,10 +192,33 @@ struct ExpenseListView: View {
             }
             
             ToolbarItem(placement: .primaryAction) {
-                Button(action: {
-                    expenseViewModel.showCreateExpenseForm()
-                }) {
-                    Label("Add Expense", systemImage: "plus")
+                Menu {
+                    Button(action: {
+                        expenseViewModel.showCreateExpenseForm()
+                    }) {
+                        Label("Add Expense", systemImage: "plus")
+                    }
+                    
+                    Divider()
+                    
+                    // Export option
+                    Button(action: {
+                        exportExpensesToCSV()
+                    }) {
+                        Label("Export Expenses as CSV", systemImage: "arrow.down.doc")
+                    }
+                    .disabled(expenseViewModel.filteredExpenses.isEmpty)
+                    
+                    // Import option
+                    Button(action: {
+                        Task {
+                            await expenseViewModel.startImportExpenses()
+                        }
+                    }) {
+                        Label("Import Expenses from CSV", systemImage: "arrow.up.doc")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
@@ -230,6 +253,49 @@ struct ExpenseListView: View {
             }
         } message: {
             Text("This will mark the group as active again. Individual expenses will remain in their current state. Continue?")
+        }
+        // Import preview sheet
+        .sheet(isPresented: Binding<Bool>(
+            get: { expenseViewModel.importState.isPreviewing },
+            set: { if !$0 { expenseViewModel.cancelImportExpenses() } }
+        )) {
+            ImportExpensePreview(viewModel: expenseViewModel)
+        }
+    }
+    
+    // Export all expenses to CSV
+    private func exportExpensesToCSV() {
+        // Don't export if there are no expenses
+        guard !expenseViewModel.filteredExpenses.isEmpty else { return }
+        
+        Task {
+            // First, load member names for better readability
+            var memberNames: [String: String] = [:]
+            for memberId in group.memberIds {
+                do {
+                    let user = try await UserService().getUser(uid: memberId)
+                    memberNames[memberId] = user.displayName ?? user.email
+                } catch {
+                    print("Error loading member name for \(memberId): \(error)")
+                    memberNames[memberId] = "Unknown User"
+                }
+            }
+            
+            // Create a descriptive file name with the group name
+            let fileName = "\(group.name)_Expenses_\(Date().formatted(.dateTime.day().month().year()))"
+                            .replacingOccurrences(of: " ", with: "_")
+                            .replacingOccurrences(of: ":", with: ".")
+            
+            // Export all expenses as CSV
+            let csvContent = Expense.expensesToCSV(expenseViewModel.filteredExpenses, memberNames: memberNames)
+            
+            // Share the CSV file
+            let success = FileExportManager.shareCSV(csvContent, fileName: fileName)
+            if !success {
+                // Here we would handle failure, but we can't set an errorMessage directly
+                // in this view as we don't have an error display mechanism
+                print("Failed to export expenses to CSV")
+            }
         }
     }
 }

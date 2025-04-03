@@ -256,6 +256,15 @@ struct ExpenseDetailView: View {
                     
                     Divider()
                     
+                    // Export option - available to all group members
+                    Button {
+                        exportExpenseToCSV()
+                    } label: {
+                        Label("Export as CSV", systemImage: "arrow.down.doc")
+                    }
+                    
+                    Divider()
+                    
                     // Delete button - only enabled for expense creator or group admin
                     Button(role: .destructive) {
                         // Delete the expense and close the detail view
@@ -422,6 +431,24 @@ struct ExpenseDetailView: View {
             return "percent"
         case .custom:
             return "slider.horizontal.3"
+        }
+    }
+    
+    // Export expense to CSV
+    private func exportExpenseToCSV() {
+        // Create a descriptive file name based on expense details
+        let description = expense.description?.replacingOccurrences(of: " ", with: "_") ?? "Expense"
+        let fileName = "\(description)_\(dateFormatter.string(from: expense.createdAt.dateValue()).replacingOccurrences(of: " ", with: "_").replacingOccurrences(of: ":", with: "."))"
+        
+        // Export the expense as CSV
+        let csvContent = expense.toCSV(memberNames: memberNames)
+        
+        // Share the CSV file
+        Task { @MainActor in
+            let success = FileExportManager.shareCSV(csvContent, fileName: fileName)
+            if !success {
+                errorMessage = "Failed to export expense to CSV"
+            }
         }
     }
 }
