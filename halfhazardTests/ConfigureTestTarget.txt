@@ -1,0 +1,59 @@
+# Adding Tests to Halfhazard
+
+## Creating a Test Target in Xcode
+
+1. Open the Halfhazard project in Xcode
+2. Go to File > New > Target
+3. Select "Unit Testing Bundle" and click Next
+4. Name it "halfhazardTests" and click Finish
+
+## Configuring the Test Target
+
+After creating the test target, make sure it has access to Firebase:
+
+1. Select the halfhazardTests target
+2. Go to "Build Phases" tab
+3. Expand "Link Binary With Libraries"
+4. Click the "+" button
+5. Add FirebaseAuth.framework and FirebaseFirestore.framework
+
+## Test Files Organization
+
+The test suite is organized as follows:
+
+```
+halfhazardTests/
+├── MockFirebase.swift              # Protocol-based mocking framework for Firebase
+├── TestInterceptors.swift          # Extensions to enable testing with dependency injection
+├── SetupTests.swift                # Basic tests to validate the test infrastructure
+├── Services/
+│   ├── GroupServiceTests.swift     # Tests for group-related functionality
+│   ├── ExpenseServiceTests.swift   # Tests for expense-related functionality
+│   └── UserServiceTests.swift      # Tests for user-related functionality
+└── ViewModels/
+    ├── GroupViewModelTests.swift   # Tests for group view model
+    └── ExpenseViewModelTests.swift # Tests for expense view model
+```
+
+## Running the Tests
+
+To run the tests:
+
+1. Select the "halfhazardTests" scheme
+2. Press ⌘U or go to Product > Test
+
+## Test Coverage
+
+The tests cover:
+
+1. Authentication and user management
+2. Group creation, joining, leaving, and management
+3. Expense creation, modification, and permission control
+4. ViewModel state management and interactions
+
+## Troubleshooting
+
+If you encounter linking errors:
+1. Make sure the test target has access to the main application target
+2. Check that @testable import halfhazard is working properly
+3. Verify that all required frameworks are linked

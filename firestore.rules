@@ -1,0 +1,33 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read and write their own user data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to read and write their own groups
+    match /groups/{groupId} {
+      allow read: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
+      allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
+    }
+    
+    // Allow authenticated users to read and write expenses in their groups
+    match /expenses/{expenseId} {
+      // Helper function to check if user is in the group
+      function userIsInGroup(groupId) {
+        return request.auth != null && 
+               exists(/databases/$(database)/documents/groups/$(groupId)) && 
+               get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds.hasAny([request.auth.uid]);
+      }
+      
+      allow read: if request.auth != null && userIsInGroup(resource.data.groupId);
+      allow create: if request.auth != null && userIsInGroup(request.resource.data.groupId);
+      allow update, delete: if request.auth != null && 
+                              (resource.data.createdBy == request.auth.uid || 
+                               userIsInGroup(resource.data.groupId));
+    }
+  }
+}
