@@ -199,16 +199,16 @@ struct ExpenseListView: View {
         .navigationTitle(group.name)
         .toolbar {
             ToolbarItem(placement: .automatic) {
-                // Filter toggle
-                Picker("Filter", selection: $expenseViewModel.showOnlyActive) {
-                    Text("All Expenses").tag(false)
-                    Text("Active Only").tag(true)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 200)
-                .onChange(of: expenseViewModel.showOnlyActive) { _, _ in
+                // Filter toggle button
+                Button(action: {
                     expenseViewModel.toggleActiveFilter()
+                }) {
+                    Label(
+                        expenseViewModel.showOnlyActive ? "Show All Expenses" : "Show Active Only",
+                        systemImage: expenseViewModel.showOnlyActive ? "eye" : "eye.fill"
+                    )
                 }
+                .buttonStyle(.bordered)
             }
             
             ToolbarItem(placement: .primaryAction) {
