@@ -27,10 +27,121 @@ struct TabItemView<Content: View>: View {
     }
 }
 
+// Helper view for tab content
+struct TabContentWrapper: View {
+    let tab: AppNavigation.TabSelection
+    let groupViewModel: GroupViewModel
+    let expenseViewModel: ExpenseViewModel
+    let currentUser: User?
+    let appNavigation: AppNavigation
+    let signOutAction: () async -> Void
+    
+    var body: some View {
+        VStack {
+            switch tab {
+            case .groups:
+                // Groups tab content
+                GroupListView(
+                    groupViewModel: groupViewModel,
+                    expenseViewModel: expenseViewModel,
+                    appNavigationRef: appNavigation
+                )
+                .navigationBarTitleDisplayMode(.inline)
+                
+            case .expenses:
+                // Expenses tab content
+                if let selectedGroup = groupViewModel.selectedGroup {
+                    ExpenseListView(
+                        group: selectedGroup,
+                        expenseViewModel: expenseViewModel,
+                        groupViewModel: groupViewModel,
+                        appNavigationRef: appNavigation
+                    )
+                    .navigationBarTitleDisplayMode(.inline)
+                } else {
+                    ContentUnavailableView("Select a Group",
+                                           systemImage: "list.bullet.circle",
+                                           description: Text("Choose a group from the Groups tab"))
+                }
+                
+            case .profile:
+                // Profile tab content
+                List {
+                    if let user = currentUser {
+                        Section(header: Text("Account")) {
+                            VStack(alignment: .leading) {
+                                Text(user.displayName ?? "User")
+                                    .font(.headline)
+                                Text(user.email)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                    
+                    Section {
+                        Button("Sign Out") {
+                            Task {
+                                await signOutAction()
+                            }
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+                .navigationTitle("Profile")
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// Helper view for navigation destinations
+struct NavigationDestinationWrapper: View {
+    let destination: AppNavigation.Destination
+    let groupViewModel: GroupViewModel
+    let expenseViewModel: ExpenseViewModel
+    
+    var body: some View {
+        switch destination {
+        // Group destinations
+        case .createGroup:
+            CreateGroupForm(viewModel: groupViewModel)
+                .navigationTitle("Create Group")
+                
+        case .joinGroup:
+            JoinGroupForm(viewModel: groupViewModel)
+                .navigationTitle("Join Group")
+                
+        case .manageGroup(let group):
+            ManageGroupSheet(group: group, viewModel: groupViewModel)
+                .navigationTitle("Manage Group")
+            
+        // Expense destinations
+        case .createExpense:
+            CreateExpenseForm(viewModel: expenseViewModel)
+                .navigationTitle("Add Expense")
+                
+        case .editExpense:
+            EditExpenseForm(viewModel: expenseViewModel)
+                .navigationTitle("Edit Expense")
+                
+        case .expenseDetail(let expense):
+            if let group = groupViewModel.selectedGroup {
+                ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
+                    .navigationTitle("Expense Details")
+            } else {
+                Text("Error: Missing group for expense detail")
+            }
+        }
+    }
+}
+
 struct iOSContentView: View {
     @StateObject private var userService = UserService()
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
+    @StateObject private var appNavigation = AppNavigation()
     
     // Dev mode state
     @State private var useDevMode = false
@@ -77,73 +188,33 @@ struct iOSContentView: View {
         }
     }
     
-    // iOS-specific main view
+    // iOS-specific main view with NavigationStack
     var mainAppView: some View {
-        TabView {
-            // Groups tab
-            TabItemView(label: "Groups", systemImage: "folder") {
-                NavigationView {
-                    GroupListView(
-                        groupViewModel: groupViewModel,
-                        expenseViewModel: expenseViewModel
-                    )
-                    #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                }
+        NavigationStack(path: $appNavigation.path) {
+            CustomTabView(selection: $appNavigation.tabSelection) { tab in
+                TabContentWrapper(
+                    tab: tab,
+                    groupViewModel: groupViewModel,
+                    expenseViewModel: expenseViewModel,
+                    currentUser: currentUser,
+                    appNavigation: appNavigation,
+                    signOutAction: signOut
+                )
             }
             
-            // Selected group expenses tab (only active when a group is selected)
-            TabItemView(label: "Expenses", systemImage: "creditcard") {
-                if let selectedGroup = groupViewModel.selectedGroup {
-                    NavigationView {
-                        ExpenseListView(
-                            group: selectedGroup,
-                            expenseViewModel: expenseViewModel,
-                            groupViewModel: groupViewModel
-                        )
-                        #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                        #endif
-                    }
-                } else {
-                    ContentUnavailableView("Select a Group",
-                                          systemImage: "list.bullet.circle",
-                                          description: Text("Choose a group from the Groups tab"))
-                }
-            }
-            
-            // Profile/Settings tab
-            TabItemView(label: "Profile", systemImage: "person.circle") {
-                NavigationView {
-                    List {
-                        if let user = currentUser {
-                            Section(header: Text("Account")) {
-                                VStack(alignment: .leading) {
-                                    Text(user.displayName ?? "User")
-                                        .font(.headline)
-                                    Text(user.email)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                .padding(.vertical, 8)
-                            }
-                        }
-                        
-                        Section {
-                            Button("Sign Out") {
-                                Task {
-                                    await signOut()
-                                }
-                            }
-                            .foregroundColor(.red)
-                        }
-                    }
-                    .navigationTitle("Profile")
-                }
+            // Navigation destinations
+            .navigationDestination(for: AppNavigation.Destination.self) { destination in
+                NavigationDestinationWrapper(
+                    destination: destination,
+                    groupViewModel: groupViewModel,
+                    expenseViewModel: expenseViewModel
+                )
             }
         }
         .onAppear {
+            // Setup app navigation with view models
+            appNavigation.setViewModels(groupViewModel: groupViewModel, expenseViewModel: expenseViewModel)
+            
             // Update ViewModels with current user and dev mode
             updateViewModels(user: currentUser, devMode: useDevMode)
             
@@ -151,13 +222,7 @@ struct iOSContentView: View {
                 await groupViewModel.loadGroups()
             }
         }
-        .onChange(of: groupViewModel._selectedGroup) { newValue in
-            if let previousValue = groupViewModel._selectedGroup {
-                print("ContentView: Group selection changed from \(previousValue.name) to \(newValue?.name ?? "nil")")
-            } else {
-                print("ContentView: Group selection changed to \(newValue?.name ?? "nil")")
-            }
-            
+        .onChange(of: groupViewModel._selectedGroup) { _, newValue in
             if let group = newValue {
                 expenseViewModel.updateContext(user: currentUser, groupId: group.id, devMode: useDevMode)
                 Task {
@@ -165,12 +230,27 @@ struct iOSContentView: View {
                 }
             }
         }
-        .onChange(of: groupViewModel.errorMessage) { newValue in
+        // When tab selection changes, we need to handle the navigation
+        .onChange(of: appNavigation.tabSelection) { _, newValue in
+            // If switching to expenses tab, make sure a group is selected
+            if newValue == .expenses && groupViewModel.selectedGroup == nil && !groupViewModel.groups.isEmpty {
+                groupViewModel.selectedGroup = groupViewModel.groups.first
+                
+                // Load expenses for the selected group
+                if let group = groupViewModel.selectedGroup {
+                    expenseViewModel.updateContext(user: currentUser, groupId: group.id, devMode: useDevMode)
+                    Task {
+                        await expenseViewModel.loadExpenses(forGroupId: group.id)
+                    }
+                }
+            }
+        }
+        .onChange(of: groupViewModel.errorMessage) { _, newValue in
             if let error = newValue {
                 errorMessage = error
             }
         }
-        .onChange(of: expenseViewModel.errorMessage) { newValue in
+        .onChange(of: expenseViewModel.errorMessage) { _, newValue in
             if let error = newValue {
                 errorMessage = error
             }

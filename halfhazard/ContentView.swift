@@ -269,73 +269,83 @@ struct ContentView: View {
     
     // iOS-specific main view
     #if os(iOS)
+    // Helper view for the Groups tab
+    private var groupsTabView: some View {
+        NavigationView {
+            GroupListView(
+                groupViewModel: groupViewModel,
+                expenseViewModel: expenseViewModel,
+                isInSplitView: false // Use its own NavigationStack on iOS
+            )
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .tabItem {
+            Label("Groups", systemImage: "folder")
+        }
+    }
+    
+    // Helper view for the Expenses tab
+    private var expensesTabView: some View {
+        Group {
+            if let selectedGroup = groupViewModel.selectedGroup {
+                NavigationView {
+                    ExpenseListView(
+                        group: selectedGroup, 
+                        expenseViewModel: expenseViewModel,
+                        groupViewModel: groupViewModel,
+                        isInSplitView: false // Use its own NavigationStack on iOS
+                    )
+                    .navigationBarTitleDisplayMode(.inline)
+                }
+            } else {
+                ContentUnavailableView("Select a Group",
+                                      systemImage: "list.bullet.circle",
+                                      description: Text("Choose a group from the Groups tab"))
+            }
+        }
+        .tabItem {
+            Label("Expenses", systemImage: "creditcard")
+        }
+    }
+    
+    // Helper view for the Profile tab
+    private var profileTabView: some View {
+        NavigationView {
+            List {
+                if let user = currentUser {
+                    Section(header: Text("Account")) {
+                        VStack(alignment: .leading) {
+                            Text(user.displayName ?? "User")
+                                .font(.headline)
+                            Text(user.email)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
+                
+                Section {
+                    Button("Sign Out") {
+                        Task {
+                            await signOut()
+                        }
+                    }
+                    .foregroundColor(.red)
+                }
+            }
+            .navigationTitle("Profile")
+        }
+        .tabItem {
+            Label("Profile", systemImage: "person.circle")
+        }
+    }
+    
     var iOSMainView: some View {
         TabView {
-            // Groups tab
-            NavigationView {
-                GroupListView(
-                    groupViewModel: groupViewModel,
-                    expenseViewModel: expenseViewModel,
-                    isInSplitView: false // Use its own NavigationStack on iOS
-                )
-                .navigationBarTitleDisplayMode(.inline)
-            }
-            .tabItem {
-                Label("Groups", systemImage: "folder")
-            }
-            
-            // Selected group expenses tab (only active when a group is selected)
-            Group {
-                if let selectedGroup = groupViewModel.selectedGroup {
-                    NavigationView {
-                        ExpenseListView(
-                            group: selectedGroup, 
-                            expenseViewModel: expenseViewModel,
-                            groupViewModel: groupViewModel,
-                            isInSplitView: false // Use its own NavigationStack on iOS
-                        )
-                        .navigationBarTitleDisplayMode(.inline)
-                    }
-                } else {
-                    ContentUnavailableView("Select a Group",
-                                          systemImage: "list.bullet.circle",
-                                          description: Text("Choose a group from the Groups tab"))
-                }
-            }
-            .tabItem {
-                Label("Expenses", systemImage: "creditcard")
-            }
-            
-            // Profile/Settings tab
-            NavigationView {
-                List {
-                    if let user = currentUser {
-                        Section(header: Text("Account")) {
-                            VStack(alignment: .leading) {
-                                Text(user.displayName ?? "User")
-                                    .font(.headline)
-                                Text(user.email)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.vertical, 8)
-                        }
-                    }
-                    
-                    Section {
-                        Button("Sign Out") {
-                            Task {
-                                await signOut()
-                            }
-                        }
-                        .foregroundColor(.red)
-                    }
-                }
-                .navigationTitle("Profile")
-            }
-            .tabItem {
-                Label("Profile", systemImage: "person.circle")
-            }
+            groupsTabView
+            expensesTabView
+            profileTabView
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {

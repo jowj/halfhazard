@@ -68,7 +68,7 @@ struct ImportExpensePreview: View {
                 }
             }
             .padding()
-            .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
+            .background(Color.adaptiveBackground.opacity(0.8))
             
             Divider()
             
@@ -130,7 +130,7 @@ struct ImportExpensePreview: View {
                 .buttonStyle(.borderedProminent)
             }
             .padding()
-            .background(Color(NSColor.windowBackgroundColor).opacity(0.8))
+            .background(Color.adaptiveBackground.opacity(0.8))
         }
         .frame(minWidth: 500, idealWidth: 550, maxWidth: 600, minHeight: 400, idealHeight: 450, maxHeight: 500)
     }

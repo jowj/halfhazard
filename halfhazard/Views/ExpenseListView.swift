@@ -16,32 +16,43 @@ struct ExpenseListView: View {
     @State private var showSettleConfirmation = false
     var isInSplitView: Bool = false
     
+    // On iOS, we'll optionally use environment object for navigation
+    @State private var hasAppNavigation = false
+    var appNavigationRef: AppNavigation?
+    
     var body: some View {
+        // macOS still uses the split view approach
         if isInSplitView {
             // In split view, don't wrap in NavigationStack (it's in the main view)
             expenseListContent
         } else {
-            // On iOS, use NavigationStack here
-            NavigationStack {
-                if expenseViewModel.navigationPath.isEmpty {
-                    expenseListContent
-                } else {
-                    // Display the correct destination based on navigation state
-                    if let dest = expenseViewModel.navigationDestination {
-                        switch dest {
-                        case .createExpense:
-                            CreateExpenseForm(viewModel: expenseViewModel)
-                                .navigationTitle("Add Expense")
-                        case .editExpense:
-                            EditExpenseForm(viewModel: expenseViewModel)
-                                .navigationTitle("Edit Expense")
-                        case .expenseDetail(let expense):
-                            ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
-                                .navigationTitle("Expense Details")
-                        }
-                    } else {
-                        // Fallback
+            // On iOS, check if we're using the new navigation approach
+            if hasAppNavigation {
+                // We're using the unified navigation approach
+                expenseListContent
+            } else {
+                // We're using the original approach with separate navigation stacks
+                NavigationStack {
+                    if expenseViewModel.navigationPath.isEmpty {
                         expenseListContent
+                    } else {
+                        // Display the correct destination based on navigation state
+                        if let dest = expenseViewModel.navigationDestination {
+                            switch dest {
+                            case .createExpense:
+                                CreateExpenseForm(viewModel: expenseViewModel)
+                                    .navigationTitle("Add Expense")
+                            case .editExpense:
+                                EditExpenseForm(viewModel: expenseViewModel)
+                                    .navigationTitle("Edit Expense")
+                            case .expenseDetail(let expense):
+                                ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
+                                    .navigationTitle("Expense Details")
+                            }
+                        } else {
+                            // Fallback
+                            expenseListContent
+                        }
                     }
                 }
             }
@@ -113,18 +124,29 @@ struct ExpenseListView: View {
                     ExpenseRow(expense: expense, group: group)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        expenseViewModel.selectExpense(expense)
+                        if hasAppNavigation, let navigation = appNavigationRef {
+                            // Use unified navigation on iOS
+                            navigation.showExpenseDetail(expense: expense)
+                        } else {
+                            // Use view model navigation for macOS or iOS without unified navigation
+                            expenseViewModel.selectExpense(expense)
+                        }
                     }
                     .contextMenu {
                         // Only show edit option if user is the creator or group admin
                         if let currentUserId = expenseViewModel.currentUser?.uid,
                            (expense.createdBy == currentUserId || group.createdBy == currentUserId) {
                             Button {
-                                // Prepare the model and then navigate
-                                expenseViewModel.prepareExpenseForEditing(expense)
-                                expenseViewModel.currentDestination = ExpenseViewModel.Destination.editExpense
-                                expenseViewModel.navigationPath = NavigationPath()
-                                expenseViewModel.navigationPath.append(ExpenseViewModel.Destination.editExpense)
+                                if hasAppNavigation, let navigation = appNavigationRef {
+                                    // Use unified navigation on iOS
+                                    navigation.showEditExpenseForm(expense: expense)
+                                } else {
+                                    // Prepare the model and then navigate with view model navigation
+                                    expenseViewModel.prepareExpenseForEditing(expense)
+                                    expenseViewModel.currentDestination = ExpenseViewModel.Destination.editExpense
+                                    expenseViewModel.navigationPath = NavigationPath()
+                                    expenseViewModel.navigationPath.append(ExpenseViewModel.Destination.editExpense)
+                                }
                             } label: {
                                 Label("Edit Expense", systemImage: "pencil")
                             }
@@ -141,7 +163,13 @@ struct ExpenseListView: View {
                         } else {
                             // For non-owners/non-admins, just show view details option
                             Button {
-                                expenseViewModel.selectExpense(expense)
+                                if hasAppNavigation, let navigation = appNavigationRef {
+                                    // Use unified navigation on iOS
+                                    navigation.showExpenseDetail(expense: expense)
+                                } else {
+                                    // Use view model navigation
+                                    expenseViewModel.selectExpense(expense)
+                                }
                             } label: {
                                 Label("View Details", systemImage: "eye")
                             }
@@ -186,7 +214,13 @@ struct ExpenseListView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button(action: {
-                        expenseViewModel.showCreateExpenseForm()
+                        if hasAppNavigation, let navigation = appNavigationRef {
+                            // Use unified navigation on iOS
+                            navigation.showCreateExpenseForm()
+                        } else {
+                            // Use view model navigation for macOS or iOS without unified navigation
+                            expenseViewModel.showCreateExpenseForm()
+                        }
                     }) {
                         Label("Add Expense", systemImage: "plus")
                     }
@@ -241,6 +275,10 @@ struct ExpenseListView: View {
             set: { if !$0 { expenseViewModel.cancelImportExpenses() } }
         )) {
             ImportExpensePreview(viewModel: expenseViewModel)
+        }
+        .onAppear {
+            // Mark that we have app navigation if the reference was injected
+            hasAppNavigation = appNavigationRef != nil
         }
     }
     
