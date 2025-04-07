@@ -110,11 +110,6 @@ struct CreateGroupForm: View {
             .padding()
         }
         .frame(minWidth: 450, minHeight: 350)
-        #if os(macOS)
-        .background(Color(NSColor.windowBackgroundColor))
-        #else
-        .background(Color(.systemBackground))
-        #endif
         .onAppear {
             // Initialize form fields from viewModel
             groupName = viewModel.newGroupName
