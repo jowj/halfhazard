@@ -82,7 +82,7 @@ struct ExpenseDetailView: View {
                     
                     // Split type badge
                     HStack {
-                        Label(expense.splitType.rawValue.capitalized, systemImage: splitTypeIcon(for: expense.splitType))
+                        Label(splitTypeLabel(for: expense.splitType), systemImage: splitTypeIcon(for: expense.splitType))
                             .font(.subheadline)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -136,7 +136,7 @@ struct ExpenseDetailView: View {
                                         .font(.body)
                                     
                                     // Show percentage in addition to amount
-                                    if expense.splitType == .percentage || expense.splitType == .custom {
+                                    if expense.splitType == .currentUserOwed || expense.splitType == .currentUserOwes || expense.splitType == .custom {
                                         let percentage = split / expense.amount
                                         Text(percentFormatter.string(from: NSNumber(value: percentage)) ?? "0%")
                                             .font(.caption)
@@ -427,10 +427,25 @@ struct ExpenseDetailView: View {
         switch type {
         case .equal:
             return "equal.square.fill"
-        case .percentage:
-            return "percent"
+        case .currentUserOwed:
+            return "arrow.left.square.fill"
+        case .currentUserOwes:
+            return "arrow.right.square.fill"
         case .custom:
             return "slider.horizontal.3"
+        }
+    }
+    
+    private func splitTypeLabel(for type: SplitType) -> String {
+        switch type {
+        case .equal:
+            return "Split Equally"
+        case .currentUserOwed:
+            return "You Paid (Others Owe You)"
+        case .currentUserOwes:
+            return "You Owe (Someone Else Paid)"
+        case .custom:
+            return "Custom Split"
         }
     }
     

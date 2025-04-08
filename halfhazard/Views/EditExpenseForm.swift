@@ -72,9 +72,10 @@ struct EditExpenseForm: View {
                         .foregroundColor(.secondary)
                     
                     Picker("Split Type", selection: $splitType) {
-                        Text("Equal").tag(SplitType.equal)
-                        Text("Percentage").tag(SplitType.percentage)
-                        Text("Custom").tag(SplitType.custom)
+                        Text("Split Equally").tag(SplitType.equal)
+                        Text("I Owe All").tag(SplitType.currentUserOwes)
+                        Text("I Paid All").tag(SplitType.currentUserOwed)
+                        Text("Custom Split").tag(SplitType.custom)
                     }
                     .pickerStyle(SegmentedPickerStyle())
                     .onChange(of: splitType) { oldValue, newValue in

@@ -43,7 +43,7 @@ struct ExpenseRow: View {
                 
                 HStack(spacing: 8) {
                     // Split type badge
-                    Label("\(expense.splitType.rawValue.capitalized) split", systemImage: "person.3")
+                    Label(splitTypeLabel(for: expense.splitType), systemImage: "person.3")
                         .font(.caption)
                         .padding(4)
                         .background(Color.blue.opacity(0.1))
@@ -86,6 +86,19 @@ struct ExpenseRow: View {
             } catch {
                 print("Error loading creator: \(error)")
             }
+        }
+    }
+    
+    private func splitTypeLabel(for type: SplitType) -> String {
+        switch type {
+        case .equal:
+            return "Split Equally"
+        case .currentUserOwed:
+            return "You Paid"
+        case .currentUserOwes:
+            return "You Owe"
+        case .custom:
+            return "Custom Split"
         }
     }
 }

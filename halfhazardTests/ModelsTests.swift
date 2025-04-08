@@ -215,7 +215,7 @@ final class ModelsTests: XCTestCase {
             groupId: "different-group", // Different group but should still be equal
             createdBy: "user2", // Different creator but should still be equal
             createdAt: Timestamp(),
-            splitType: .percentage, // Different split type but should still be equal
+            splitType: .currentUserOwed, // Different split type but should still be equal
             splits: ["user1": 100.0, "user2": 100.0], // Different splits but should still be equal
             settled: true, // Different settled status but should still be equal
             settledAt: Timestamp() // Different settled timestamp but should still be equal

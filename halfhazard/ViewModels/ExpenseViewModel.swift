@@ -487,19 +487,68 @@ class ExpenseViewModel: ObservableObject {
             return [currentUserId: newExpenseAmount]
         }
         
-        // Create equal splits for all group members
+        // Get all members in the group
         let memberIds = selectedGroup.memberIds
         if memberIds.isEmpty {
             return [:]
         }
         
-        // Calculate equal amount for each member
-        let equalAmount = newExpenseAmount / Double(memberIds.count)
+        // Get current user ID
+        guard let currentUserId = currentUser?.uid else {
+            return [:]
+        }
         
-        // Create dictionary with equal splits for all members
         var splits: [String: Double] = [:]
-        for memberId in memberIds {
-            splits[memberId] = equalAmount
+        
+        // Handle different split types
+        switch newExpenseSplitType {
+            case .equal:
+                // Calculate equal amount for each member
+                let equalAmount = newExpenseAmount / Double(memberIds.count)
+                
+                // Create dictionary with equal splits for all members
+                for memberId in memberIds {
+                    splits[memberId] = equalAmount
+                }
+                
+            case .currentUserOwed:
+                // Current user is owed the full amount - other members owe money
+                let otherMemberIds = memberIds.filter { $0 != currentUserId }
+                
+                if otherMemberIds.isEmpty {
+                    // Edge case: Current user is the only member
+                    splits[currentUserId] = 0
+                } else {
+                    // Set splits: other members split the amount equally, current user gets 0
+                    let amountPerMember = newExpenseAmount / Double(otherMemberIds.count)
+                    
+                    // Current user pays nothing (or technically gets "negative" split representing being owed)
+                    splits[currentUserId] = 0
+                    
+                    // Other members all pay their share
+                    for memberId in otherMemberIds {
+                        splits[memberId] = amountPerMember
+                    }
+                }
+                
+            case .currentUserOwes:
+                // Current user owes the full amount - current user pays everything
+                for memberId in memberIds {
+                    if memberId == currentUserId {
+                        // Current user pays the full amount
+                        splits[memberId] = newExpenseAmount
+                    } else {
+                        // Other members pay nothing
+                        splits[memberId] = 0
+                    }
+                }
+                
+            case .custom:
+                // For custom, just create equal splits as a starting point
+                let equalAmount = newExpenseAmount / Double(memberIds.count)
+                for memberId in memberIds {
+                    splits[memberId] = equalAmount
+                }
         }
         
         return splits
