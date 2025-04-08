@@ -17,11 +17,18 @@ struct CreateExpenseForm: View {
     @State private var splitType = SplitType.equal
     
     var body: some View {
-        Form {
-            Section(header: Text("Expense Details")) {
+        VStack(spacing: 16) {
+            Text("Add Expense")
+                .font(.headline)
+                .padding(.top)
+            
+            VStack(alignment: .leading, spacing: 12) {
                 // Amount field
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Amount").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amount")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     TextField("0.00", text: $amount)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         // macOS doesn't support keyboardType
@@ -33,22 +40,28 @@ struct CreateExpenseForm: View {
                             }
                         }
                 }
-                .padding(.vertical, 4)
+                .padding(.bottom, 8)
                 
                 // Description field
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Description").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     TextField("What was this expense for?", text: $description)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .onChange(of: description) { oldValue, newValue in
                             viewModel.newExpenseDescription = newValue
                         }
                 }
-                .padding(.vertical, 4)
+                .padding(.bottom, 8)
                 
                 // Split type selector
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Split Type").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Split Type")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     Picker("Split Type", selection: $splitType) {
                         Text("Equal").tag(SplitType.equal)
                         Text("Percentage").tag(SplitType.percentage)
@@ -59,10 +72,19 @@ struct CreateExpenseForm: View {
                         viewModel.newExpenseSplitType = newValue
                     }
                 }
-                .padding(.vertical, 4)
             }
+            .padding(.horizontal)
             
-            Section {
+            Spacer()
+            
+            HStack {
+                Button("Cancel") {
+                    viewModel.clearNavigation()
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
                 Button("Create Expense") {
                     Task {
                         await viewModel.createExpense()
@@ -70,19 +92,11 @@ struct CreateExpenseForm: View {
                     }
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
-                .frame(maxWidth: .infinity)
                 .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .navigationTitle("Add Expense")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    viewModel.clearNavigation()
-                }
-            }
-        }
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(width: 400, height: 380)
         .onAppear {
             print("CreateExpenseForm.onAppear - Form appeared")
             

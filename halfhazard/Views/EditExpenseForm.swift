@@ -27,11 +27,18 @@ struct EditExpenseForm: View {
     }
     
     var body: some View {
-        Form {
-            Section(header: Text("Expense Details")) {
+        VStack(spacing: 16) {
+            Text("Edit Expense")
+                .font(.headline)
+                .padding(.top)
+            
+            VStack(alignment: .leading, spacing: 12) {
                 // Amount field
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Amount").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amount")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     TextField("0.00", text: $amount)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .onChange(of: amount) { oldValue, newValue in
@@ -42,22 +49,28 @@ struct EditExpenseForm: View {
                             }
                         }
                 }
-                .padding(.vertical, 4)
+                .padding(.bottom, 8)
                 
                 // Description field
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Description").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     TextField("What was this expense for?", text: $description)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .onChange(of: description) { oldValue, newValue in
                             viewModel.newExpenseDescription = newValue
                         }
                 }
-                .padding(.vertical, 4)
+                .padding(.bottom, 8)
                 
                 // Split type selector
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Split Type").font(.headline)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Split Type")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
                     Picker("Split Type", selection: $splitType) {
                         Text("Equal").tag(SplitType.equal)
                         Text("Percentage").tag(SplitType.percentage)
@@ -68,10 +81,20 @@ struct EditExpenseForm: View {
                         viewModel.newExpenseSplitType = newValue
                     }
                 }
-                .padding(.vertical, 4)
             }
+            .padding(.horizontal)
             
-            Section {
+            Spacer()
+            
+            HStack {
+                Button("Cancel") {
+                    print("EditExpenseForm: Cancel button tapped")
+                    viewModel.clearNavigation()
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
                 Button("Save Changes") {
                     Task {
                         await viewModel.saveEditedExpense()
@@ -79,20 +102,11 @@ struct EditExpenseForm: View {
                     }
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
-                .frame(maxWidth: .infinity)
                 .buttonStyle(.borderedProminent)
             }
+            .padding()
         }
-        .navigationTitle("Edit Expense")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    print("EditExpenseForm: Cancel button tapped")
-                    viewModel.clearNavigation()
-                }
-            }
-        }
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(width: 400, height: 380)
         .onAppear {
             print("EditExpenseForm.onAppear - expense amount: \(viewModel.newExpenseAmount), description: \(viewModel.newExpenseDescription)")
             
