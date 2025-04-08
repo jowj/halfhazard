@@ -14,28 +14,25 @@ struct JoinGroupForm: View {
     @State private var isSubmitting = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Header
-            VStack(spacing: 8) {
-                Text("Join Group")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Text("Enter the group code provided by the group creator")
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.top)
+        VStack(spacing: 16) {
+            Text("Join Group")
+                .font(.headline)
+                .padding(.top)
             
-            // Form
-            Form {
-                TextField("Group Code", text: $viewModel.joinGroupCode)
-                    .font(.title3)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .disableAutocorrection(true)
-                    #if os(iOS)
-                    .autocapitalization(.none)
-                    #endif
+            VStack(alignment: .leading, spacing: 12) {
+                // Group Code field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Group Code")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("Enter the group code", text: $viewModel.joinGroupCode)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .disableAutocorrection(true)
+                        #if os(iOS)
+                        .autocapitalization(.none)
+                        #endif
+                }
                 
                 if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
@@ -45,6 +42,8 @@ struct JoinGroupForm: View {
                 }
             }
             .padding(.horizontal)
+            
+            Spacer()
             
             // Action Buttons
             HStack {
@@ -89,7 +88,7 @@ struct JoinGroupForm: View {
             }
             .padding()
         }
-        .frame(minWidth: 400, minHeight: 280)
+        .frame(width: 400, height: 250)
         .onAppear {
             // Clear any previous error messages when the form appears
             viewModel.errorMessage = nil

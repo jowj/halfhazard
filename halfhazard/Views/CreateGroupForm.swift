@@ -22,49 +22,49 @@ struct CreateGroupForm: View {
     @State private var isSubmitting = false
     
     var body: some View {
-        VStack(spacing: 20) {
-            // Header
-            VStack(spacing: 8) {
-                Text("Create New Group")
-                    .font(.title)
-                    .fontWeight(.bold)
+        VStack(spacing: 16) {
+            Text("Create New Group")
+                .font(.headline)
+                .padding(.top)
                 
-                Text("Create a group to start tracking expenses with friends or colleagues")
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.top)
-            
-            // Form
-            Form {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Group Name").font(.headline)
-                        TextField("Enter a name for your group", text: $groupName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onChange(of: groupName) { oldValue, newValue in
-                                viewModel.newGroupName = newValue
-                            }
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                // Group Name field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Group Name")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Description (Optional)").font(.headline)
-                        TextField("Enter a description", text: $groupDescription)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onChange(of: groupDescription) { oldValue, newValue in
-                                viewModel.newGroupDescription = newValue
-                            }
-                    }
+                    TextField("Enter a name for your group", text: $groupName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .onChange(of: groupName) { oldValue, newValue in
+                            viewModel.newGroupName = newValue
+                        }
+                }
+                .padding(.bottom, 8)
+                
+                // Description field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Description (Optional)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                     
-                    if let errorMessage = viewModel.errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                            .padding(.top, 4)
-                    }
+                    TextField("Enter a description", text: $groupDescription)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .onChange(of: groupDescription) { oldValue, newValue in
+                            viewModel.newGroupDescription = newValue
+                        }
+                }
+                
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .padding(.top, 4)
                 }
             }
             .padding(.horizontal)
+            
+            Spacer()
             
             // Action Buttons
             HStack {
@@ -109,7 +109,7 @@ struct CreateGroupForm: View {
             }
             .padding()
         }
-        .frame(minWidth: 450, minHeight: 350)
+        .frame(width: 400, height: 320)
         .onAppear {
             // Initialize form fields from viewModel
             groupName = viewModel.newGroupName
