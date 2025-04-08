@@ -83,6 +83,39 @@ class UserService: ObservableObject {
        try db.collection("users").document(user.uid).setData(from: user)
    }
    
+   func updateUserProfile(displayName: String?, email: String?) async throws -> User? {
+       guard let currentUser = auth.currentUser else {
+           throw NSError(domain: "UserService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
+       }
+       
+       // Update Firebase Auth profile if display name is provided
+       if let displayName = displayName, displayName != currentUser.displayName {
+           let changeRequest = currentUser.createProfileChangeRequest()
+           changeRequest.displayName = displayName
+           try await changeRequest.commitChanges()
+       }
+       
+       // Update email if provided and different from current
+       if let email = email, email != currentUser.email {
+           try await currentUser.updateEmail(to: email)
+       }
+       
+       // Now also update the Firestore document
+       let user = try await getUser(uid: currentUser.uid)
+       var updatedUser = user
+       if let displayName = displayName {
+           updatedUser.displayName = displayName
+       }
+       if let email = email, email != user.email {
+           updatedUser.email = email
+       }
+       updatedUser.lastActive = Timestamp()
+       try await updateUser(updatedUser)
+       
+       // Return updated user information
+       return try await getCurrentUser()
+   }
+   
    func deleteUser(uid: String) async throws {
        try await db.collection("users").document(uid).delete()
        try await auth.currentUser?.delete()

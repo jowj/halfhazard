@@ -17,6 +17,7 @@ struct ContentView: View {
     // Dev mode state
     @State private var useDevMode = false
     @State private var showingLoginSheet = false
+    @State private var showEditProfileSheet = false
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""
@@ -82,6 +83,12 @@ struct ContentView: View {
                     if let user = currentUser {
                         Text(user.displayName ?? user.email)
                         Divider()
+                        
+                        Button("Edit Profile") {
+                            // Show edit profile sheet for macOS
+                            showEditProfileSheet.toggle()
+                        }
+                        Divider()
                     }
                     
                     Button("Sign Out") {
@@ -92,6 +99,17 @@ struct ContentView: View {
                 } label: {
                     Label("Account", systemImage: "person.circle")
                 }
+            }
+        }
+        .sheet(isPresented: $showEditProfileSheet) {
+            if let user = currentUser {
+                EditProfileView(userService: userService, user: user)
+                    .onDisappear {
+                        // Refresh user data when returning from edit view
+                        Task {
+                            await checkForExistingUser()
+                        }
+                    }
             }
         }
         .onAppear {
@@ -322,6 +340,18 @@ struct ContentView: View {
                                 .foregroundColor(.secondary)
                         }
                         .padding(.vertical, 8)
+                        
+                        NavigationLink {
+                            EditProfileView(userService: userService, user: user)
+                                .onDisappear {
+                                    // Refresh user data when returning from edit view
+                                    Task {
+                                        await checkForExistingUser()
+                                    }
+                                }
+                        } label: {
+                            Text("Edit Profile")
+                        }
                     }
                 }
                 
@@ -347,11 +377,28 @@ struct ContentView: View {
             expensesTabView
             profileTabView
         }
+        .sheet(isPresented: $showEditProfileSheet) {
+            if let user = currentUser {
+                EditProfileView(userService: userService, user: user)
+                    .onDisappear {
+                        // Refresh user data when returning from edit view
+                        Task {
+                            await checkForExistingUser()
+                        }
+                    }
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Menu {
                     if let user = currentUser {
                         Text(user.displayName ?? user.email)
+                        Divider()
+                        
+                        Button("Edit Profile") {
+                            // Show edit profile sheet for iOS
+                            showEditProfileSheet.toggle()
+                        }
                         Divider()
                     }
                     
