@@ -39,23 +39,33 @@ struct ExpenseListView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             // Status label
-                            if !expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
-                                Label("All Settled", systemImage: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                    .font(.headline)
-                            } else {
+                            // Check if there are any unsettled expenses
+                            let hasUnsettledExpenses = !expenseViewModel.filteredExpenses.isEmpty && 
+                                                      expenseViewModel.filteredExpenses.contains(where: { !$0.settled })
+                            
+                            if hasUnsettledExpenses {
+                                // Only show "Has Unsettled Expenses" when we actually have unsettled expenses
                                 Label("Has Unsettled Expenses", systemImage: "circle")
                                     .foregroundColor(.blue)
+                                    .font(.headline)
+                            } else {
+                                // In all other cases, show "All Settled"
+                                Label("All Settled", systemImage: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                                     .font(.headline)
                             }
                         }
                         
                         // Description text based on status
-                        if !expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
+                        if expenseViewModel.filteredExpenses.isEmpty {
+                            Text("No expenses to display")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else if expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
                             Text("All current expenses are settled")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                        } else if !expenseViewModel.filteredExpenses.isEmpty {
+                        } else {
                             Text("Some expenses need to be settled")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -79,9 +89,7 @@ struct ExpenseListView: View {
                 }
             }
             .padding()
-            .background(!expenseViewModel.filteredExpenses.isEmpty && expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) 
-                      ? Color.green.opacity(0.1) 
-                      : Color.gray.opacity(0.05))
+            .background(getBannerColor())
             .overlay(
                 Rectangle()
                     .frame(height: 1)
@@ -250,6 +258,22 @@ struct ExpenseListView: View {
             // Set the ExpenseViewModel appNavigationRef
             expenseViewModel.appNavigationRef = appNavigationRef
         }
+    }
+    
+    // Helper function to get the appropriate banner color based on expense status
+    private func getBannerColor() -> Color {
+        // If there are no expenses at all, use neutral gray
+        if expenseViewModel.filteredExpenses.isEmpty {
+            return Color.gray.opacity(0.05)
+        }
+        
+        // If all expenses are settled, use green
+        if expenseViewModel.filteredExpenses.allSatisfy({ $0.settled }) {
+            return Color.green.opacity(0.1)
+        }
+        
+        // If there are unsettled expenses, use a more noticeable blue
+        return Color.blue.opacity(0.15)
     }
     
     // Export all expenses to CSV
