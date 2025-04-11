@@ -69,9 +69,9 @@ struct CreateGroupForm: View {
             // Action Buttons
             HStack {
                 Button("Cancel") {
-                    // If we're in a navigation stack, go back
-                    if !viewModel.navigationPath.isEmpty {
-                        viewModel.navigationPath.removeLast()
+                    // If we have an AppNavigation reference, use it
+                    if let appNav = viewModel.appNavigationRef {
+                        appNav.navigateBack()
                     } else {
                         // Fall back to Environment dismiss for sheet presentation
                         dismiss()
@@ -91,8 +91,8 @@ struct CreateGroupForm: View {
                         // Only dismiss if there's no error message
                         if viewModel.errorMessage == nil {
                             // The navigation back is handled in the viewModel.createGroup() method
-                            // But we still need to handle sheet dismissal if we're in a sheet
-                            if viewModel.navigationPath.isEmpty {
+                            // But we still need to handle sheet dismissal if we don't have AppNavigation
+                            if viewModel.appNavigationRef == nil {
                                 dismiss()
                             }
                         }

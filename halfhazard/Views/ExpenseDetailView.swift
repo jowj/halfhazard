@@ -15,9 +15,13 @@ struct ExpenseDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var userService = UserService()
     
-    init(expense: Expense, group: Group, expenseViewModel: ExpenseViewModel? = nil) {
+    // For navigation support
+    var appNavigation: AppNavigation
+
+    init(expense: Expense, group: Group, expenseViewModel: ExpenseViewModel? = nil, appNavigationRef: AppNavigation) {
         self.expense = expense
         self.group = group
+        self.appNavigation = appNavigationRef
         _userService = StateObject(wrappedValue: {
             let service = UserService()
             service.expenseViewModel = expenseViewModel
@@ -188,9 +192,7 @@ struct ExpenseDetailView: View {
                                 Task {
                                     await expenseVM.unsettleExpense(expense: expense)
                                     // Navigate back
-                                    if !expenseVM.navigationPath.isEmpty {
-                                        expenseVM.navigationPath.removeLast()
-                                    }
+                                    appNavigation.navigateBack()
                                 }
                             } label: {
                                 Label("Mark as Unsettled", systemImage: "arrow.counterclockwise.circle.fill")
@@ -203,9 +205,7 @@ struct ExpenseDetailView: View {
                                 Task {
                                     await expenseVM.settleExpense(expense: expense)
                                     // Navigate back
-                                    if !expenseVM.navigationPath.isEmpty {
-                                        expenseVM.navigationPath.removeLast()
-                                    }
+                                    appNavigation.navigateBack()
                                 }
                             } label: {
                                 Label("Mark as Settled", systemImage: "checkmark.circle.fill")
@@ -221,31 +221,15 @@ struct ExpenseDetailView: View {
         }
         .navigationTitle("Expense Details")
         .toolbar {
-            // Primary button for dismissing the sheet
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    if let expenseVM = userService.expenseViewModel, !expenseVM.navigationPath.isEmpty {
-                        expenseVM.navigationPath.removeLast()
-                    } else {
-                        dismiss()
-                    }
-                }
-            }
-            
-            // Action button for expense actions
+            // Action button for expense actions - keep only this, remove custom back button
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     // Edit button - only available to expense creator or group admin
                     Button {
                         // Prepare the expense for editing and show edit form
                         if let expenseVM = userService.expenseViewModel {
-                            print("ExpenseDetailView: Preparing expense for editing: \(expense.id)")
                             expenseVM.prepareExpenseForEditing(expense)
-                            
-                            // Navigate to edit form
-                            expenseVM.currentDestination = ExpenseViewModel.Destination.editExpense
-                            expenseVM.navigationPath = NavigationPath()
-                            expenseVM.navigationPath.append(ExpenseViewModel.Destination.editExpense)
+                            appNavigation.showEditExpenseForm(expense: expense)
                         }
                     } label: {
                         Label("Edit Expense", systemImage: "pencil")
@@ -271,9 +255,7 @@ struct ExpenseDetailView: View {
                         if let expenseVM = userService.expenseViewModel {
                             Task {
                                 await expenseVM.deleteExpense(expense: expense)
-                                if !expenseVM.navigationPath.isEmpty {
-                                    expenseVM.navigationPath.removeLast()
-                                }
+                                appNavigation.navigateBack()
                             }
                         }
                     } label: {
@@ -306,6 +288,12 @@ struct ExpenseDetailView: View {
         )
         .task {
             await loadMemberNames()
+        }
+        .onAppear {
+            // Set the expenseViewModel appNavigationRef if needed
+            if let expenseVM = userService.expenseViewModel, expenseVM.appNavigationRef == nil {
+                expenseVM.appNavigationRef = appNavigation
+            }
         }
     }
     

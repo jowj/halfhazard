@@ -35,22 +35,8 @@ class ExpenseViewModel: ObservableObject {
     @Published var newExpenseSplits: [String: Double] = [:]
     @Published var editingExpense: Expense? = nil
     
-    // Navigation state
-    enum Destination: Hashable {
-        case createExpense
-        case editExpense
-        case expenseDetail(Expense)
-    }
-    
-    @Published var navigationPath = NavigationPath()
-    
-    // Property to store the current destination
-    @Published var currentDestination: Destination?
-    
-    // Computed property to get the current destination
-    var navigationDestination: Destination? {
-        return currentDestination
-    }
+    // AppNavigation reference
+    var appNavigationRef: AppNavigation?
     
     // Current context
     // Make currentUser public so views can access it
@@ -355,16 +341,16 @@ class ExpenseViewModel: ObservableObject {
     func selectExpense(_ expense: Expense) {
         print("ExpenseViewModel: Selecting expense \(expense.id)")
         self.selectedExpense = expense
-        self.currentDestination = Destination.expenseDetail(expense)
-        self.navigationPath.append(Destination.expenseDetail(expense))
-        print("ExpenseViewModel: Navigating to expense detail")
+        
+        // Use AppNavigation if available
+        if let appNavigation = appNavigationRef {
+            appNavigation.showExpenseDetail(expense: expense)
+        }
     }
     
     func clearSelectedExpense() {
         print("ExpenseViewModel: Clearing selected expense")
         self.selectedExpense = nil
-        self.currentDestination = nil
-        navigationPath = NavigationPath()
     }
     
     func prepareExpenseForEditing(_ expense: Expense) {
@@ -378,26 +364,22 @@ class ExpenseViewModel: ObservableObject {
         self.newExpenseDescription = expense.description ?? ""
         self.newExpenseSplitType = expense.splitType
         self.newExpenseSplits = expense.splits
-        
-        // Note: We don't modify the navigation path here anymore
-        // That's handled by the caller to support different navigation flows
     }
     
     func showCreateExpenseForm() {
         print("ExpenseViewModel: Showing create expense form")
         
-        // Clear any existing navigation by replacing it with a new path
-        self.currentDestination = Destination.createExpense
-        navigationPath = NavigationPath()
-        
-        // Navigate to create form
-        navigationPath.append(Destination.createExpense)
+        // Use AppNavigation if available
+        appNavigationRef?.showCreateExpenseForm()
     }
     
-    // Helper to clear navigation
+    // Helper methods that use AppNavigation
+    func navigateBack() {
+        appNavigationRef?.navigateBack()
+    }
+    
     func clearNavigation() {
-        currentDestination = nil
-        navigationPath = NavigationPath()
+        appNavigationRef?.clearNavigation()
     }
     
     @MainActor

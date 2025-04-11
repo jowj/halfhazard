@@ -79,11 +79,6 @@ struct CreateExpenseForm: View {
             Spacer()
             
             HStack {
-                Button("Cancel") {
-                    viewModel.clearNavigation()
-                }
-                .buttonStyle(.bordered)
-                
                 Spacer()
                 
                 Button("Create Expense") {

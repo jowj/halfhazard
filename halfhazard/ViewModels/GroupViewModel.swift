@@ -39,23 +39,11 @@ class GroupViewModel: ObservableObject {
     @Published var joinGroupCode = ""
     
     // Navigation state
-    enum Destination: Hashable {
-        case createGroup
-        case joinGroup
-        case manageGroup(Group)
-    }
-    
-    @Published var navigationPath = NavigationPath()
     @Published var showingLeaveConfirmation = false
     @Published var showingDeleteConfirmation = false
     
-    // Property to store the current destination
-    @Published var currentDestination: Destination?
-    
-    // Computed property to get the current destination
-    var navigationDestination: Destination? {
-        return currentDestination
-    }
+    // For iOS navigation
+    var appNavigationRef: AppNavigation?
     
     // Current user
     var currentUser: User?
@@ -185,9 +173,7 @@ class GroupViewModel: ObservableObject {
             resetFormFields()
             
             // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            appNavigationRef?.navigateBack()
             return
         }
         
@@ -210,9 +196,7 @@ class GroupViewModel: ObservableObject {
             resetFormFields()
             
             // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            appNavigationRef?.navigateBack()
         } catch let error as NSError {
             if error.domain == "FIRFirestoreErrorDomain" && error.code == 7 {
                 errorMessage = """
@@ -280,9 +264,7 @@ class GroupViewModel: ObservableObject {
             joinGroupCode = ""
             
             // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            appNavigationRef?.navigateBack()
             return
         }
         
@@ -307,9 +289,7 @@ class GroupViewModel: ObservableObject {
             joinGroupCode = ""
             
             // Navigate back
-            if !navigationPath.isEmpty {
-                navigationPath.removeLast()
-            }
+            appNavigationRef?.navigateBack()
         } catch let error as NSError {
             if error.domain == "GroupService" && error.code == 404 {
                 errorMessage = "Invalid group code or group not found."
@@ -417,26 +397,17 @@ class GroupViewModel: ObservableObject {
         joinGroupCode = ""
     }
     
-    // Navigation helper methods
-    func showCreateGroupForm() {
-        currentDestination = Destination.createGroup
-        navigationPath.append(Destination.createGroup)
+    // Navigation helper methods for ViewModels that don't use AppNavigation
+    func navigateToCreateGroup() {
+        appNavigationRef?.showCreateGroupForm()
     }
     
-    func showJoinGroupForm() {
-        currentDestination = Destination.joinGroup
-        navigationPath.append(Destination.joinGroup)
+    func navigateToJoinGroup() {
+        appNavigationRef?.showJoinGroupForm()
     }
     
-    func showManageGroupForm(for group: Group) {
-        currentDestination = Destination.manageGroup(group)
-        navigationPath.append(Destination.manageGroup(group))
-    }
-    
-    // Helper to clear navigation
-    func clearNavigation() {
-        currentDestination = nil
-        navigationPath = NavigationPath()
+    func navigateToManageGroup(for group: Group) {
+        appNavigationRef?.showManageGroupForm(for: group)
     }
     
     // MARK: - Balance Calculation

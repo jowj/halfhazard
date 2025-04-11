@@ -13,6 +13,7 @@ struct ContentView: View {
     @StateObject private var userService = UserService()
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
+    @StateObject private var appNavigation = AppNavigation()
     
     // Dev mode state
     @State private var useDevMode = false
@@ -113,6 +114,13 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Setup app navigation with view models
+            appNavigation.setViewModels(groupViewModel: groupViewModel, expenseViewModel: expenseViewModel)
+            
+            // Set the view model references to app navigation
+            groupViewModel.appNavigationRef = appNavigation
+            expenseViewModel.appNavigationRef = appNavigation
+            
             // Update ViewModels with current user and dev mode
             updateViewModels(user: currentUser, devMode: useDevMode)
             
@@ -146,15 +154,17 @@ struct ContentView: View {
         GroupListView(
             groupViewModel: groupViewModel,
             expenseViewModel: expenseViewModel,
-            isInSplitView: true
+            isInSplitView: true,
+            appNavigationRef: appNavigation
         )
         .frame(minWidth: 250)
     }
     
-    // Helper function for group destinations
+    // Helper function for destinations using AppNavigation
     @ViewBuilder
-    private func macOSGroupDestination(_ destination: GroupViewModel.Destination) -> some View {
+    private func macOSDestination(_ destination: AppNavigation.Destination) -> some View {
         switch destination {
+        // Group destinations
         case .createGroup:
             CreateGroupForm(viewModel: groupViewModel)
                 .navigationTitle("Create Group")
@@ -164,13 +174,8 @@ struct ContentView: View {
         case .manageGroup(let group):
             ManageGroupSheet(group: group, viewModel: groupViewModel)
                 .navigationTitle("Manage Group")
-        }
-    }
-    
-    // Helper function for expense destinations
-    @ViewBuilder
-    private func macOSExpenseDestination(_ destination: ExpenseViewModel.Destination) -> some View {
-        switch destination {
+                
+        // Expense destinations
         case .createExpense:
             CreateExpenseForm(viewModel: expenseViewModel)
                 .navigationTitle("Add Expense")
@@ -179,71 +184,43 @@ struct ContentView: View {
                 .navigationTitle("Edit Expense")
         case .expenseDetail(let expense):
             if let group = groupViewModel.selectedGroup {
-                ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
-                    .navigationTitle("Expense Details")
+                ExpenseDetailView(
+                    expense: expense, 
+                    group: group, 
+                    expenseViewModel: expenseViewModel,
+                    appNavigationRef: appNavigation
+                )
+                .navigationTitle("Expense Details")
             } else {
                 EmptyView()
             }
         }
     }
     
-    // Detail content for macOS - simplified navigation approach
+    // Detail content for macOS - using AppNavigation approach
     private var macOSDetailContent: some View {
-        NavigationStack {
+        NavigationStack(path: $appNavigation.path) {
             // Main content
-            if let selectedGroup = groupViewModel.selectedGroup, 
-               groupViewModel.navigationPath.isEmpty && expenseViewModel.navigationPath.isEmpty {
+            if let selectedGroup = groupViewModel.selectedGroup {
                 // Show the expense list when a group is selected and no navigation is active
                 ExpenseListView(
                     group: selectedGroup, 
                     expenseViewModel: expenseViewModel,
                     groupViewModel: groupViewModel,
-                    isInSplitView: true
+                    isInSplitView: true,
+                    appNavigationRef: appNavigation
                 )
-            } else if !groupViewModel.navigationPath.isEmpty, let dest = groupViewModel.navigationDestination {
-                // Group-related navigation - using a computed property
-                switch dest {
-                case .createGroup:
-                    CreateGroupForm(viewModel: groupViewModel)
-                        .navigationTitle("Create Group")
-                case .joinGroup:
-                    JoinGroupForm(viewModel: groupViewModel)
-                        .navigationTitle("Join Group")
-                case .manageGroup(let group):
-                    ManageGroupSheet(group: group, viewModel: groupViewModel)
-                        .navigationTitle("Manage Group")
-                case nil:
-                    // Fallback - should not happen
-                    Text("Invalid navigation state - group")
-                }
-            } else if let dest = expenseViewModel.navigationDestination {
-                // Expense-related navigation
-                switch dest {
-                case .createExpense:
-                    CreateExpenseForm(viewModel: expenseViewModel)
-                        .navigationTitle("Add Expense")
-                case .editExpense:
-                    EditExpenseForm(viewModel: expenseViewModel)
-                        .navigationTitle("Edit Expense")
-                case .expenseDetail(let expense):
-                    if let group = groupViewModel.selectedGroup {
-                        ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
-                            .navigationTitle("Expense Details")
-                    } else {
-                        Text("Error: Missing group for expense detail")
-                    }
-                case nil:
-                    // Fallback - should not happen
-                    Text("Invalid navigation state - expense")
-                }
             } else {
-                // No group selected and no navigation
+                // No group selected
                 ContentUnavailableView(
                     "Select a Group",
                     systemImage: "arrow.left",
                     description: Text("Choose a group from the sidebar")
                 )
             }
+        }
+        .navigationDestination(for: AppNavigation.Destination.self) { destination in
+            macOSDestination(destination)
         }
         .onAppear {
             print("macOSDetailContent appeared")
@@ -255,6 +232,7 @@ struct ContentView: View {
         let selectedGroup: Group?
         let expenseViewModel: ExpenseViewModel
         let groupViewModel: GroupViewModel
+        let appNavigation: AppNavigation
         var isShowingExpenseNavigation: Bool = true
         
         var body: some View {
@@ -266,21 +244,16 @@ struct ContentView: View {
                     group: selectedGroup, 
                     expenseViewModel: expenseViewModel,
                     groupViewModel: groupViewModel,
-                    isInSplitView: true
+                    isInSplitView: true,
+                    appNavigationRef: appNavigation
                 )
             } else {
-                // Display any forms in detail view or empty state
-                if !groupViewModel.navigationPath.isEmpty {
-                    // Show an empty view - the destinations will display properly
-                    EmptyView()
-                } else {
-                    // Empty state
-                    ContentUnavailableView(
-                        "Select a Group",
-                        systemImage: "arrow.left",
-                        description: Text("Choose a group from the sidebar")
-                    )
-                }
+                // Display empty state
+                ContentUnavailableView(
+                    "Select a Group",
+                    systemImage: "arrow.left",
+                    description: Text("Choose a group from the sidebar")
+                )
             }
         }
     }
@@ -293,7 +266,8 @@ struct ContentView: View {
             GroupListView(
                 groupViewModel: groupViewModel,
                 expenseViewModel: expenseViewModel,
-                isInSplitView: false // Use its own NavigationStack on iOS
+                isInSplitView: false,
+                appNavigationRef: appNavigation
             )
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -311,7 +285,8 @@ struct ContentView: View {
                         group: selectedGroup, 
                         expenseViewModel: expenseViewModel,
                         groupViewModel: groupViewModel,
-                        isInSplitView: false // Use its own NavigationStack on iOS
+                        isInSplitView: false,
+                        appNavigationRef: appNavigation
                     )
                     .navigationBarTitleDisplayMode(.inline)
                 }
@@ -413,6 +388,13 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Setup app navigation with view models
+            appNavigation.setViewModels(groupViewModel: groupViewModel, expenseViewModel: expenseViewModel)
+            
+            // Set the view model references to app navigation
+            groupViewModel.appNavigationRef = appNavigation
+            expenseViewModel.appNavigationRef = appNavigation
+            
             // Update ViewModels with current user and dev mode
             updateViewModels(user: currentUser, devMode: useDevMode)
             

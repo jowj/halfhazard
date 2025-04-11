@@ -19,9 +19,8 @@ struct GroupListView: View {
     @ObservedObject var expenseViewModel: ExpenseViewModel
     var isInSplitView: Bool = false
     
-    // On iOS, we'll optionally use environment object for navigation
-    @State private var hasAppNavigation = false
-    var appNavigationRef: AppNavigation?
+    // AppNavigation
+    var appNavigationRef: AppNavigation
     
     private let currencyFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -41,36 +40,8 @@ struct GroupListView: View {
             // In split view, don't wrap in NavigationStack (it's in the detail pane)
             groupListContent
         } else {
-            // On iOS, check if we're using the new navigation approach
-            if hasAppNavigation {
-                // We're using the unified navigation approach
-                groupListContent
-            } else {
-                // We're using the original approach with separate navigation stacks
-                NavigationStack {
-                    if groupViewModel.navigationPath.isEmpty {
-                        groupListContent
-                    } else {
-                        // Display the correct destination based on navigation state
-                        if let dest = groupViewModel.navigationDestination {
-                            switch dest {
-                            case .createGroup:
-                                CreateGroupForm(viewModel: groupViewModel)
-                                    .navigationTitle("Create Group")
-                            case .joinGroup:
-                                JoinGroupForm(viewModel: groupViewModel)
-                                    .navigationTitle("Join Group")
-                            case .manageGroup(let group):
-                                ManageGroupSheet(group: group, viewModel: groupViewModel)
-                                    .navigationTitle("Manage Group")
-                            }
-                        } else {
-                            // Fallback
-                            groupListContent
-                        }
-                    }
-                }
-            }
+            // Always use the content directly on iOS - navigation is handled by the parent NavigationStack
+            groupListContent
         }
     }
     
@@ -128,8 +99,8 @@ struct GroupListView: View {
                         groupViewModel.selectedGroup = group
                         
                         // In iOS navigation stack mode, we want to navigate to the expenses for this group
-                        if !isInSplitView && hasAppNavigation, let navigation = appNavigationRef {
-                            navigation.navigateToGroupExpenses(group)
+                        if !isInSplitView {
+                            appNavigationRef.navigateToGroupExpenses(group)
                         }
                     }
                     .background(groupViewModel.selectedGroup?.id == group.id ? Color.accentColor.opacity(0.1) : Color.clear)
@@ -137,12 +108,12 @@ struct GroupListView: View {
                     .contextMenu {
                         Button(action: {
                             groupViewModel.selectedGroup = group
-                            if hasAppNavigation, let navigation = appNavigationRef {
+                            if !isInSplitView {
                                 // Use unified navigation on iOS
-                                navigation.showManageGroupForm(for: group)
+                                appNavigationRef.showManageGroupForm(for: group)
                             } else {
-                                // Use view model navigation for macOS or iOS without unified navigation
-                                groupViewModel.showManageGroupForm(for: group)
+                                // Use view model navigation for macOS
+                                groupViewModel.navigateToManageGroup(for: group)
                             }
                         }) {
                             Label("Manage Group", systemImage: "person.2.badge.gearshape")
@@ -181,13 +152,10 @@ struct GroupListView: View {
                         if isInSplitView {
                             // Clear any group selection to show the form in the detail area
                             groupViewModel.selectedGroup = nil
-                            groupViewModel.showCreateGroupForm()
-                        } else if hasAppNavigation, let navigation = appNavigationRef {
-                            // Use unified navigation on iOS
-                            navigation.showCreateGroupForm()
+                            groupViewModel.navigateToCreateGroup()
                         } else {
-                            // Use view model navigation for macOS or iOS without unified navigation
-                            groupViewModel.showCreateGroupForm()
+                            // Use unified navigation on iOS
+                            appNavigationRef.showCreateGroupForm()
                         }
                     }) {
                         Label("Add Group", systemImage: "plus")
@@ -205,13 +173,10 @@ struct GroupListView: View {
                     if isInSplitView {
                         // Clear any group selection to show the form in the detail area
                         groupViewModel.selectedGroup = nil
-                        groupViewModel.showJoinGroupForm()
-                    } else if hasAppNavigation, let navigation = appNavigationRef {
-                        // Use unified navigation on iOS
-                        navigation.showJoinGroupForm()
+                        groupViewModel.navigateToJoinGroup()
                     } else {
-                        // Use view model navigation for macOS or iOS without unified navigation
-                        groupViewModel.showJoinGroupForm()
+                        // Use unified navigation on iOS
+                        appNavigationRef.showJoinGroupForm()
                     }
                 }) {
                     HStack {
@@ -281,15 +246,19 @@ struct GroupListView: View {
             await groupViewModel.updateAllGroupBalances()
         }
         .onAppear {
-            // Mark that we have app navigation if the reference was injected
-            hasAppNavigation = appNavigationRef != nil
+            // Make sure the GroupViewModel has a reference to AppNavigation
+            groupViewModel.appNavigationRef = appNavigationRef
         }
     }
 }
 
 #Preview {
-    GroupListView(
+    // Create a mock AppNavigation for previews
+    let mockAppNav = AppNavigation()
+    
+    return GroupListView(
         groupViewModel: GroupViewModel(currentUser: nil, useDevMode: true),
-        expenseViewModel: ExpenseViewModel(currentUser: nil, useDevMode: true)
+        expenseViewModel: ExpenseViewModel(currentUser: nil, useDevMode: true),
+        appNavigationRef: mockAppNav
     )
 }

@@ -47,6 +47,25 @@ struct TabContentWrapper: View {
                     appNavigationRef: appNavigation
                 )
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Menu {
+                            Button(action: {
+                                appNavigation.showCreateGroupForm()
+                            }) {
+                                Label("Create Group", systemImage: "plus")
+                            }
+                            
+                            Button(action: {
+                                appNavigation.showJoinGroupForm()
+                            }) {
+                                Label("Join Group", systemImage: "person.badge.plus")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                    }
+                }
                 
             case .expenses:
                 // Expenses tab content
@@ -58,6 +77,15 @@ struct TabContentWrapper: View {
                         appNavigationRef: appNavigation
                     )
                     .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button(action: {
+                                appNavigation.showCreateExpenseForm()
+                            }) {
+                                Image(systemName: "plus")
+                            }
+                        }
+                    }
                 } else {
                     ContentUnavailableView("Select a Group",
                                            systemImage: "list.bullet.circle",
@@ -65,7 +93,7 @@ struct TabContentWrapper: View {
                 }
                 
             case .profile:
-                // Profile tab content
+                // Profile tab contentthere 
                 List {
                     if let user = currentUser {
                         Section(header: Text("Account")) {
@@ -101,6 +129,8 @@ struct NavigationDestinationWrapper: View {
     let destination: AppNavigation.Destination
     let groupViewModel: GroupViewModel
     let expenseViewModel: ExpenseViewModel
+    let appNavigation: AppNavigation
+    @Environment(\.presentationMode) private var presentationMode
     
     var body: some View {
         switch destination {
@@ -108,28 +138,45 @@ struct NavigationDestinationWrapper: View {
         case .createGroup:
             CreateGroupForm(viewModel: groupViewModel)
                 .navigationTitle("Create Group")
+                .navigationBarTitleDisplayMode(.inline)
+                // Let SwiftUI handle the back button automatically
                 
         case .joinGroup:
             JoinGroupForm(viewModel: groupViewModel)
                 .navigationTitle("Join Group")
+                .navigationBarTitleDisplayMode(.inline)
+                // Let SwiftUI handle the back button automatically
                 
         case .manageGroup(let group):
             ManageGroupSheet(group: group, viewModel: groupViewModel)
                 .navigationTitle("Manage Group")
+                .navigationBarTitleDisplayMode(.inline)
+                // Let SwiftUI handle the back button automatically
             
         // Expense destinations
         case .createExpense:
             CreateExpenseForm(viewModel: expenseViewModel)
                 .navigationTitle("Add Expense")
+                .navigationBarTitleDisplayMode(.inline)
+                // Let SwiftUI handle the back button automatically
                 
         case .editExpense:
             EditExpenseForm(viewModel: expenseViewModel)
                 .navigationTitle("Edit Expense")
+                .navigationBarTitleDisplayMode(.inline)
+                // Let SwiftUI handle the back button automatically
                 
         case .expenseDetail(let expense):
             if let group = groupViewModel.selectedGroup {
-                ExpenseDetailView(expense: expense, group: group, expenseViewModel: expenseViewModel)
-                    .navigationTitle("Expense Details")
+                ExpenseDetailView(
+                    expense: expense, 
+                    group: group, 
+                    expenseViewModel: expenseViewModel,
+                    appNavigationRef: appNavigation
+                )
+                .navigationTitle("Expense Details")
+                .navigationBarTitleDisplayMode(.inline)
+                // No toolbar modification - ExpenseDetailView has its own buttons
             } else {
                 Text("Error: Missing group for expense detail")
             }
@@ -207,13 +254,18 @@ struct iOSContentView: View {
                 NavigationDestinationWrapper(
                     destination: destination,
                     groupViewModel: groupViewModel,
-                    expenseViewModel: expenseViewModel
+                    expenseViewModel: expenseViewModel,
+                    appNavigation: appNavigation
                 )
+                // Don't hide the toolbar, we need the back button
             }
         }
         .onAppear {
             // Setup app navigation with view models
             appNavigation.setViewModels(groupViewModel: groupViewModel, expenseViewModel: expenseViewModel)
+            
+            // Ensure GroupViewModel has a reference to the AppNavigation
+            groupViewModel.appNavigationRef = appNavigation
             
             // Update ViewModels with current user and dev mode
             updateViewModels(user: currentUser, devMode: useDevMode)

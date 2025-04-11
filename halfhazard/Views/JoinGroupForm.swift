@@ -47,18 +47,6 @@ struct JoinGroupForm: View {
             
             // Action Buttons
             HStack {
-                Button("Cancel") {
-                    // If we're in a navigation stack, go back
-                    if !viewModel.navigationPath.isEmpty {
-                        viewModel.navigationPath.removeLast()
-                    } else {
-                        // Fall back to Environment dismiss for sheet presentation
-                        dismiss()
-                    }
-                }
-                .buttonStyle(.bordered)
-                .keyboardShortcut(.cancelAction)
-                
                 Spacer()
                 
                 Button("Join Group") {
@@ -67,13 +55,9 @@ struct JoinGroupForm: View {
                         await viewModel.joinGroup()
                         isSubmitting = false
                         
-                        // Only navigate back if there's no error message
-                        if viewModel.errorMessage == nil {
-                            // The navigation back is handled in the viewModel.joinGroup() method
-                            // But we still need to handle sheet dismissal if we're in a sheet
-                            if viewModel.navigationPath.isEmpty {
-                                dismiss()
-                            }
+                        // Only handle sheet dismissal if we don't have AppNavigation
+                        if viewModel.errorMessage == nil && viewModel.appNavigationRef == nil {
+                            dismiss()
                         }
                     }
                 }

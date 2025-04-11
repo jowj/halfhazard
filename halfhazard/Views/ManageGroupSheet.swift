@@ -227,18 +227,7 @@ struct ManageGroupSheet: View {
                 }
             }
             
-            // Close button
-            Button("Close") {
-                // If we're in a navigation stack, go back
-                if !viewModel.navigationPath.isEmpty {
-                    viewModel.navigationPath.removeLast()
-                } else {
-                    // Fall back to Environment dismiss for sheet presentation
-                    dismiss()
-                }
-            }
-            .buttonStyle(.bordered)
-            .padding()
+            // We'll rely on the built-in back button
         }
         .frame(minWidth: 450, minHeight: 400)
         .task {
@@ -259,7 +248,7 @@ struct ManageGroupSheet: View {
                     await viewModel.deleteCurrentGroup()
                     // Navigation back is handled in the deleteCurrentGroup method for path
                     // But we still need to dismiss the sheet if presented as sheet
-                    if viewModel.navigationPath.isEmpty {
+                    if viewModel.appNavigationRef == nil {
                         dismiss()
                     }
                 }

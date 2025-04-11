@@ -88,12 +88,6 @@ struct EditExpenseForm: View {
             Spacer()
             
             HStack {
-                Button("Cancel") {
-                    print("EditExpenseForm: Cancel button tapped")
-                    viewModel.clearNavigation()
-                }
-                .buttonStyle(.bordered)
-                
                 Spacer()
                 
                 Button("Save Changes") {
