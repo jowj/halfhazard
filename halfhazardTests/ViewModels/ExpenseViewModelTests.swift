@@ -72,7 +72,7 @@ final class ExpenseViewModelTests: XCTestCase {
             groupId: "test-group-id",
             createdBy: "other-user-id",
             createdAt: Timestamp(),
-            splitType: .percentage,
+            splitType: .custom,
             splits: ["test-user-id": 100.0, "other-user-id": 100.0]
         )
         
@@ -262,7 +262,7 @@ final class ExpenseViewModelTests: XCTestCase {
         // Modify the form values
         viewModel.newExpenseAmount = 150.0
         viewModel.newExpenseDescription = "Updated Expense"
-        viewModel.newExpenseSplitType = .percentage
+        viewModel.newExpenseSplitType = .custom
         viewModel.newExpenseSplits = ["test-user-id": 100.0, "other-user-id": 50.0]
         
         // Save the edited expense
@@ -271,7 +271,7 @@ final class ExpenseViewModelTests: XCTestCase {
         // Check that the expense was updated
         XCTAssertEqual(viewModel.expenses[0].amount, 150.0)
         XCTAssertEqual(viewModel.expenses[0].description, "Updated Expense")
-        XCTAssertEqual(viewModel.expenses[0].splitType, .percentage)
+        XCTAssertEqual(viewModel.expenses[0].splitType, .custom)
         XCTAssertEqual(viewModel.expenses[0].splits["test-user-id"], 100.0)
         XCTAssertEqual(viewModel.expenses[0].splits["other-user-id"], 50.0)
         

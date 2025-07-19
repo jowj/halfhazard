@@ -86,7 +86,18 @@ struct EditExpenseForm: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .onChange(of: splitType) { oldValue, newValue in
                         viewModel.newExpenseSplitType = newValue
+                        
+                        // Initialize custom splits when switching to custom
+                        if newValue == .custom && viewModel.newCustomSplitPercentages.isEmpty {
+                            viewModel.initializeEqualCustomSplits()
+                        }
                     }
+                }
+                
+                // Custom split configuration
+                if splitType == .custom {
+                    CustomSplitView(viewModel: viewModel)
+                        .padding(.top, 8)
                 }
             }
             .padding(.horizontal)
@@ -111,13 +122,13 @@ struct EditExpenseForm: View {
                         // Navigation is handled in the viewModel
                     }
                 }
-                .disabled(amount.isEmpty || !isValidAmount(amount))
+                .disabled(amount.isEmpty || !isValidAmount(amount) || (splitType == .custom && !viewModel.isCustomSplitValid()))
                 .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
         }
-        .frame(width: 400, height: 380)
+        .frame(width: 400, height: splitType == .custom ? 600 : 380)
         .onAppear {
             print("EditExpenseForm.onAppear - expense amount: \(viewModel.newExpenseAmount), description: \(viewModel.newExpenseDescription)")
             

@@ -33,6 +33,7 @@ class ExpenseViewModel: ObservableObject {
     @Published var newExpenseDescription: String = ""
     @Published var newExpenseSplitType: SplitType = .equal
     @Published var newExpenseSplits: [String: Double] = [:]
+    @Published var newCustomSplitPercentages: [String: Double] = [:]
     @Published var editingExpense: Expense? = nil
     
     // AppNavigation reference
@@ -266,12 +267,16 @@ class ExpenseViewModel: ObservableObject {
             let description = newExpenseDescription.isEmpty ? nil : newExpenseDescription
             let splits = newExpenseSplits.isEmpty ? createDefaultSplits(groupId: groupId) : newExpenseSplits
             
+            // For custom splits, use percentages if available
+            let customPercentages = newExpenseSplitType == .custom && !newCustomSplitPercentages.isEmpty ? newCustomSplitPercentages : nil
+            
             let expense = try await expenseService.createExpense(
                 amount: newExpenseAmount,
                 description: description,
                 groupId: groupId,
                 splitType: newExpenseSplitType,
-                splits: splits
+                splits: splits,
+                customSplitPercentages: customPercentages
             )
             
             // Add the new expense to our array
@@ -398,6 +403,7 @@ class ExpenseViewModel: ObservableObject {
         self.newExpenseDescription = expense.description ?? ""
         self.newExpenseSplitType = expense.splitType
         self.newExpenseSplits = expense.splits
+        self.newCustomSplitPercentages = expense.customSplitPercentages ?? [:]
     }
     
     func showCreateExpenseForm() {
@@ -426,17 +432,37 @@ class ExpenseViewModel: ObservableObject {
         updatedExpense.description = newExpenseDescription.isEmpty ? nil : newExpenseDescription
         updatedExpense.splitType = newExpenseSplitType
         
+        // Update custom split percentages
+        updatedExpense.customSplitPercentages = newExpenseSplitType == .custom && !newCustomSplitPercentages.isEmpty ? newCustomSplitPercentages : nil
+        
         // If the split type changed or amount changed, recalculate splits
         if updatedExpense.splitType != editingExpense.splitType || updatedExpense.amount != editingExpense.amount {
-            if newExpenseSplits.isEmpty {
+            if newExpenseSplitType == .custom && !newCustomSplitPercentages.isEmpty {
+                // Use custom percentages to calculate splits
+                if Expense.validatePercentages(newCustomSplitPercentages) {
+                    updatedExpense.splits = Expense.calculateSplitsFromPercentages(newCustomSplitPercentages, amount: updatedExpense.amount)
+                } else {
+                    errorMessage = "Custom split percentages must sum to 100%"
+                    return
+                }
+            } else if newExpenseSplits.isEmpty {
                 // If no custom splits were defined, create default splits
                 updatedExpense.splits = createDefaultSplits(groupId: editingExpense.groupId)
             } else {
                 updatedExpense.splits = newExpenseSplits
             }
         } else {
-            // Otherwise keep the existing splits
-            updatedExpense.splits = newExpenseSplits.isEmpty ? editingExpense.splits : newExpenseSplits
+            // Otherwise keep the existing splits or apply custom percentages
+            if newExpenseSplitType == .custom && !newCustomSplitPercentages.isEmpty {
+                if Expense.validatePercentages(newCustomSplitPercentages) {
+                    updatedExpense.splits = Expense.calculateSplitsFromPercentages(newCustomSplitPercentages, amount: updatedExpense.amount)
+                } else {
+                    errorMessage = "Custom split percentages must sum to 100%"
+                    return
+                }
+            } else {
+                updatedExpense.splits = newExpenseSplits.isEmpty ? editingExpense.splits : newExpenseSplits
+            }
         }
         
         // For dev mode, just update in the array
@@ -490,7 +516,43 @@ class ExpenseViewModel: ObservableObject {
         newExpenseDescription = ""
         newExpenseSplitType = .equal
         newExpenseSplits = [:]
+        newCustomSplitPercentages = [:]
         editingExpense = nil
+    }
+    
+    // MARK: - Custom Split Management
+    
+    /// Initialize custom split percentages with equal distribution
+    func initializeEqualCustomSplits() {
+        guard let group = currentGroup else { return }
+        
+        let memberCount = group.memberIds.count
+        let equalPercentage = 100.0 / Double(memberCount)
+        
+        newCustomSplitPercentages = [:]
+        for memberId in group.memberIds {
+            newCustomSplitPercentages[memberId] = equalPercentage
+        }
+    }
+    
+    /// Update a custom split percentage for a specific member
+    func updateCustomSplitPercentage(for memberId: String, percentage: Double) {
+        newCustomSplitPercentages[memberId] = max(0, min(100, percentage))
+    }
+    
+    /// Get the total of all custom split percentages
+    func getTotalCustomSplitPercentage() -> Double {
+        return newCustomSplitPercentages.values.reduce(0, +)
+    }
+    
+    /// Check if custom split percentages are valid (sum to 100%)
+    func isCustomSplitValid() -> Bool {
+        return Expense.validatePercentages(newCustomSplitPercentages)
+    }
+    
+    /// Get the remaining percentage available for distribution
+    func getRemainingPercentage() -> Double {
+        return 100.0 - getTotalCustomSplitPercentage()
     }
     
     private func createDefaultSplits(groupId: String) -> [String: Double] {

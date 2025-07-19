@@ -21,6 +21,7 @@ class ExpenseService: ObservableObject {
                      groupId: String, 
                      splitType: SplitType, 
                      splits: [String: Double],
+                     customSplitPercentages: [String: Double]? = nil,
                      payments: [String: Double] = [:],
                      settled: Bool = false,
                      createdAt: Timestamp? = nil) async throws -> Expense {
@@ -42,6 +43,17 @@ class ExpenseService: ObservableObject {
             finalPayments[currentUser.uid] = amount
         }
         
+        // Calculate final splits based on custom percentages if provided
+        var finalSplits = splits
+        if splitType == .custom, let percentages = customSplitPercentages {
+            // Validate percentages sum to 100%
+            if Expense.validatePercentages(percentages) {
+                finalSplits = Expense.calculateSplitsFromPercentages(percentages, amount: amount)
+            } else {
+                throw NSError(domain: "ExpenseService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Custom split percentages must sum to 100%"])
+            }
+        }
+        
         // Create a new expense
         let expense = Expense(
             id: expenseRef.documentID,
@@ -51,7 +63,8 @@ class ExpenseService: ObservableObject {
             createdBy: currentUser.uid,
             createdAt: timestamp,
             splitType: splitType,
-            splits: splits,
+            splits: finalSplits,
+            customSplitPercentages: customSplitPercentages,
             payments: finalPayments,
             settled: settled,
             settledAt: settled ? Timestamp() : nil

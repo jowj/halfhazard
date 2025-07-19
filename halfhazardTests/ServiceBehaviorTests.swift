@@ -376,7 +376,7 @@ final class ServiceBehaviorTests: XCTestCase {
         // Set form values with percentage split
         expenseViewModel.newExpenseAmount = 100.0
         expenseViewModel.newExpenseDescription = "Percentage Split Test"
-        expenseViewModel.newExpenseSplitType = .percentage
+        expenseViewModel.newExpenseSplitType = .custom
         
         // Missing functionality for setting percentages 
         // expenseViewModel.splitPercentages = [
@@ -394,7 +394,7 @@ final class ServiceBehaviorTests: XCTestCase {
         let newExpense = expenseViewModel.expenses[0]
         
         // Check its properties
-        XCTAssertEqual(newExpense.splitType, .percentage)
+        XCTAssertEqual(newExpense.splitType, .custom)
         
         // Check that split amounts match the percentages
         XCTAssertEqual(newExpense.splits["test-user-id"], 75.0)
@@ -435,14 +435,14 @@ final class ServiceBehaviorTests: XCTestCase {
         // 5. Update the expense
         expenseViewModel.newExpenseAmount = 250.0
         expenseViewModel.newExpenseDescription = "Updated Test Expense"
-        expenseViewModel.newExpenseSplitType = .percentage
+        expenseViewModel.newExpenseSplitType = .custom
         await expenseViewModel.saveEditedExpense()
         
         // Verify it was updated
         let updatedExpense = expenseViewModel.expenses[0]
         XCTAssertEqual(updatedExpense.amount, 250.0)
         XCTAssertEqual(updatedExpense.description, "Updated Test Expense")
-        XCTAssertEqual(updatedExpense.splitType, .percentage)
+        XCTAssertEqual(updatedExpense.splitType, .custom)
         
         // 6. Delete the expense
         await expenseViewModel.deleteExpense(expense: updatedExpense)

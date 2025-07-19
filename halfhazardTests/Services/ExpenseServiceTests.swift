@@ -100,7 +100,7 @@ final class ExpenseServiceTests: XCTestCase {
             groupId: "test-group-id",
             createdBy: "other-user-id",
             createdAt: Timestamp(),
-            splitType: .percentage,
+            splitType: .custom,
             splits: ["test-user-id": 100.0, "other-user-id": 100.0],
             settled: false,
             settledAt: nil
@@ -149,7 +149,7 @@ final class ExpenseServiceTests: XCTestCase {
         var updatedExpense = expense
         updatedExpense.amount = 150.0
         updatedExpense.description = "Updated Description"
-        updatedExpense.splitType = .percentage
+        updatedExpense.splitType = .custom
         updatedExpense.splits = ["test-user-id": 100.0, "other-user-id": 50.0]
         
         // Test updating the expense
@@ -158,7 +158,7 @@ final class ExpenseServiceTests: XCTestCase {
         // Verify the expense was updated in the mock storage
         XCTAssertEqual(expenseService.mockExpenses[0].amount, 150.0)
         XCTAssertEqual(expenseService.mockExpenses[0].description, "Updated Description")
-        XCTAssertEqual(expenseService.mockExpenses[0].splitType, .percentage)
+        XCTAssertEqual(expenseService.mockExpenses[0].splitType, .custom)
         XCTAssertEqual(expenseService.mockExpenses[0].splits["test-user-id"], 100.0)
         XCTAssertEqual(expenseService.mockExpenses[0].splits["other-user-id"], 50.0)
     }
@@ -207,7 +207,7 @@ final class ExpenseServiceTests: XCTestCase {
             groupId: "test-group-id",
             createdBy: "other-user-id",
             createdAt: Timestamp(),
-            splitType: .percentage,
+            splitType: .custom,
             splits: ["test-user-id": 100.0, "other-user-id": 100.0],
             settled: false,
             settledAt: nil

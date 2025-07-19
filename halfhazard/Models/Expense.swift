@@ -18,6 +18,7 @@ struct Expense: Codable, Identifiable, Hashable {
     let createdAt: Timestamp
     var splitType: SplitType
     var splits: [String: Double]
+    var customSplitPercentages: [String: Double]? // Stores percentage splits for custom split type
     var payments: [String: Double] = [:] // Tracks who has paid what amount
     var settled: Bool = false
     var settledAt: Timestamp?
@@ -32,7 +33,7 @@ struct Expense: Codable, Identifiable, Hashable {
     
     // Custom coding keys to support optional fields
     enum CodingKeys: String, CodingKey {
-        case id, amount, description, groupId, createdBy, createdAt, splitType, splits, payments, settled, settledAt
+        case id, amount, description, groupId, createdBy, createdAt, splitType, splits, customSplitPercentages, payments, settled, settledAt
     }
     
     // Custom decoder init to handle missing fields
@@ -56,6 +57,9 @@ struct Expense: Codable, Identifiable, Hashable {
         // Handle splits with default empty dictionary
         splits = try container.decodeIfPresent([String: Double].self, forKey: .splits) ?? [:]
         
+        // Handle custom split percentages (optional)
+        customSplitPercentages = try container.decodeIfPresent([String: Double].self, forKey: .customSplitPercentages)
+        
         // Handle payments with default empty dictionary
         payments = try container.decodeIfPresent([String: Double].self, forKey: .payments) ?? [:]
         
@@ -67,7 +71,8 @@ struct Expense: Codable, Identifiable, Hashable {
     // Regular init for creating expenses in code
     init(id: String, amount: Double, description: String? = nil, groupId: String, 
          createdBy: String, createdAt: Timestamp, splitType: SplitType = .equal,
-         splits: [String: Double], payments: [String: Double] = [:], settled: Bool = false, settledAt: Timestamp? = nil) {
+         splits: [String: Double], customSplitPercentages: [String: Double]? = nil,
+         payments: [String: Double] = [:], settled: Bool = false, settledAt: Timestamp? = nil) {
         self.id = id
         self.amount = amount
         self.description = description
@@ -76,9 +81,44 @@ struct Expense: Codable, Identifiable, Hashable {
         self.createdAt = createdAt
         self.splitType = splitType
         self.splits = splits
+        self.customSplitPercentages = customSplitPercentages
         self.payments = payments
         self.settled = settled
         self.settledAt = settledAt
+    }
+    
+    // MARK: - Custom Split Helpers
+    
+    /// Calculates splits based on percentage allocations for custom split type
+    /// - Parameters:
+    ///   - percentages: Dictionary mapping user IDs to percentage values (0-100)
+    ///   - amount: Total expense amount
+    /// - Returns: Dictionary mapping user IDs to dollar amounts
+    static func calculateSplitsFromPercentages(_ percentages: [String: Double], amount: Double) -> [String: Double] {
+        var splits: [String: Double] = [:]
+        for (userId, percentage) in percentages {
+            splits[userId] = amount * (percentage / 100.0)
+        }
+        return splits
+    }
+    
+    /// Validates that custom split percentages sum to 100%
+    /// - Parameter percentages: Dictionary mapping user IDs to percentage values
+    /// - Returns: True if percentages sum to 100% (within 0.01% tolerance), false otherwise
+    static func validatePercentages(_ percentages: [String: Double]) -> Bool {
+        let total = percentages.values.reduce(0, +)
+        return abs(total - 100.0) < 0.01
+    }
+    
+    /// Applies custom split percentages to this expense and updates the splits
+    mutating func applyCustomSplitPercentages() {
+        guard splitType == .custom,
+              let percentages = customSplitPercentages,
+              Self.validatePercentages(percentages) else {
+            return
+        }
+        
+        splits = Self.calculateSplitsFromPercentages(percentages, amount: amount)
     }
     
     // Export functionality

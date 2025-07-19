@@ -326,7 +326,7 @@ final class ModelsTests: XCTestCase {
             groupId: "group2",
             createdBy: "user2",
             createdAt: Timestamp(),
-            splitType: .percentage,
+            splitType: .custom,
             splits: ["user1": 60.0, "user2": 40.0],
             settled: true,
             settledAt: Timestamp()
@@ -416,12 +416,14 @@ final class ModelsTests: XCTestCase {
     func testSplitTypeModel() {
         // Test all enum cases
         XCTAssertEqual(SplitType.equal.rawValue, "equal")
-        XCTAssertEqual(SplitType.percentage.rawValue, "percentage")
+        XCTAssertEqual(SplitType.currentUserOwes.rawValue, "currentUserOwes")
+        XCTAssertEqual(SplitType.currentUserOwed.rawValue, "currentUserOwed")
         XCTAssertEqual(SplitType.custom.rawValue, "custom")
         
         // Test initialization from raw value
         XCTAssertEqual(SplitType(rawValue: "equal"), .equal)
-        XCTAssertEqual(SplitType(rawValue: "percentage"), .percentage)
+        XCTAssertEqual(SplitType(rawValue: "currentUserOwes"), .currentUserOwes)
+        XCTAssertEqual(SplitType(rawValue: "currentUserOwed"), .currentUserOwed)
         XCTAssertEqual(SplitType(rawValue: "custom"), .custom)
         XCTAssertNil(SplitType(rawValue: "invalid"))
     }
@@ -430,5 +432,78 @@ final class ModelsTests: XCTestCase {
         // Test creating a settings object
         let settings = Settings(name: "Test Settings")
         XCTAssertEqual(settings.name, "Test Settings")
+    }
+    
+    func testCustomSplitPercentages() {
+        // Test creating an expense with custom split percentages
+        let percentages = ["user1": 60.0, "user2": 40.0]
+        let expense = Expense(
+            id: "percentage-expense",
+            amount: 100.0,
+            description: "Percentage Test",
+            groupId: "test-group",
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            splitType: .custom,
+            splits: ["user1": 60.0, "user2": 40.0],
+            customSplitPercentages: percentages
+        )
+        
+        XCTAssertEqual(expense.customSplitPercentages?["user1"], 60.0)
+        XCTAssertEqual(expense.customSplitPercentages?["user2"], 40.0)
+    }
+    
+    func testPercentageValidation() {
+        // Test valid percentages
+        let validPercentages = ["user1": 60.0, "user2": 40.0]
+        XCTAssertTrue(Expense.validatePercentages(validPercentages))
+        
+        // Test invalid percentages (sum > 100)
+        let invalidPercentages1 = ["user1": 60.0, "user2": 50.0]
+        XCTAssertFalse(Expense.validatePercentages(invalidPercentages1))
+        
+        // Test invalid percentages (sum < 100)
+        let invalidPercentages2 = ["user1": 30.0, "user2": 40.0]
+        XCTAssertFalse(Expense.validatePercentages(invalidPercentages2))
+        
+        // Test edge case: exactly 100%
+        let exactPercentages = ["user1": 50.0, "user2": 50.0]
+        XCTAssertTrue(Expense.validatePercentages(exactPercentages))
+    }
+    
+    func testCalculateSplitsFromPercentages() {
+        let percentages = ["user1": 75.0, "user2": 25.0]
+        let amount = 100.0
+        let splits = Expense.calculateSplitsFromPercentages(percentages, amount: amount)
+        
+        XCTAssertEqual(splits["user1"], 75.0)
+        XCTAssertEqual(splits["user2"], 25.0)
+        
+        // Test with different amount
+        let splits2 = Expense.calculateSplitsFromPercentages(percentages, amount: 200.0)
+        XCTAssertEqual(splits2["user1"], 150.0)
+        XCTAssertEqual(splits2["user2"], 50.0)
+    }
+    
+    func testApplyCustomSplitPercentages() {
+        let percentages = ["user1": 80.0, "user2": 20.0]
+        var expense = Expense(
+            id: "apply-percentage-expense",
+            amount: 50.0,
+            description: "Apply Percentage Test",
+            groupId: "test-group",
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            splitType: .custom,
+            splits: ["user1": 25.0, "user2": 25.0], // Initial equal splits
+            customSplitPercentages: percentages
+        )
+        
+        // Apply the custom percentages
+        expense.applyCustomSplitPercentages()
+        
+        // Check that splits were updated
+        XCTAssertEqual(expense.splits["user1"], 40.0) // 80% of 50
+        XCTAssertEqual(expense.splits["user2"], 10.0) // 20% of 50
     }
 }
