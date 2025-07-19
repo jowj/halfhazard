@@ -18,6 +18,7 @@ struct Expense: Codable, Identifiable, Hashable {
     let createdAt: Timestamp
     var splitType: SplitType
     var splits: [String: Double]
+    var payments: [String: Double] = [:] // Tracks who has paid what amount
     var settled: Bool = false
     var settledAt: Timestamp?
     
@@ -31,7 +32,7 @@ struct Expense: Codable, Identifiable, Hashable {
     
     // Custom coding keys to support optional fields
     enum CodingKeys: String, CodingKey {
-        case id, amount, description, groupId, createdBy, createdAt, splitType, splits, settled, settledAt
+        case id, amount, description, groupId, createdBy, createdAt, splitType, splits, payments, settled, settledAt
     }
     
     // Custom decoder init to handle missing fields
@@ -55,6 +56,9 @@ struct Expense: Codable, Identifiable, Hashable {
         // Handle splits with default empty dictionary
         splits = try container.decodeIfPresent([String: Double].self, forKey: .splits) ?? [:]
         
+        // Handle payments with default empty dictionary
+        payments = try container.decodeIfPresent([String: Double].self, forKey: .payments) ?? [:]
+        
         // Handle optional "settled" field with default value
         settled = try container.decodeIfPresent(Bool.self, forKey: .settled) ?? false
         settledAt = try container.decodeIfPresent(Timestamp.self, forKey: .settledAt)
@@ -63,7 +67,7 @@ struct Expense: Codable, Identifiable, Hashable {
     // Regular init for creating expenses in code
     init(id: String, amount: Double, description: String? = nil, groupId: String, 
          createdBy: String, createdAt: Timestamp, splitType: SplitType = .equal,
-         splits: [String: Double], settled: Bool = false, settledAt: Timestamp? = nil) {
+         splits: [String: Double], payments: [String: Double] = [:], settled: Bool = false, settledAt: Timestamp? = nil) {
         self.id = id
         self.amount = amount
         self.description = description
@@ -72,6 +76,7 @@ struct Expense: Codable, Identifiable, Hashable {
         self.createdAt = createdAt
         self.splitType = splitType
         self.splits = splits
+        self.payments = payments
         self.settled = settled
         self.settledAt = settledAt
     }
@@ -303,6 +308,10 @@ struct Expense: Codable, Identifiable, Hashable {
                 splits[memberId] = equalShare
             }
             
+            // Assume the importer (creator) has paid the full amount
+            var payments: [String: Double] = [:]
+            payments[creatorId] = amount
+            
             // Create expense
             let expense = Expense(
                 id: UUID().uuidString, // Generate a new ID
@@ -313,6 +322,7 @@ struct Expense: Codable, Identifiable, Hashable {
                 createdAt: createdAt,
                 splitType: .equal, // Default to equal split
                 splits: splits,
+                payments: payments,
                 settled: settled,
                 settledAt: settled ? Timestamp() : nil
             )

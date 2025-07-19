@@ -141,7 +141,33 @@ class ExpenseViewModel: ObservableObject {
         
         do {
             let loadedExpenses = try await expenseService.getExpensesForGroup(groupId: targetGroupId)
-            expenses = loadedExpenses
+            
+            // Check if any expenses need payment migration
+            let expensesNeedingMigration = loadedExpenses.filter { $0.payments.isEmpty }
+            
+            if !expensesNeedingMigration.isEmpty {
+                print("Migrating \(expensesNeedingMigration.count) expenses with missing payment data...")
+                do {
+                    let migratedExpenses = try await expenseService.migrateMultipleExpenses(expensesNeedingMigration)
+                    
+                    // Replace migrated expenses in the loaded list
+                    var updatedExpenses = loadedExpenses
+                    for migratedExpense in migratedExpenses {
+                        if let index = updatedExpenses.firstIndex(where: { $0.id == migratedExpense.id }) {
+                            updatedExpenses[index] = migratedExpense
+                        }
+                    }
+                    
+                    expenses = updatedExpenses
+                    print("Migration completed successfully")
+                } catch {
+                    print("Migration failed: \(error). Using original expenses.")
+                    expenses = loadedExpenses
+                }
+            } else {
+                expenses = loadedExpenses
+            }
+            
             applyFilters()
         } catch let error as NSError {
             if error.domain == "ExpenseService" && error.code == 9,
@@ -200,15 +226,23 @@ class ExpenseViewModel: ObservableObject {
         if useDevMode {
             let expenseId = "dev-expense-\(UUID().uuidString)"
             let timestamp = Timestamp()
+            let splits = newExpenseSplits.isEmpty ? createDefaultSplits(groupId: groupId) : newExpenseSplits
+            
+            // Creator has paid the full amount upfront
+            var payments: [String: Double] = [:]
+            let creatorId = currentUser?.uid ?? "dev-user"
+            payments[creatorId] = newExpenseAmount
+            
             let mockExpense = Expense(
                 id: expenseId,
                 amount: newExpenseAmount,
                 description: newExpenseDescription.isEmpty ? nil : newExpenseDescription,
                 groupId: groupId,
-                createdBy: currentUser?.uid ?? "dev-user",
+                createdBy: creatorId,
                 createdAt: timestamp,
                 splitType: newExpenseSplitType,
-                splits: newExpenseSplits.isEmpty ? createDefaultSplits(groupId: groupId) : newExpenseSplits,
+                splits: splits,
+                payments: payments,
                 settled: false,
                 settledAt: nil
             )
@@ -1009,5 +1043,41 @@ class ExpenseViewModel: ObservableObject {
         ]
         
         expenses = mockExpenses
+    }
+    
+    // MARK: - Migration
+    
+    @MainActor
+    func migrateAllExpensesForCurrentGroup() async {
+        guard let groupId = currentGroupId else {
+            errorMessage = "No group selected"
+            return
+        }
+        
+        let expensesNeedingMigration = expenses.filter { $0.payments.isEmpty }
+        
+        if expensesNeedingMigration.isEmpty {
+            print("No expenses need migration")
+            return
+        }
+        
+        print("Manually migrating \(expensesNeedingMigration.count) expenses...")
+        
+        do {
+            let migratedExpenses = try await expenseService.migrateMultipleExpenses(expensesNeedingMigration)
+            
+            // Replace migrated expenses in the current list
+            for migratedExpense in migratedExpenses {
+                if let index = expenses.firstIndex(where: { $0.id == migratedExpense.id }) {
+                    expenses[index] = migratedExpense
+                }
+            }
+            
+            applyFilters()
+            print("Manual migration completed successfully")
+        } catch {
+            errorMessage = "Failed to migrate expenses: \(error.localizedDescription)"
+            print("Manual migration failed: \(error)")
+        }
     }
 }

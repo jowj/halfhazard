@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseFirestore
+import FirebaseAuth
 
 struct ExpenseRow: View {
     let expense: Expense
@@ -41,6 +42,12 @@ struct ExpenseRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
+                // Total amount (smaller font, closer to other details)
+                Text("Total: \(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 1)
+                
                 HStack(spacing: 8) {
                     // Split type badge
                     Label(splitTypeLabel(for: expense.splitType), systemImage: "person.3")
@@ -64,11 +71,96 @@ struct ExpenseRow: View {
             
             Spacer()
             
-            // Right side - amount and chevron
+            // Right side - owe status and chevron
             VStack(alignment: .trailing, spacing: 4) {
-                // Amount
-                Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
-                    .font(.title3.bold())
+                // You owe / You are owed
+                if let currentUserId = Auth.auth().currentUser?.uid {
+                    let userOwes = expense.splits[currentUserId] ?? 0.0
+                    
+                    // Calculate user paid amount with fallback logic for legacy expenses
+                    let userPaid: Double = {
+                        // First check if payments data exists
+                        if !expense.payments.isEmpty {
+                            return expense.payments[currentUserId] ?? 0.0
+                        }
+                        
+                        // Fallback logic for expenses without payment data (legacy support)
+                        // Assume the expense creator paid the full amount (most common scenario)
+                        if currentUserId == expense.createdBy {
+                            switch expense.splitType {
+                            case .currentUserOwed:
+                                return expense.amount
+                            case .currentUserOwes:
+                                return 0.0
+                            case .equal, .custom:
+                                return expense.amount
+                            }
+                        } else {
+                            return 0.0
+                        }
+                    }()
+                    
+                    let netBalance = userPaid - userOwes // Positive = they are owed, Negative = they owe
+                    
+                    if expense.settled {
+                        // For settled expenses, show historical balance with "Settled" indicator
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Settled")
+                                .font(.subheadline)
+                                .foregroundColor(.green)
+                            if netBalance < 0 {
+                                Text("You owed \(currencyFormatter.string(from: NSNumber(value: abs(netBalance))) ?? "$0.00")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else if netBalance > 0 {
+                                Text("You were owed \(currencyFormatter.string(from: NSNumber(value: netBalance)) ?? "$0.00")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Even")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    } else {
+                        // For unsettled expenses, show current balance
+                        if netBalance < 0 {
+                            // User owes money (they haven't paid enough)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("You owe")
+                                    .font(.subheadline)
+                                    .foregroundColor(.red)
+                                Text(currencyFormatter.string(from: NSNumber(value: abs(netBalance))) ?? "$0.00")
+                                    .font(.title3.bold())
+                                    .foregroundColor(.red)
+                            }
+                        } else if netBalance > 0 {
+                            // User is owed money (they paid more than their share)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("You are owed")
+                                    .font(.subheadline)
+                                    .foregroundColor(.green)
+                                Text(currencyFormatter.string(from: NSNumber(value: netBalance)) ?? "$0.00")
+                                    .font(.title3.bold())
+                                    .foregroundColor(.green)
+                            }
+                        } else {
+                            // User is even (paid exactly their share)
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("Even")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Text("$0.00")
+                                    .font(.title3.bold())
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback if no current user
+                    Text(currencyFormatter.string(from: NSNumber(value: expense.amount)) ?? "$0.00")
+                        .font(.title3.bold())
+                }
                 
                 // Chevron
                 Image(systemName: "chevron.right")

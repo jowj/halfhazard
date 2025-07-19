@@ -221,6 +221,17 @@ struct ExpenseListView: View {
                     }) {
                         Label("Import Expenses from CSV", systemImage: "arrow.up.doc")
                     }
+                    
+                    Divider()
+                    
+                    // Migration option (for fixing old expenses)
+                    Button(action: {
+                        Task {
+                            await expenseViewModel.migrateAllExpensesForCurrentGroup()
+                        }
+                    }) {
+                        Label("Fix Old Expenses", systemImage: "wrench.and.screwdriver")
+                    }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }

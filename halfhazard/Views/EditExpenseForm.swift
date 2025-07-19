@@ -15,6 +15,7 @@ struct EditExpenseForm: View {
     @State private var amount = ""
     @State private var description = ""
     @State private var splitType: SplitType
+    @FocusState private var isDescriptionFocused: Bool
     
     init(viewModel: ExpenseViewModel) {
         self.viewModel = viewModel
@@ -33,25 +34,7 @@ struct EditExpenseForm: View {
                 .padding(.top)
             
             VStack(alignment: .leading, spacing: 12) {
-                // Amount field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Amount")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    TextField("0.00", text: $amount)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onChange(of: amount) { oldValue, newValue in
-                            if let amountDouble = Double(newValue) {
-                                viewModel.newExpenseAmount = amountDouble
-                            } else {
-                                viewModel.newExpenseAmount = 0
-                            }
-                        }
-                }
-                .padding(.bottom, 8)
-                
-                // Description field
+                // Description field (moved first)
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Description")
                         .font(.subheadline)
@@ -59,8 +42,31 @@ struct EditExpenseForm: View {
                     
                     TextField("What was this expense for?", text: $description)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($isDescriptionFocused)
                         .onChange(of: description) { oldValue, newValue in
                             viewModel.newExpenseDescription = newValue
+                        }
+                }
+                .padding(.bottom, 8)
+                
+                // Amount field (moved second)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Amount")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    TextField("0.00", text: $amount)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        #if os(iOS)
+                        .keyboardType(.decimalPad)
+                        #endif
+                        .onChange(of: amount) { oldValue, newValue in
+                            // Update view model
+                            if let amountDouble = Double(newValue) {
+                                viewModel.newExpenseAmount = amountDouble
+                            } else {
+                                viewModel.newExpenseAmount = 0
+                            }
                         }
                 }
                 .padding(.bottom, 8)
@@ -123,6 +129,9 @@ struct EditExpenseForm: View {
                 description = viewModel.newExpenseDescription
             }
             splitType = viewModel.newExpenseSplitType
+            
+            // Auto-focus the description field
+            isDescriptionFocused = true
             
             // Make sure we have an editing expense
             if viewModel.editingExpense == nil {

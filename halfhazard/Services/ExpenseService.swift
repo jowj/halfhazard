@@ -21,6 +21,7 @@ class ExpenseService: ObservableObject {
                      groupId: String, 
                      splitType: SplitType, 
                      splits: [String: Double],
+                     payments: [String: Double] = [:],
                      settled: Bool = false,
                      createdAt: Timestamp? = nil) async throws -> Expense {
         // Get current user
@@ -34,6 +35,13 @@ class ExpenseService: ObservableObject {
         // Use provided timestamp or create a new one
         let timestamp = createdAt ?? Timestamp()
         
+        // Create payments dictionary - creator has paid the full amount
+        var finalPayments = payments
+        if finalPayments.isEmpty {
+            // Assume the creator has paid the full amount upfront
+            finalPayments[currentUser.uid] = amount
+        }
+        
         // Create a new expense
         let expense = Expense(
             id: expenseRef.documentID,
@@ -44,6 +52,7 @@ class ExpenseService: ObservableObject {
             createdAt: timestamp,
             splitType: splitType,
             splits: splits,
+            payments: finalPayments,
             settled: settled,
             settledAt: settled ? Timestamp() : nil
         )
@@ -52,6 +61,60 @@ class ExpenseService: ObservableObject {
         try expenseRef.setData(from: expense)
         
         return expense
+    }
+    
+    // Migration function to add payments data to existing expenses
+    func migrateExpensePayments(_ expense: Expense) async throws -> Expense {
+        // If payments is already populated, no migration needed
+        if !expense.payments.isEmpty {
+            return expense
+        }
+        
+        // Create payments based on the expense type and creator
+        var payments: [String: Double] = [:]
+        
+        switch expense.splitType {
+        case .currentUserOwed:
+            // Creator paid full amount, others owe them
+            payments[expense.createdBy] = expense.amount
+            
+        case .currentUserOwes:
+            // Creator owes full amount, they haven't paid anything
+            // No payments to add
+            break
+            
+        case .equal, .custom:
+            // Assume creator paid the full amount upfront (most common scenario)
+            payments[expense.createdBy] = expense.amount
+        }
+        
+        // Create updated expense with payments
+        var updatedExpense = expense
+        updatedExpense.payments = payments
+        
+        // Update in Firestore
+        let expenseRef = db.collection("expenses").document(expense.id)
+        try expenseRef.setData(from: updatedExpense)
+        
+        return updatedExpense
+    }
+    
+    // Batch migration for multiple expenses
+    func migrateMultipleExpenses(_ expenses: [Expense]) async throws -> [Expense] {
+        var migratedExpenses: [Expense] = []
+        
+        for expense in expenses {
+            do {
+                let migratedExpense = try await migrateExpensePayments(expense)
+                migratedExpenses.append(migratedExpense)
+            } catch {
+                print("Failed to migrate expense \(expense.id): \(error)")
+                // Keep the original expense if migration fails
+                migratedExpenses.append(expense)
+            }
+        }
+        
+        return migratedExpenses
     }
     
     // Get all expenses for a group, ensuring the current user is a member of that group
