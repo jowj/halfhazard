@@ -79,6 +79,15 @@ struct CreateExpenseForm: View {
             Spacer()
             
             HStack {
+                Button("Cancel") {
+                    if let appNav = viewModel.appNavigationRef {
+                        appNav.navigateBack()
+                    } else {
+                        dismiss()
+                    }
+                }
+                .keyboardShortcut(.cancelAction)
+                
                 Spacer()
                 
                 Button("Create Expense") {
@@ -89,6 +98,7 @@ struct CreateExpenseForm: View {
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
         }

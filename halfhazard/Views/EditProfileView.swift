@@ -71,6 +71,7 @@ struct EditProfileView: View {
                     dismiss()
                 }
                 .buttonStyle(.bordered)
+                .keyboardShortcut(.cancelAction)
                 
                 Spacer()
                 
@@ -84,6 +85,7 @@ struct EditProfileView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(isLoading || !isValidInput)
+                .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
         }

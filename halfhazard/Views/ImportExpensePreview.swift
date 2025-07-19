@@ -119,6 +119,7 @@ struct ImportExpensePreview: View {
                     viewModel.cancelImportExpenses()
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut(.cancelAction)
                 
                 Spacer()
                 
@@ -128,6 +129,7 @@ struct ImportExpensePreview: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
             .background(Color.adaptiveBackground.opacity(0.8))

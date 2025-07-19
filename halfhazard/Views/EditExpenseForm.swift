@@ -88,6 +88,15 @@ struct EditExpenseForm: View {
             Spacer()
             
             HStack {
+                Button("Cancel") {
+                    if let appNav = viewModel.appNavigationRef {
+                        appNav.navigateBack()
+                    } else {
+                        dismiss()
+                    }
+                }
+                .keyboardShortcut(.cancelAction)
+                
                 Spacer()
                 
                 Button("Save Changes") {
@@ -98,6 +107,7 @@ struct EditExpenseForm: View {
                 }
                 .disabled(amount.isEmpty || !isValidAmount(amount))
                 .buttonStyle(.borderedProminent)
+                .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
         }

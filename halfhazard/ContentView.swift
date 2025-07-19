@@ -13,7 +13,7 @@ struct ContentView: View {
     @StateObject private var userService = UserService()
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
-    @StateObject private var appNavigation = AppNavigation()
+    @EnvironmentObject var appNavigation: AppNavigation
     
     // Dev mode state
     @State private var useDevMode = false

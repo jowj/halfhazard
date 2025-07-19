@@ -302,6 +302,7 @@ struct ManageGroupSheet: View {
                         showRenameSheet = false
                     }
                     .buttonStyle(.bordered)
+                    .keyboardShortcut(.cancelAction)
                     
                     Button("Save") {
                         Task {
@@ -311,6 +312,7 @@ struct ManageGroupSheet: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(newGroupName.isEmpty || newGroupName == group.name)
+                    .keyboardShortcut(.return, modifiers: .command)
                 }
                 .padding()
             }

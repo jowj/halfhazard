@@ -12,6 +12,7 @@ import FirebaseAuth
 
 @main
 struct halfhazardApp: App {
+    @StateObject private var appNavigation = AppNavigation()
     init() {
         print("Configuring Firebase...")
         
@@ -65,6 +66,7 @@ struct halfhazardApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appNavigation)
                 #if os(iOS)
                 .preferredColorScheme(.light) // Default to light mode on iOS
                 .statusBar(hidden: true) // Hide status bar
@@ -73,8 +75,22 @@ struct halfhazardApp: App {
         #if os(macOS)
         .windowStyle(HiddenTitleBarWindowStyle()) // macOS-specific window style
         .commands {
-            // Add macOS-specific menu commands
-            CommandGroup(replacing: .newItem) { }
+            CommandGroup(replacing: .newItem) {
+                Button("New Expense") {
+                    appNavigation.showCreateExpenseForm()
+                }
+                .keyboardShortcut("n", modifiers: .command)
+                
+                Button("New Group") {
+                    appNavigation.showCreateGroupForm()
+                }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
+                
+                Button("Join Group") {
+                    appNavigation.showJoinGroupForm()
+                }
+                .keyboardShortcut("j", modifiers: .command)
+            }
         }
         #endif
     }

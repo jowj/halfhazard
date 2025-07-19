@@ -47,6 +47,15 @@ struct JoinGroupForm: View {
             
             // Action Buttons
             HStack {
+                Button("Cancel") {
+                    if let appNav = viewModel.appNavigationRef {
+                        appNav.navigateBack()
+                    } else {
+                        dismiss()
+                    }
+                }
+                .keyboardShortcut(.cancelAction)
+                
                 Spacer()
                 
                 Button("Join Group") {
@@ -63,7 +72,7 @@ struct JoinGroupForm: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.joinGroupCode.isEmpty || isSubmitting)
-                .keyboardShortcut(.defaultAction)
+                .keyboardShortcut(.return, modifiers: .command)
                 .overlay {
                     if isSubmitting {
                         ProgressView()

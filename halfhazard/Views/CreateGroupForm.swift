@@ -100,7 +100,7 @@ struct CreateGroupForm: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(groupName.isEmpty || isSubmitting)
-                .keyboardShortcut(.defaultAction)
+                .keyboardShortcut(.return, modifiers: .command)
                 .overlay {
                     if isSubmitting {
                         ProgressView()
