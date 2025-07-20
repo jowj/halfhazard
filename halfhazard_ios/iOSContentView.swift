@@ -47,25 +47,6 @@ struct TabContentWrapper: View {
                     appNavigationRef: appNavigation
                 )
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Menu {
-                            Button(action: {
-                                appNavigation.showCreateGroupForm()
-                            }) {
-                                Label("Create Group", systemImage: "plus")
-                            }
-                            
-                            Button(action: {
-                                appNavigation.showJoinGroupForm()
-                            }) {
-                                Label("Join Group", systemImage: "person.badge.plus")
-                            }
-                        } label: {
-                            Image(systemName: "plus")
-                        }
-                    }
-                }
                 
             case .expenses:
                 // Expenses tab content
