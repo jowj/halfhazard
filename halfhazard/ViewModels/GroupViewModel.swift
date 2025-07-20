@@ -183,6 +183,12 @@ class GroupViewModel: ObservableObject {
                 groupDescription: newGroupDescription.isEmpty ? nil : newGroupDescription
             )
             
+            // Update the current user's groupIds to include the new group
+            if var user = currentUser {
+                user.groupIds.append(group.id)
+                currentUser = user
+            }
+            
             // Add the new group to our array
             groups.append(group)
             
@@ -271,6 +277,12 @@ class GroupViewModel: ObservableObject {
         do {
             let group = try await groupService.joinGroupByCode(code: joinGroupCode)
             
+            // Update the current user's groupIds to include the new group
+            if var user = currentUser, !user.groupIds.contains(group.id) {
+                user.groupIds.append(group.id)
+                currentUser = user
+            }
+            
             // Add the group to our array if not already present
             if !groups.contains(where: { $0.id == group.id }) {
                 groups.append(group)
@@ -310,6 +322,12 @@ class GroupViewModel: ObservableObject {
         
         // Handle dev mode
         if useDevMode {
+            // Update the current user's groupIds to remove the left group
+            if var user = currentUser {
+                user.groupIds.removeAll(where: { $0 == group.id })
+                currentUser = user
+            }
+            
             // Remove from our array
             groups.removeAll(where: { $0.id == group.id })
             
@@ -324,6 +342,12 @@ class GroupViewModel: ObservableObject {
         
         do {
             try await groupService.leaveGroup(groupID: group.id)
+            
+            // Update the current user's groupIds to remove the left group
+            if var user = currentUser {
+                user.groupIds.removeAll(where: { $0 == group.id })
+                currentUser = user
+            }
             
             // Remove from our array
             groups.removeAll(where: { $0.id == group.id })
@@ -355,6 +379,12 @@ class GroupViewModel: ObservableObject {
         
         // Handle dev mode
         if useDevMode {
+            // Update the current user's groupIds to remove the deleted group
+            if var user = currentUser {
+                user.groupIds.removeAll(where: { $0 == group.id })
+                currentUser = user
+            }
+            
             // Remove from our array
             groups.removeAll(where: { $0.id == group.id })
             
@@ -369,6 +399,12 @@ class GroupViewModel: ObservableObject {
         
         do {
             try await groupService.deleteGroup(groupID: group.id)
+            
+            // Update the current user's groupIds to remove the deleted group
+            if var user = currentUser {
+                user.groupIds.removeAll(where: { $0 == group.id })
+                currentUser = user
+            }
             
             // Remove from our array
             groups.removeAll(where: { $0.id == group.id })

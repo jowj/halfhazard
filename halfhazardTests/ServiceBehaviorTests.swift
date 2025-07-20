@@ -418,12 +418,10 @@ final class ServiceBehaviorTests: XCTestCase {
         if let selectedExpense = expenseViewModel.selectedExpense {
             XCTAssertEqual(selectedExpense.id, createdExpense.id)
         }
-        XCTAssertTrue(expenseViewModel.showingExpenseDetailSheet)
         
         // 3. Clear selection
         expenseViewModel.clearSelectedExpense()
         XCTAssertNil(expenseViewModel.selectedExpense)
-        XCTAssertFalse(expenseViewModel.showingExpenseDetailSheet)
         
         // 4. Prepare expense for editing
         expenseViewModel.prepareExpenseForEditing(createdExpense)

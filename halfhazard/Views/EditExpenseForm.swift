@@ -28,7 +28,8 @@ struct EditExpenseForm: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        ScrollView {
+            VStack(spacing: 16) {
             Text("Edit Expense")
                 .font(.headline)
                 .padding(.top)
@@ -102,8 +103,7 @@ struct EditExpenseForm: View {
             }
             .padding(.horizontal)
             
-            Spacer()
-            
+            // Add some bottom padding to ensure content isn't hidden behind keyboard
             HStack {
                 Button("Cancel") {
                     if let appNav = viewModel.appNavigationRef {
@@ -127,8 +127,18 @@ struct EditExpenseForm: View {
                 .keyboardShortcut(.return, modifiers: .command)
             }
             .padding()
+            .padding(.bottom, 20) // Extra bottom padding for better keyboard handling
+            }
         }
-        .frame(width: 400, height: splitType == .custom ? 600 : 380)
+        .frame(width: 400)
+        .frame(maxHeight: .infinity)
+        #if os(iOS)
+        .scrollDismissesKeyboard(.interactively)
+        #endif
+        .onTapGesture {
+            // Dismiss keyboard when tapping outside text fields
+            hideKeyboard()
+        }
         .onAppear {
             print("EditExpenseForm.onAppear - expense amount: \(viewModel.newExpenseAmount), description: \(viewModel.newExpenseDescription)")
             
@@ -156,6 +166,12 @@ struct EditExpenseForm: View {
     private func isValidAmount(_ amount: String) -> Bool {
         guard let value = Double(amount) else { return false }
         return value > 0
+    }
+    
+    private func hideKeyboard() {
+        #if os(iOS)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        #endif
     }
 }
 

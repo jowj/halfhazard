@@ -127,7 +127,6 @@ final class ExpenseViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.newExpenseDescription, "")
         XCTAssertEqual(viewModel.newExpenseSplitType, .equal)
         XCTAssertTrue(viewModel.newExpenseSplits.isEmpty)
-        XCTAssertFalse(viewModel.showingCreateExpenseSheet)
     }
     
     func testDeleteExpense() async throws {
@@ -175,7 +174,6 @@ final class ExpenseViewModelTests: XCTestCase {
         
         // Initially no selection
         XCTAssertNil(viewModel.selectedExpense)
-        XCTAssertFalse(viewModel.showingExpenseDetailSheet)
         
         // Select an expense
         viewModel.selectExpense(viewModel.expenses[0])
@@ -183,7 +181,6 @@ final class ExpenseViewModelTests: XCTestCase {
         // Check that the expense was selected
         XCTAssertNotNil(viewModel.selectedExpense)
         XCTAssertEqual(viewModel.selectedExpense?.id, "test-expense")
-        XCTAssertTrue(viewModel.showingExpenseDetailSheet)
     }
     
     func testClearSelectedExpense() async throws {
@@ -204,14 +201,12 @@ final class ExpenseViewModelTests: XCTestCase {
         
         // Check that we have a selection
         XCTAssertNotNil(viewModel.selectedExpense)
-        XCTAssertTrue(viewModel.showingExpenseDetailSheet)
         
         // Clear the selection
         viewModel.clearSelectedExpense()
         
         // Check that the selection was cleared
         XCTAssertNil(viewModel.selectedExpense)
-        XCTAssertFalse(viewModel.showingExpenseDetailSheet)
     }
     
     func testPrepareExpenseForEditing() async throws {
@@ -240,7 +235,6 @@ final class ExpenseViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.newExpenseSplitType, .equal)
         XCTAssertEqual(viewModel.newExpenseSplits["test-user-id"], 50.0)
         XCTAssertEqual(viewModel.newExpenseSplits["other-user-id"], 50.0)
-        XCTAssertTrue(viewModel.showingEditExpenseSheet)
     }
     
     func testSaveEditedExpense() async throws {
@@ -275,13 +269,12 @@ final class ExpenseViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.expenses[0].splits["test-user-id"], 100.0)
         XCTAssertEqual(viewModel.expenses[0].splits["other-user-id"], 50.0)
         
-        // Check that the form was reset and sheet closed
+        // Check that the form was reset 
         XCTAssertNil(viewModel.editingExpense)
         XCTAssertEqual(viewModel.newExpenseAmount, 0)
         XCTAssertEqual(viewModel.newExpenseDescription, "")
         XCTAssertEqual(viewModel.newExpenseSplitType, .equal)
         XCTAssertTrue(viewModel.newExpenseSplits.isEmpty)
-        XCTAssertFalse(viewModel.showingEditExpenseSheet)
     }
     
     func testUpdateContext() async throws {

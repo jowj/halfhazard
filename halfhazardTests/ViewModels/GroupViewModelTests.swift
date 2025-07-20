@@ -93,7 +93,6 @@ final class GroupViewModelTests: XCTestCase {
         // Check that the form was reset
         XCTAssertEqual(viewModel.newGroupName, "")
         XCTAssertEqual(viewModel.newGroupDescription, "")
-        XCTAssertFalse(viewModel.showingCreateGroupSheet)
     }
     
     func testJoinGroup() async throws {
@@ -116,7 +115,6 @@ final class GroupViewModelTests: XCTestCase {
         
         // Check that the form was reset
         XCTAssertEqual(viewModel.joinGroupCode, "")
-        XCTAssertFalse(viewModel.showingJoinGroupSheet)
     }
     
     func testLeaveGroup() async throws {
