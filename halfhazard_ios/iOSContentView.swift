@@ -113,8 +113,22 @@ struct TabContentWrapper: View {
                             }
                         }
                         .foregroundColor(.primary)
+
+                        Button(action: {
+                            appNavigation.path.append(AppNavigation.Destination.about)
+                        }) {
+                            HStack {
+                                Image(systemName: "info.circle")
+                                Text("About")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundColor(.primary)
                     }
-                    
+
                     Section {
                         Button("Sign Out") {
                             Task {
@@ -204,6 +218,10 @@ struct NavigationDestinationWrapper: View {
             CreateTemplateForm(viewModel: templateViewModel)
                 .navigationTitle("Edit Template")
                 .navigationBarTitleDisplayMode(.inline)
+
+        // App destinations
+        case .about:
+            AboutView()
         }
     }
 }
@@ -214,10 +232,13 @@ struct iOSContentView: View {
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
     @StateObject private var templateViewModel = ExpenseTemplateViewModel(currentUser: nil)
     @StateObject private var appNavigation = AppNavigation()
-    
+    @StateObject private var changelogService = ChangelogService()
+    @Environment(\.scenePhase) private var scenePhase
+
     // Dev mode state
     @State private var useDevMode = false
     @State private var showingLoginSheet = false
+    @State private var showChangelogSheet = false
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""
@@ -225,6 +246,7 @@ struct iOSContentView: View {
     @State private var currentUser: User?
     @State private var errorMessage: String?
     @State private var isCheckingAuth = true
+    @State private var hasCheckedChangelogOnActive = false
 
     // We need a separate binding for the alert to work correctly
     var showError: Binding<Bool> {
@@ -259,6 +281,26 @@ struct iOSContentView: View {
                 } message: {
                     if let message = errorMessage {
                         Text(message)
+                    }
+                }
+                .sheet(isPresented: $showChangelogSheet) {
+                    ChangelogView(
+                        entries: changelogService.getRecentEntries(limit: 10),
+                        isModal: true,
+                        onDismiss: {
+                            changelogService.markChangelogPresented()
+                            showChangelogSheet = false
+                        }
+                    )
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Check for update when app becomes active (first time only after launch)
+                    if newPhase == .active && !hasCheckedChangelogOnActive && currentUser != nil {
+                        hasCheckedChangelogOnActive = true
+                        changelogService.checkForUpdate()
+                        if changelogService.shouldShowChangelog {
+                            showChangelogSheet = true
+                        }
                     }
                 }
         }

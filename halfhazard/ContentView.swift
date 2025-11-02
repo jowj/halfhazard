@@ -14,12 +14,15 @@ struct ContentView: View {
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
     @StateObject private var templateViewModel = ExpenseTemplateViewModel(currentUser: nil)
+    @StateObject private var changelogService = ChangelogService()
     @EnvironmentObject var appNavigation: AppNavigation
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     // Dev mode state
     @State private var useDevMode = false
     @State private var showingLoginSheet = false
     @State private var showEditProfileSheet = false
+    @State private var showChangelogSheet = false
     @State private var email = ""
     @State private var password = ""
     @State private var displayName = ""
@@ -27,6 +30,7 @@ struct ContentView: View {
     @State private var currentUser: User?
     @State private var errorMessage: String?
     @State private var isCheckingAuth = true
+    @State private var hasCheckedChangelogOnActive = false
     
     // We need a separate binding for the alert to work correctly
     var showError: Binding<Bool> {
@@ -61,6 +65,26 @@ struct ContentView: View {
                 } message: {
                     if let message = errorMessage {
                         Text(message)
+                    }
+                }
+                .sheet(isPresented: $showChangelogSheet) {
+                    ChangelogView(
+                        entries: changelogService.getRecentEntries(limit: 10),
+                        isModal: true,
+                        onDismiss: {
+                            changelogService.markChangelogPresented()
+                            showChangelogSheet = false
+                        }
+                    )
+                }
+                .onChange(of: scenePhase) { _, newPhase in
+                    // Check for update when app becomes active (first time only after launch)
+                    if newPhase == .active && !hasCheckedChangelogOnActive && currentUser != nil {
+                        hasCheckedChangelogOnActive = true
+                        changelogService.checkForUpdate()
+                        if changelogService.shouldShowChangelog {
+                            showChangelogSheet = true
+                        }
                     }
                 }
         }
@@ -98,7 +122,11 @@ struct ContentView: View {
                         Button("Expense Templates") {
                             appNavigation.showTemplateList()
                         }
-                        
+
+                        Button("About") {
+                            appNavigation.path.append(AppNavigation.Destination.about)
+                        }
+
                         Divider()
                     }
                     
@@ -217,6 +245,10 @@ struct ContentView: View {
         case .editTemplate:
             CreateTemplateForm(viewModel: templateViewModel)
                 .navigationTitle("Edit Template")
+
+        // App destinations
+        case .about:
+            AboutView()
         }
     }
     

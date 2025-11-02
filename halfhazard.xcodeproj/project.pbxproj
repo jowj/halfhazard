@@ -237,6 +237,7 @@
 			buildPhases = (
 				8A2A27682D94C8A800685911 /* Sources */,
 				8A2A27692D94C8A800685911 /* Frameworks */,
+				8A23139E2EB7D0A9002CB2F7 /* ShellScript */,
 				8A2A276A2D94C8A800685911 /* Resources */,
 			);
 			buildRules = (
@@ -302,6 +303,7 @@
 			buildPhases = (
 				8A91AC572D342734001A47C0 /* Sources */,
 				8A91AC582D342734001A47C0 /* Frameworks */,
+				8A23139D2EB7D08A002CB2F7 /* ShellScript */,
 				8A91AC592D342734001A47C0 /* Resources */,
 			);
 			buildRules = (
@@ -420,6 +422,54 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		8A23139D2EB7D08A002CB2F7 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.git/logs/HEAD",
+				$SRCROOT/scripts/generate_changelog.sh,
+				"$(SRCROOT)/.git/HEAD",
+				"$(SRCROOT)/.git",
+				"$(SRCROOT)/.git/config",
+				"$(SRCROOT)/.git/logs/HEAD",
+				"$(SRCROOT)/.git/index",
+				"$(SRCROOT)/.git/refs/heads/main",
+				"$(SRCROOT)/.git/packed-refs",
+				"",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/changelog.json",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/generate_changelog.sh\"\n";
+		};
+		8A23139E2EB7D0A9002CB2F7 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/generate_changelog.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		8A2A27272D90627000685911 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -529,6 +579,8 @@
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Halfhazard;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -560,6 +612,8 @@
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Halfhazard;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -787,11 +841,12 @@
 				CODE_SIGN_ENTITLEMENTS = halfhazard/halfhazard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -814,11 +869,12 @@
 				CODE_SIGN_ENTITLEMENTS = halfhazard/halfhazard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (

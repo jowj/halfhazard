@@ -31,16 +31,19 @@ class AppNavigation: ObservableObject {
         case createGroup
         case joinGroup
         case manageGroup(Group)
-        
+
         // Expense destinations
         case createExpense
         case editExpense
         case expenseDetail(Expense)
-        
+
         // Template destinations
         case templateList
         case createTemplate
         case editTemplate
+
+        // App destinations
+        case about
     }
     
     @Published var path = NavigationPath()
