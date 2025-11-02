@@ -15,6 +15,19 @@ class ChangelogService: ObservableObject {
 
     init() {
         loadChangelog()
+        initializeLastPresentedBuildIfNeeded()
+    }
+
+    /// Initialize lastPresentedBuild on first launch
+    private func initializeLastPresentedBuildIfNeeded() {
+        // If lastPresentedBuild has never been set, set it to current build
+        // This prevents showing changelog on first install, but allows it to show on subsequent updates
+        if UserDefaults.standard.string(forKey: lastPresentedBuildKey) == nil {
+            if let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                print("ChangelogService: First launch - initializing lastPresentedBuild to \(currentBuild)")
+                UserDefaults.standard.set(currentBuild, forKey: lastPresentedBuildKey)
+            }
+        }
     }
 
     /// Check if changelog should be shown (build number has changed)
