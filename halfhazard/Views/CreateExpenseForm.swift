@@ -93,6 +93,7 @@ struct CreateExpenseForm: View {
             }
             .padding(.horizontal)
             
+            
             // Add some bottom padding to ensure content isn't hidden behind keyboard
             HStack {
                 Button("Cancel") {

@@ -13,6 +13,7 @@ struct ContentView: View {
     @StateObject private var userService = UserService()
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
+    @StateObject private var templateViewModel = ExpenseTemplateViewModel(currentUser: nil)
     @EnvironmentObject var appNavigation: AppNavigation
     
     // Dev mode state
@@ -98,6 +99,11 @@ struct ContentView: View {
                             // Show edit profile sheet for macOS
                             showEditProfileSheet.toggle()
                         }
+                        
+                        Button("Expense Templates") {
+                            appNavigation.showTemplateList()
+                        }
+                        
                         Divider()
                     }
                     
@@ -203,6 +209,19 @@ struct ContentView: View {
             } else {
                 EmptyView()
             }
+            
+        // Template destinations
+        case .templateList:
+            ExpenseTemplateListView(viewModel: templateViewModel, appNavigationRef: appNavigation, currentGroup: groupViewModel.selectedGroup, expenseViewModel: expenseViewModel)
+                .navigationTitle("Templates")
+                
+        case .createTemplate:
+            CreateTemplateForm(viewModel: templateViewModel)
+                .navigationTitle("Create Template")
+                
+        case .editTemplate:
+            CreateTemplateForm(viewModel: templateViewModel)
+                .navigationTitle("Edit Template")
         }
     }
     
@@ -453,6 +472,9 @@ struct ContentView: View {
         
         // Update ExpenseViewModel
         expenseViewModel.updateContext(user: user, groupId: nil, devMode: devMode)
+        
+        // Update TemplateViewModel
+        templateViewModel.updateContext(user: user, devMode: devMode)
     }
     
     // Authentication functions

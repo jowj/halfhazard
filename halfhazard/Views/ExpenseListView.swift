@@ -203,6 +203,12 @@ struct ExpenseListView: View {
                         Label("Add Expense", systemImage: "plus")
                     }
                     
+                    Button(action: {
+                        appNavigationRef.showTemplateList()
+                    }) {
+                        Label("Apply Template", systemImage: "doc.text")
+                    }
+                    
                     Divider()
                     
                     // Export option

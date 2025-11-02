@@ -36,6 +36,11 @@ class AppNavigation: ObservableObject {
         case createExpense
         case editExpense
         case expenseDetail(Expense)
+        
+        // Template destinations
+        case templateList
+        case createTemplate
+        case editTemplate
     }
     
     @Published var path = NavigationPath()
@@ -82,6 +87,19 @@ class AppNavigation: ObservableObject {
     
     func showExpenseDetail(expense: Expense) {
         path.append(Destination.expenseDetail(expense))
+    }
+    
+    // Template navigation actions
+    func showTemplateList() {
+        path.append(Destination.templateList)
+    }
+    
+    func showCreateTemplateForm() {
+        path.append(Destination.createTemplate)
+    }
+    
+    func showEditTemplateForm() {
+        path.append(Destination.editTemplate)
     }
     
     // Navigation helpers

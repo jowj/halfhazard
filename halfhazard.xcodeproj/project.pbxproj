@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A29DDF82DECBF0B00C4E647 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8A29DDF72DECBF0B00C4E647 /* README.md */; };
+		8A29DDF92DECBF0B00C4E647 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 8A29DDF72DECBF0B00C4E647 /* README.md */; };
 		8A2A27D12D9C807F00685911 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CE2D9C807F00685911 /* GoogleService-Info.plist */; };
 		8A2A27D22D9C807F00685911 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CA2D9C807F00685911 /* Preview Assets.xcassets */; };
 		8A2A27D32D9C807F00685911 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8A2A27CC2D9C807F00685911 /* Assets.xcassets */; };
@@ -46,6 +48,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8A29DDF72DECBF0B00C4E647 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		8A2A272B2D90627000685911 /* halfhazardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = halfhazardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A2A276C2D94C8A800685911 /* halfhazard_ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard_ios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A2A277B2D94C8AB00685911 /* halfhazard_iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = halfhazard_iosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,6 +79,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		8A29DDFA2DECC06E00C4E647 /* docs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = docs;
+			sourceTree = "<group>";
+		};
 		8A2A272C2D90627000685911 /* halfhazardTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = halfhazardTests;
@@ -174,6 +182,8 @@
 		8A91AC522D342734001A47C0 = {
 			isa = PBXGroup;
 			children = (
+				8A29DDF72DECBF0B00C4E647 /* README.md */,
+				8A29DDFA2DECC06E00C4E647 /* docs */,
 				8A2A27DC2D9C80AF00685911 /* halfhazard_iosTests */,
 				8A2A27D82D9C809400685911 /* halfhazard_iosUITests */,
 				8A2A27D02D9C807F00685911 /* halfhazard_ios */,
@@ -234,6 +244,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				8A29DDFA2DECC06E00C4E647 /* docs */,
 				8A91AC5D2D342734001A47C0 /* halfhazard */,
 			);
 			name = halfhazard_ios;
@@ -298,6 +309,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				8A29DDFA2DECC06E00C4E647 /* docs */,
 				8A91AC5D2D342734001A47C0 /* halfhazard */,
 			);
 			name = halfhazard;
@@ -380,6 +392,7 @@
 				8A2A27D12D9C807F00685911 /* GoogleService-Info.plist in Resources */,
 				8A2A27D22D9C807F00685911 /* Preview Assets.xcassets in Resources */,
 				8A2A27D32D9C807F00685911 /* Assets.xcassets in Resources */,
+				8A29DDF82DECBF0B00C4E647 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +414,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A29DDF92DECBF0B00C4E647 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

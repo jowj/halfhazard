@@ -60,9 +60,19 @@ struct TabContentWrapper: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .primaryAction) {
-                            Button(action: {
-                                appNavigation.showCreateExpenseForm()
-                            }) {
+                            Menu {
+                                Button(action: {
+                                    appNavigation.showCreateExpenseForm()
+                                }) {
+                                    Label("Add Expense", systemImage: "plus")
+                                }
+                                
+                                Button(action: {
+                                    appNavigation.showTemplateList()
+                                }) {
+                                    Label("Apply Template", systemImage: "doc.text")
+                                }
+                            } label: {
                                 Image(systemName: "plus")
                             }
                         }
@@ -89,6 +99,22 @@ struct TabContentWrapper: View {
                         }
                     }
                     
+                    Section("Features") {
+                        Button(action: {
+                            appNavigation.showTemplateList()
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                Text("Expense Templates")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                    
                     Section {
                         Button("Sign Out") {
                             Task {
@@ -110,6 +136,7 @@ struct NavigationDestinationWrapper: View {
     let destination: AppNavigation.Destination
     let groupViewModel: GroupViewModel
     let expenseViewModel: ExpenseViewModel
+    let templateViewModel: ExpenseTemplateViewModel
     let appNavigation: AppNavigation
     @Environment(\.presentationMode) private var presentationMode
     
@@ -161,6 +188,22 @@ struct NavigationDestinationWrapper: View {
             } else {
                 Text("Error: Missing group for expense detail")
             }
+            
+        // Template destinations
+        case .templateList:
+            ExpenseTemplateListView(viewModel: templateViewModel, appNavigationRef: appNavigation, currentGroup: groupViewModel.selectedGroup, expenseViewModel: expenseViewModel)
+                .navigationTitle("Templates")
+                .navigationBarTitleDisplayMode(.inline)
+                
+        case .createTemplate:
+            CreateTemplateForm(viewModel: templateViewModel)
+                .navigationTitle("Create Template")
+                .navigationBarTitleDisplayMode(.inline)
+                
+        case .editTemplate:
+            CreateTemplateForm(viewModel: templateViewModel)
+                .navigationTitle("Edit Template")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -169,6 +212,7 @@ struct iOSContentView: View {
     @StateObject private var userService = UserService()
     @StateObject private var groupViewModel = GroupViewModel(currentUser: nil)
     @StateObject private var expenseViewModel = ExpenseViewModel(currentUser: nil)
+    @StateObject private var templateViewModel = ExpenseTemplateViewModel(currentUser: nil)
     @StateObject private var appNavigation = AppNavigation()
     
     // Dev mode state
@@ -236,6 +280,7 @@ struct iOSContentView: View {
                     destination: destination,
                     groupViewModel: groupViewModel,
                     expenseViewModel: expenseViewModel,
+                    templateViewModel: templateViewModel,
                     appNavigation: appNavigation
                 )
                 // Don't hide the toolbar, we need the back button
@@ -310,6 +355,9 @@ struct iOSContentView: View {
         
         // Update ExpenseViewModel
         expenseViewModel.updateContext(user: user, groupId: nil, devMode: devMode)
+        
+        // Update TemplateViewModel
+        templateViewModel.updateContext(user: user, devMode: devMode)
     }
     
     // Authentication functions
