@@ -293,12 +293,22 @@ struct iOSContentView: View {
                         }
                     )
                 }
+                .onChange(of: showChangelogSheet) { oldValue, newValue in
+                    print("iOSContentView: showChangelogSheet changed from \(oldValue) to \(newValue)")
+                }
                 .onChange(of: scenePhase) { _, newPhase in
+                    print("iOSContentView: scenePhase changed to \(newPhase)")
+                    print("iOSContentView: hasCheckedChangelogOnActive = \(hasCheckedChangelogOnActive)")
+                    print("iOSContentView: currentUser = \(currentUser?.email ?? "nil")")
+
                     // Check for update when app becomes active (first time only after launch)
                     if newPhase == .active && !hasCheckedChangelogOnActive && currentUser != nil {
+                        print("iOSContentView: Checking for changelog update...")
                         hasCheckedChangelogOnActive = true
                         changelogService.checkForUpdate()
+                        print("iOSContentView: shouldShowChangelog = \(changelogService.shouldShowChangelog)")
                         if changelogService.shouldShowChangelog {
+                            print("iOSContentView: Setting showChangelogSheet = true")
                             showChangelogSheet = true
                         }
                     }
@@ -333,17 +343,34 @@ struct iOSContentView: View {
             }
         }
         .onAppear {
+            print("iOSMainView appeared - checking changelog")
+
             // Setup app navigation with view models
             appNavigation.setViewModels(groupViewModel: groupViewModel, expenseViewModel: expenseViewModel)
-            
+
             // Ensure GroupViewModel has a reference to the AppNavigation
             groupViewModel.appNavigationRef = appNavigation
-            
+
             // Update ViewModels with current user and dev mode
             updateViewModels(user: currentUser, devMode: useDevMode)
-            
+
             Task {
                 await groupViewModel.loadGroups()
+            }
+
+            // Check for changelog update when main view appears (only once per launch)
+            if !hasCheckedChangelogOnActive && currentUser != nil {
+                print("iOSMainView: Checking for changelog update...")
+                hasCheckedChangelogOnActive = true
+                changelogService.checkForUpdate()
+                print("iOSMainView: shouldShowChangelog = \(changelogService.shouldShowChangelog)")
+                if changelogService.shouldShowChangelog {
+                    print("iOSMainView: Setting showChangelogSheet = true")
+                    // Delay slightly to ensure the view is fully loaded
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showChangelogSheet = true
+                    }
+                }
             }
         }
         .onChange(of: groupViewModel._selectedGroup) { _, newValue in

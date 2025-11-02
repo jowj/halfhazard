@@ -20,14 +20,21 @@ class ChangelogService: ObservableObject {
     /// Check if changelog should be shown (build number has changed)
     func checkForUpdate() {
         guard let currentBuild = Bundle.main.infoDictionary?["CFBundleVersion"] as? String else {
+            print("ChangelogService: Could not get CFBundleVersion")
             return
         }
 
         let lastPresentedBuild = UserDefaults.standard.string(forKey: lastPresentedBuildKey)
 
+        print("ChangelogService: Current build = \(currentBuild)")
+        print("ChangelogService: Last presented build = \(lastPresentedBuild ?? "nil")")
+
         // Show changelog if build has changed and we're not on first install
         if lastPresentedBuild != nil && lastPresentedBuild != currentBuild {
+            print("ChangelogService: Build changed - showing changelog")
             shouldShowChangelog = true
+        } else {
+            print("ChangelogService: Not showing changelog (first install or same build)")
         }
     }
 
