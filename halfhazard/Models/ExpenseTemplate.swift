@@ -113,11 +113,21 @@ struct TemplateItem: Identifiable, Codable, Hashable {
             
         case .currentUserOwes:
             splits[userId] = amount
-            
+
         case .currentUserOwed:
-            let splitAmount = amount / Double(groupMembers.count)
-            for memberId in groupMembers {
-                splits[memberId] = splitAmount
+            // Current user paid and is owed - other members split the amount equally
+            let otherMembers = groupMembers.filter { $0 != userId }
+
+            if otherMembers.isEmpty {
+                // Edge case: Current user is the only member
+                splits[userId] = 0
+            } else {
+                // Other members split the amount equally, current user gets 0
+                let splitAmount = amount / Double(otherMembers.count)
+                for memberId in otherMembers {
+                    splits[memberId] = splitAmount
+                }
+                splits[userId] = 0
             }
             
         case .custom:
