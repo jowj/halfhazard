@@ -287,12 +287,129 @@ final class ExpenseViewModelTests: XCTestCase {
             createdAt: Timestamp(),
             lastActive: Timestamp()
         )
-        
+
         // Update the context
         viewModel.updateContext(user: newUser, groupId: "new-group-id", devMode: false)
-        
+
         // Check that the context was updated
         XCTAssertEqual(viewModel.currentUser?.uid, "new-user-id")
         XCTAssertEqual(viewModel.currentGroupId, "new-group-id")
+    }
+
+    // MARK: - Custom Split Tests
+
+    func testInitializeEqualCustomSplits() {
+        // Given - A group with 3 members
+        let threePersonGroup = Group(
+            id: "test-group-id",
+            name: "Test Group",
+            memberIds: ["user1", "user2", "user3"],
+            createdBy: "user1",
+            createdAt: Timestamp(),
+            settings: Settings(name: "Test Group")
+        )
+        viewModel.currentGroup = threePersonGroup
+
+        // When
+        viewModel.initializeEqualCustomSplits()
+
+        // Then
+        XCTAssertEqual(viewModel.newCustomSplitPercentages.count, 3)
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user1"] ?? 0, 33.333333333333336, accuracy: 0.01)
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user2"] ?? 0, 33.333333333333336, accuracy: 0.01)
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user3"] ?? 0, 33.333333333333336, accuracy: 0.01)
+    }
+
+    func testUpdateCustomSplitPercentage() {
+        // Given
+        viewModel.newCustomSplitPercentages = ["user1": 50.0, "user2": 50.0]
+
+        // When
+        viewModel.updateCustomSplitPercentage(for: "user1", percentage: 75.0)
+
+        // Then
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user1"], 75.0)
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user2"], 50.0)
+    }
+
+    func testUpdateCustomSplitPercentage_ClampsToBounds() {
+        // Given
+        viewModel.newCustomSplitPercentages = ["user1": 50.0]
+
+        // When - Try to set negative
+        viewModel.updateCustomSplitPercentage(for: "user1", percentage: -10.0)
+
+        // Then - Should clamp to 0
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user1"], 0.0)
+
+        // When - Try to set > 100
+        viewModel.updateCustomSplitPercentage(for: "user1", percentage: 150.0)
+
+        // Then - Should clamp to 100
+        XCTAssertEqual(viewModel.newCustomSplitPercentages["user1"], 100.0)
+    }
+
+    func testGetTotalCustomSplitPercentage() {
+        // Given
+        viewModel.newCustomSplitPercentages = ["user1": 40.0, "user2": 35.0, "user3": 25.0]
+
+        // When
+        let total = viewModel.getTotalCustomSplitPercentage()
+
+        // Then
+        XCTAssertEqual(total, 100.0)
+    }
+
+    func testIsCustomSplitValid_Valid() {
+        // Given - Percentages sum to 100%
+        viewModel.newCustomSplitPercentages = ["user1": 50.0, "user2": 50.0]
+
+        // When
+        let isValid = viewModel.isCustomSplitValid()
+
+        // Then
+        XCTAssertTrue(isValid)
+    }
+
+    func testIsCustomSplitValid_Invalid() {
+        // Given - Percentages sum to 90%
+        viewModel.newCustomSplitPercentages = ["user1": 40.0, "user2": 50.0]
+
+        // When
+        let isValid = viewModel.isCustomSplitValid()
+
+        // Then
+        XCTAssertFalse(isValid)
+    }
+
+    func testGetRemainingPercentage() {
+        // Given
+        viewModel.newCustomSplitPercentages = ["user1": 40.0, "user2": 35.0]
+
+        // When
+        let remaining = viewModel.getRemainingPercentage()
+
+        // Then
+        XCTAssertEqual(remaining, 25.0)
+    }
+
+    func testCreateExpenseWithCustomSplit() async throws {
+        // Given - Set up custom split
+        viewModel.newExpenseAmount = 100.0
+        viewModel.newExpenseDescription = "Custom Split Test"
+        viewModel.newExpenseSplitType = .custom
+        viewModel.newCustomSplitPercentages = ["test-user-id": 30.0, "other-user-id": 70.0]
+
+        // When
+        await viewModel.createExpense()
+
+        // Then - Check the created expense has correct custom splits
+        let newExpense = viewModel.expenses[0]
+        XCTAssertEqual(newExpense.splitType, .custom)
+        XCTAssertEqual(newExpense.customSplitPercentages, ["test-user-id": 30.0, "other-user-id": 70.0])
+
+        // Check that splits were calculated correctly from percentages
+        XCTAssertEqual(newExpense.splits["test-user-id"] ?? 0, 30.0, accuracy: 0.01)
+        XCTAssertEqual(newExpense.splits["other-user-id"] ?? 0, 70.0, accuracy: 0.01)
     }
 }

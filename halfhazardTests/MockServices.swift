@@ -184,7 +184,7 @@ class MockExpenseService: ExpenseService {
         return mockExpenses.filter { $0.groupId == groupId }
     }
     
-    override func createExpense(amount: Double, description: String?, groupId: String, splitType: SplitType, splits: [String: Double]) async throws -> Expense {
+    override func createExpense(amount: Double, description: String?, groupId: String, splitType: SplitType, splits: [String: Double], customSplitPercentages: [String: Double]? = nil, payments: [String: Double] = [:], settled: Bool = false, createdAt: Timestamp? = nil) async throws -> Expense {
         if let error = mockError {
             throw error
         }
@@ -195,10 +195,11 @@ class MockExpenseService: ExpenseService {
             description: description,
             groupId: groupId,
             createdBy: "test-user-id",
-            createdAt: Timestamp(),
+            createdAt: createdAt ?? Timestamp(),
             splitType: splitType,
             splits: splits,
-            settled: false,
+            customSplitPercentages: customSplitPercentages,
+            settled: settled,
             settledAt: nil
         )
         
