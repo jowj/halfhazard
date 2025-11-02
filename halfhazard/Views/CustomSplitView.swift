@@ -34,6 +34,7 @@ struct CustomSplitView: View {
                             viewModel.updateCustomSplitPercentage(for: memberId, percentage: newPercentage)
                         }
                     )
+                    .id(memberId) // Use stable ID
                 }
                 
                 // Summary row
@@ -93,11 +94,13 @@ struct CustomSplitRowView: View {
     let percentage: Double
     let amount: Double
     let onPercentageChange: (Double) -> Void
-    
+
     @State private var percentageText: String = ""
+    @State private var isUpdating: Bool = false
     @FocusState private var isPercentageFocused: Bool
     
     var body: some View {
+        let _ = print("CustomSplitRowView body evaluated for \(memberId) with percentage \(percentage)")
         HStack {
             Text(memberName)
                 .font(.subheadline)
@@ -113,8 +116,17 @@ struct CustomSplitRowView: View {
                     .keyboardType(.decimalPad)
                     #endif
                     .onChange(of: percentageText) { oldValue, newValue in
-                        if let value = Double(newValue) {
-                            onPercentageChange(value)
+                        // Prevent update loops
+                        guard !isUpdating else { return }
+                        // Only update if the text actually changed and we can parse it
+                        guard oldValue != newValue, let value = Double(newValue) else { return }
+                        // Only update if the value is different from current percentage
+                        guard abs(value - percentage) > 0.01 else { return }
+                        isUpdating = true
+                        onPercentageChange(value)
+                        // Reset flag after a short delay
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            isUpdating = false
                         }
                     }
                     #if os(iOS)
@@ -140,7 +152,8 @@ struct CustomSplitRowView: View {
             percentageText = String(format: "%.1f", percentage)
         }
         .onChange(of: percentage) { oldValue, newValue in
-            if !isPercentageFocused {
+            // Only update text if not currently editing and value actually changed
+            if !isPercentageFocused && abs(oldValue - newValue) > 0.01 {
                 percentageText = String(format: "%.1f", newValue)
             }
         }
