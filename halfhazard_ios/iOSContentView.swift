@@ -224,7 +224,8 @@ struct iOSContentView: View {
     @State private var isRegistering = false
     @State private var currentUser: User?
     @State private var errorMessage: String?
-    
+    @State private var isCheckingAuth = true
+
     // We need a separate binding for the alert to work correctly
     var showError: Binding<Bool> {
         Binding(
@@ -234,13 +235,16 @@ struct iOSContentView: View {
     }
     
     var body: some View {
-        if currentUser == nil {
-            authView
+        if isCheckingAuth {
+            // Show splash screen while checking authentication
+            SplashView()
                 .onAppear {
                     Task {
                         await checkForExistingUser()
                     }
                 }
+        } else if currentUser == nil {
+            authView
                 .alert("Error", isPresented: showError) {
                     Button("OK", action: {})
                 } message: {
@@ -368,10 +372,11 @@ struct iOSContentView: View {
                 self.currentUser = devUser
                 // Update ViewModels with current user and dev mode
                 updateViewModels(user: devUser, devMode: true)
+                self.isCheckingAuth = false
                 return
             }
         }
-        
+
         // Then check Firebase
         do {
             if let user = try await userService.getCurrentUser() {
@@ -383,6 +388,9 @@ struct iOSContentView: View {
             print("No current user: \(error)")
             // No need to show error message for no user
         }
+
+        // Authentication check is complete
+        self.isCheckingAuth = false
     }
     
     private func signIn() async {

@@ -38,18 +38,13 @@ struct ContentView: View {
     
     var body: some View {
         if isCheckingAuth {
-            // Show a loading screen while checking authentication
-            VStack {
-                ProgressView("Loading...")
-                    .scaleEffect(1.2)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(NSColor.controlBackgroundColor))
-            .onAppear {
-                Task {
-                    await checkForExistingUser()
+            // Show splash screen while checking authentication
+            SplashView()
+                .onAppear {
+                    Task {
+                        await checkForExistingUser()
+                    }
                 }
-            }
         } else if currentUser == nil {
             authView
                 .alert("Error", isPresented: showError) {
