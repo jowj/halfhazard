@@ -332,6 +332,27 @@ What the live check confirms, and one thing it deliberately does not:
   write to a *missing* document is refused either way, because an update rule that reads
   `resource.data.…` errors on the null, so a denial would prove nothing.
 
+### Editing, which went missing
+
+Phase 4 built add, settle and delete but no edit, and phase 5 deleted `EditExpenseForm` with
+the rest of the expense UI — so for a while there was no way to correct an entry at all, and
+`LedgerStore.update(_:)` sat there with nothing calling it. `EditEntrySheet` fills that in:
+tap a row in the feed.
+
+An edit keeps the entry's identity — id, `createdAt`, `createdBy` — and rewrites only what it
+says happened. Shares are re-derived from the split rather than edited directly, so a
+corrected total cannot leave the halves disagreeing with it.
+
+The subtle part is `SplitShape`, which reads an existing split back as a choice the sheet can
+offer. Three options cover almost everything, but not a 70/30 from a template or an uneven
+exact split carried in by the migration; those are recognised as `asRecorded` and preserved,
+rescaled proportionally if the amount changes. Without that, correcting a typo in a note
+would have flattened the split to 50/50 on the way out. It lives in the model, with tests,
+because that failure would be silent and would corrupt real numbers.
+
+Settlements can be edited for amount, note and date, but not direction: reversing one means
+deleting it and recording the other way, which leaves an honest trail.
+
 ### Names, and why they live on the ledger
 
 `users/{id}` is readable only by that user, so neither member can read the other's profile.

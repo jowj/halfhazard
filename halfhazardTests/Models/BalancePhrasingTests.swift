@@ -78,3 +78,53 @@ final class BalancePhrasingTests: XCTestCase {
         XCTAssertEqual(entry.deltaLabel(for: josiah), "—", "he paid for what he alone owed")
     }
 }
+
+/// The edit screen reads an entry's split back as a choice. Getting this wrong would flatten
+/// an uneven split to 50/50 the next time somebody corrected a typo in the note.
+final class SplitShapeTests: XCTestCase {
+
+    private func entry(owedBy: [String: Money], amount: Int) -> LedgerEntry {
+        LedgerEntry(
+            id: "e", ledgerId: "l", kind: .expense, amount: Money(cents: amount),
+            paidBy: [josiah: Money(cents: amount)], owedBy: owedBy,
+            note: nil, category: nil, splitRule: nil,
+            date: Date(), createdAt: Date(), createdBy: josiah
+        )
+    }
+
+    func testAnEvenSplitReadsAsEven() {
+        let even = entry(owedBy: [josiah: Money(cents: 4210), laura: Money(cents: 4210)], amount: 8420)
+
+        XCTAssertEqual(SplitShape.of(even, viewer: josiah), .evenly)
+    }
+
+    func testAnOddCentStillReadsAsEven() {
+        let odd = entry(owedBy: [josiah: Money(cents: 501), laura: Money(cents: 500)], amount: 1001)
+
+        XCTAssertEqual(SplitShape.of(odd, viewer: josiah), .evenly, "one leftover cent is what even looks like")
+    }
+
+    func testOneSideCoveringItAll() {
+        let mine = entry(owedBy: [josiah: Money(cents: 3000), laura: .zero], amount: 3000)
+        let theirs = entry(owedBy: [josiah: .zero, laura: Money(cents: 3000)], amount: 3000)
+
+        XCTAssertEqual(SplitShape.of(mine, viewer: josiah), .allViewer)
+        XCTAssertEqual(SplitShape.of(theirs, viewer: josiah), .allPartner)
+    }
+
+    /// The case that matters: a 70/30 from a template must not be mistaken for anything the
+    /// three simple options can express.
+    func testAnUnevenSplitIsRecognisedAsRecorded() {
+        let uneven = entry(owedBy: [josiah: Money(cents: 140_000), laura: Money(cents: 60_000)],
+                           amount: 200_000)
+
+        XCTAssertEqual(SplitShape.of(uneven, viewer: josiah), .asRecorded)
+    }
+
+    func testItReadsTheSameFromEitherSide() {
+        let uneven = entry(owedBy: [josiah: Money(cents: 140_000), laura: Money(cents: 60_000)],
+                           amount: 200_000)
+
+        XCTAssertEqual(SplitShape.of(uneven, viewer: laura), .asRecorded)
+    }
+}

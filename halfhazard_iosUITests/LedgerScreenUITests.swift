@@ -105,6 +105,31 @@ final class LedgerScreenUITests: XCTestCase {
         attach(app, named: "profile")
     }
 
+    /// Tapping a row opens it for editing — the path that went missing when the old expense
+    /// forms were deleted.
+    func testEditingAnEntryFromTheFeed() {
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))
+
+        app.staticTexts["Groceries"].tap()
+        XCTAssertTrue(app.navigationBars["Edit expense"].waitForExistence(timeout: 5))
+        attach(app, named: "edit")
+
+        let amount = app.textFields["Amount"]
+        amount.tap()
+        amount.press(forDuration: 1.2)
+        if app.menuItems["Select All"].waitForExistence(timeout: 2) {
+            app.menuItems["Select All"].tap()
+        }
+        amount.typeText("100")
+        app.buttons["Save"].tap()
+
+        // Groceries was $84.20 split evenly, so Josiah was owed $42.10 of it. At $100 he is
+        // owed $50: the balance rises by $7.90.
+        XCTAssertTrue(app.staticTexts["Laura owes you $121.75"].waitForExistence(timeout: 10))
+        attach(app, named: "after-edit")
+    }
+
     func testSettlingClearsTheBalance() {
         let app = launch()
         XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))

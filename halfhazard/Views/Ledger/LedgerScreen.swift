@@ -16,6 +16,7 @@ struct LedgerScreen: View {
     @State private var showingSettle = false
     @State private var showingTemplates = false
     @State private var showingProfile = false
+    @State private var editing: LedgerEntry?
     @State private var userService = UserService()
 
     /// Signing out is the only thing left over from the old chrome that still needs a home.
@@ -103,6 +104,9 @@ struct LedgerScreen: View {
             .sheet(isPresented: $showingAdd) { AddExpenseSheet(store: store) }
             .sheet(isPresented: $showingSettle) { SettleSheet(store: store) }
             .sheet(isPresented: $showingTemplates) { TemplatesSheet(store: store) }
+            .sheet(item: $editing) { entry in
+                EditEntrySheet(store: store, entry: entry)
+            }
             .sheet(isPresented: $showingProfile) {
                 if let viewer = store.viewer {
                     EditProfileView(userService: userService, user: viewer) {
@@ -142,6 +146,8 @@ struct LedgerScreen: View {
                     Section(day.formatted(.dateTime.weekday(.wide).month().day())) {
                         ForEach(entries) { entry in
                             EntryRow(entry: entry, viewerId: store.viewerId, name: store.name(for:))
+                                .contentShape(Rectangle())
+                                .onTapGesture { editing = entry }
                                 .swipeActions(edge: .trailing) {
                                     Button(role: .destructive) {
                                         Task { await store.delete(entry) }

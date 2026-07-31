@@ -250,6 +250,29 @@ final class LedgerStoreTests: XCTestCase {
         XCTAssertEqual(store.errorMessage, "Nothing to settle.")
     }
 
+    /// Editing has to keep the entry's identity and re-derive the shares, or a corrected
+    /// total leaves the halves disagreeing with it.
+    func testEditingAnEntryKeepsItsIdentityAndRebalances() async throws {
+        let (store, _) = await makeStore(entries: [expense(id: "a", amount: 8420, paidBy: josiah)])
+        var edited = try XCTUnwrap(store.entries.first)
+        let created = edited.createdAt
+
+        edited.amount = Money(cents: 10_000)
+        edited.owedBy = try SplitAllocator.allocate(total: Money(cents: 10_000), rule: .equal, among: [josiah, laura])
+        edited.paidBy = [josiah: Money(cents: 10_000)]
+        edited.note = "Groceries, corrected"
+        await store.update(edited)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        let stored = try XCTUnwrap(store.entries.first)
+        XCTAssertEqual(store.entries.count, 1, "an edit replaces, it does not add")
+        XCTAssertEqual(stored.id, "a")
+        XCTAssertEqual(stored.createdAt, created, "when it was first recorded does not change")
+        XCTAssertEqual(stored.note, "Groceries, corrected")
+        XCTAssertTrue(stored.isBalanced)
+        XCTAssertEqual(store.standing.amount, Money(cents: 5000))
+    }
+
     func testDeletingRemovesItFromTheFeed() async throws {
         let (store, _) = await makeStore(entries: [
             expense(id: "a", amount: 1000, paidBy: josiah),
