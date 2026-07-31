@@ -14,6 +14,9 @@ struct LedgerScreen: View {
     @State private var store: LedgerStore
     @State private var showingAdd = false
     @State private var showingSettle = false
+    @State private var showingTemplates = false
+    @State private var showingProfile = false
+    @State private var userService = UserService()
 
     /// Signing out is the only thing left over from the old chrome that still needs a home.
     private let onSignOut: (() -> Void)?
@@ -31,6 +34,16 @@ struct LedgerScreen: View {
     init(store: LedgerStore, onSignOut: (() -> Void)? = nil) {
         _store = State(initialValue: store)
         self.onSignOut = onSignOut
+    }
+
+    /// Directly in the bar rather than `.secondaryAction`, which on iOS folds the item into
+    /// the system overflow menu — putting this menu inside another menu.
+    private var menuPlacement: ToolbarItemPlacement {
+        #if os(iOS)
+        .topBarLeading
+        #else
+        .automatic
+        #endif
     }
 
     private var partnerName: String {
@@ -62,18 +75,42 @@ struct LedgerScreen: View {
                     .disabled(store.ledger == nil)
                     .keyboardShortcut("n", modifiers: .command)
                 }
-                if let onSignOut {
-                    ToolbarItem(placement: .secondaryAction) {
-                        Menu {
-                            Button("Sign out", role: .destructive, action: onSignOut)
+                ToolbarItem(placement: menuPlacement) {
+                    Menu {
+                        Button {
+                            showingTemplates = true
                         } label: {
-                            Label("Account", systemImage: "person.crop.circle")
+                            Label("Templates", systemImage: "doc.on.doc")
                         }
+                        .disabled(store.ledger == nil)
+
+                        Button {
+                            showingProfile = true
+                        } label: {
+                            Label("Your profile", systemImage: "person.crop.circle")
+                        }
+                        .disabled(store.viewer == nil)
+
+                        if let onSignOut {
+                            Divider()
+                            Button("Sign out", role: .destructive, action: onSignOut)
+                        }
+                    } label: {
+                        Label("More", systemImage: "ellipsis.circle")
                     }
                 }
             }
             .sheet(isPresented: $showingAdd) { AddExpenseSheet(store: store) }
             .sheet(isPresented: $showingSettle) { SettleSheet(store: store) }
+            .sheet(isPresented: $showingTemplates) { TemplatesSheet(store: store) }
+            .sheet(isPresented: $showingProfile) {
+                if let viewer = store.viewer {
+                    EditProfileView(userService: userService, user: viewer) {
+                        // Republish, so the name reaches the other person's screen.
+                        Task { await store.refreshProfile() }
+                    }
+                }
+            }
         }
         .task { await store.start() }
     }

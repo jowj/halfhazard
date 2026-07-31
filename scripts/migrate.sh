@@ -14,6 +14,7 @@
 #   ./scripts/migrate.sh commit --force       # commit despite blocking issues.
 #   ./scripts/migrate.sh audit                # check what is in the database. Writes nothing.
 #   ./scripts/migrate.sh store                # what the app screen would show. Writes nothing.
+#   ./scripts/migrate.sh rules                # check the deployed rules allow/deny correctly.
 #   ./scripts/migrate.sh inspect <id> [<id>…] # dump a legacy expense, stored and migrated.
 #
 # Configuration lives in .migration-env in the repo root (gitignored):
@@ -41,6 +42,7 @@ case "$MODE" in
   commit)  TEST=testCommit ;;
   audit)   TEST=testAudit ;;
   store)   TEST=testLiveStore ;;
+  rules)   TEST=testRules ;;
   inspect)
     TEST=testInspect
     if [ $# -eq 0 ]; then

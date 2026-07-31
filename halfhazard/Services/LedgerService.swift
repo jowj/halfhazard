@@ -35,6 +35,14 @@ protocol LedgerDataSource: Sendable {
 
     func save(_ entry: LedgerEntry) async throws
     func delete(entryId: String, from ledgerId: String) async throws
+
+    /// Templates live beside the entries, under the ledger both people can already reach.
+    /// The old ones lived at `users/{uid}/expenseTemplates`, which no rule granted access to —
+    /// subcollections do not inherit `users/{userId}` — so the feature was denied in
+    /// production, and there is nothing there worth carrying across.
+    func templates(in ledgerId: String) -> AsyncThrowingStream<[Template], Error>
+    func save(_ template: Template) async throws
+    func deleteTemplate(id: String, from ledgerId: String) async throws
 }
 
 /// The Firestore implementation.
@@ -51,6 +59,10 @@ final class FirestoreLedgerService: LedgerDataSource {
 
     private func entriesCollection(_ ledgerId: String) -> CollectionReference {
         db.collection("ledgers").document(ledgerId).collection("entries")
+    }
+
+    private func templatesCollection(_ ledgerId: String) -> CollectionReference {
+        db.collection("ledgers").document(ledgerId).collection("templates")
     }
 
     func ledger(for userId: String) async throws -> Ledger? {
@@ -94,6 +106,34 @@ final class FirestoreLedgerService: LedgerDataSource {
             users.append(user)
         }
         return users
+    }
+
+    func templates(in ledgerId: String) -> AsyncThrowingStream<[Template], Error> {
+        AsyncThrowingStream { continuation in
+            let listener = templatesCollection(ledgerId)
+                .order(by: "name")
+                .addSnapshotListener { snapshot, error in
+                    if let error {
+                        continuation.finish(throwing: error)
+                        return
+                    }
+                    guard let snapshot else { return }
+                    do {
+                        continuation.yield(try snapshot.documents.map { try $0.data(as: Template.self) })
+                    } catch {
+                        continuation.finish(throwing: error)
+                    }
+                }
+            continuation.onTermination = { _ in listener.remove() }
+        }
+    }
+
+    func save(_ template: Template) async throws {
+        try templatesCollection(template.ledgerId).document(template.id).setData(from: template)
+    }
+
+    func deleteTemplate(id: String, from ledgerId: String) async throws {
+        try await templatesCollection(ledgerId).document(id).delete()
     }
 
     func recordName(_ name: String, for userId: String, in ledgerId: String) async throws {

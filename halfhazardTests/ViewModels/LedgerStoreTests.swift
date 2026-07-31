@@ -46,6 +46,36 @@ private final class InMemorySource: LedgerDataSource, @unchecked Sendable {
         return people.filter { ids.contains($0.uid) }
     }
 
+    private(set) var storedTemplates: [String: Template] = [:]
+    private var templateContinuations: [UUID: AsyncThrowingStream<[Template], Error>.Continuation] = [:]
+
+    func templates(in ledgerId: String) -> AsyncThrowingStream<[Template], Error> {
+        AsyncThrowingStream { continuation in
+            let id = UUID()
+            lock.withLock { templateContinuations[id] = continuation }
+            continuation.yield(Array(storedTemplates.values))
+            continuation.onTermination = { [weak self] _ in
+                self?.lock.withLock { _ = self?.templateContinuations.removeValue(forKey: id) }
+            }
+        }
+    }
+
+    func save(_ template: Template) async throws {
+        storedTemplates[template.id] = template
+        let all = Array(storedTemplates.values)
+        for continuation in lock.withLock({ Array(templateContinuations.values) }) {
+            continuation.yield(all)
+        }
+    }
+
+    func deleteTemplate(id: String, from ledgerId: String) async throws {
+        storedTemplates[id] = nil
+        let all = Array(storedTemplates.values)
+        for continuation in lock.withLock({ Array(templateContinuations.values) }) {
+            continuation.yield(all)
+        }
+    }
+
     func recordName(_ name: String, for userId: String, in ledgerId: String) async throws {
         recordedNames[userId] = name
         ledger?.memberNames = recordedNames
@@ -317,10 +347,143 @@ final class LedgerStoreTests: XCTestCase {
         XCTAssertEqual(store.name(for: laura), "Laura", "readable without touching her profile")
     }
 
+    /// Renaming yourself has to reach the ledger: the other person's client cannot read your
+    /// profile, so an unpublished change is invisible to them.
+    func testRefreshingTheProfilePublishesTheNewName() async {
+        let (store, source) = await makeStore()
+        XCTAssertEqual(source.recordedNames[josiah], "Josiah")
+
+        source.people = [user(josiah, name: "Jos"), user(laura, name: "Laura")]
+        await store.refreshProfile()
+
+        XCTAssertEqual(source.recordedNames[josiah], "Jos")
+        XCTAssertEqual(store.viewer?.displayName, "Jos")
+    }
+
+    func testRefreshingPublishesEvenWhenNobodyHasBeenNamedYet() async {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura]),
+            people: [user(josiah, name: "Josiah")],
+            entries: [expense(id: "a", amount: 1000, paidBy: josiah)]
+        )
+        let store = LedgerStore(source: source, viewerId: josiah)
+        await store.start()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        await store.refreshProfile()
+
+        XCTAssertEqual(store.ledger?.memberNames?[josiah], "Josiah")
+    }
+
     func testFallsBackToASensibleNameWhenTheUserIsUnknown() async {
         let (store, _) = await makeStore(people: [user(josiah, name: "Josiah"), user(laura, name: nil)])
 
         XCTAssertEqual(store.name(for: laura), "laura", "the email's local part beats a blank row")
         XCTAssertEqual(store.name(for: "nobody"), "Them")
+    }
+}
+
+@MainActor
+final class LedgerStoreTemplateTests: XCTestCase {
+
+    private func makeStore(templates: [Template] = []) async -> (LedgerStore, InMemorySource) {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura]),
+            people: [user(josiah, name: "Josiah"), user(laura, name: "Laura")]
+        )
+        for template in templates { try? await source.save(template) }
+        let store = LedgerStore(source: source, viewerId: josiah)
+        await store.start()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        return (store, source)
+    }
+
+    private var monthly: Template {
+        Template(
+            id: "t1", ledgerId: book, name: "Monthly",
+            lines: [
+                TemplateLine(id: "l1", note: "Rent", amount: Money(cents: 200_000),
+                             payer: .member(josiah),
+                             split: .percentage([josiah: 70, laura: 30])),
+                TemplateLine(id: "l2", note: "Internet", amount: Money(cents: 8000))
+            ],
+            createdBy: josiah
+        )
+    }
+
+    func testTemplatesArriveOnTheirOwnListener() async {
+        let (store, _) = await makeStore(templates: [monthly])
+
+        XCTAssertEqual(store.templates.map(\.name), ["Monthly"])
+        XCTAssertEqual(store.templates.first?.total, Money(cents: 208_000))
+    }
+
+    func testApplyingWritesOneEntryPerLine() async throws {
+        let (store, _) = await makeStore(templates: [monthly])
+
+        let written = await store.apply(monthly)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(written?.count, 2)
+        XCTAssertEqual(store.entries.count, 2)
+
+        let rent = try XCTUnwrap(store.entries.first { $0.note == "Rent" })
+        XCTAssertEqual(rent.owedBy[josiah], Money(cents: 140_000), "70% to the person named")
+        XCTAssertEqual(rent.owedBy[laura], Money(cents: 60_000))
+        XCTAssertEqual(rent.solePayer, josiah)
+
+        let internet = try XCTUnwrap(store.entries.first { $0.note == "Internet" })
+        XCTAssertEqual(internet.solePayer, josiah, "the applier fronted this one")
+        XCTAssertEqual(internet.owedBy[laura], Money(cents: 4000))
+    }
+
+    func testApplyingMovesTheBalance() async throws {
+        let (store, _) = await makeStore(templates: [monthly])
+
+        await store.apply(monthly)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // Josiah fronts $2,080.00 and owes $1,400.00 of the rent plus $40.00 of the internet.
+        XCTAssertEqual(store.standing.amount, Money(cents: 64_000))
+    }
+
+    func testAStaleTemplateReportsRatherThanMisallocating() async throws {
+        let stale = Template(
+            id: "t2", ledgerId: book, name: "Stale",
+            lines: [TemplateLine(note: "Rent", amount: Money(cents: 1000),
+                                 split: .percentage(["departed": 100]))],
+            createdBy: josiah
+        )
+        let (store, _) = await makeStore(templates: [stale])
+
+        let written = await store.apply(stale)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertNil(written)
+        XCTAssertTrue(store.entries.isEmpty, "nothing is written when the template no longer fits")
+        XCTAssertNotNil(store.errorMessage)
+    }
+
+    func testSavingAndDeletingATemplate() async throws {
+        let (store, source) = await makeStore()
+
+        await store.save(monthly)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertEqual(store.templates.count, 1)
+
+        await store.delete(monthly)
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertTrue(store.templates.isEmpty)
+        XCTAssertTrue(source.storedTemplates.isEmpty)
+    }
+
+    func testANewTemplateIsBoundToTheLedger() async {
+        let (store, _) = await makeStore()
+
+        let fresh = store.newTemplate(name: "Weekly")
+
+        XCTAssertEqual(fresh?.ledgerId, book)
+        XCTAssertEqual(fresh?.createdBy, josiah)
+        XCTAssertTrue(fresh?.lines.isEmpty ?? false)
     }
 }

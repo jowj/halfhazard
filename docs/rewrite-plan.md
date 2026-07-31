@@ -99,8 +99,8 @@ mismatches before anything cuts over.
 3. ~~`LedgerStore` on a Firestore snapshot listener, replacing the `NotificationCenter` bus~~ **done**
 4. ~~Single-screen UI: balance header, feed, add/settle sheets~~ **done**
 5. ~~Delete the group world, collapse the two root views~~ **done**
-6. Port templates onto `SplitRule` ← next
-7. Firestore rules + indexes for `entries`
+6. ~~Port templates onto `SplitRule`~~ **done**
+7. ~~Firestore rules + indexes for `entries`~~ **done**
 
 ### Phase 1 output
 
@@ -266,6 +266,72 @@ Verified after the deletion: both targets build, every suite passes, the three U
 drive the real app, and `./scripts/migrate.sh store` still reads the live ledger — 80 entries,
 no error.
 
+### Phase 6 output
+
+`Models/Template.swift` — `Template`, `TemplateLine`, `TemplatePayer` — plus
+`Views/Ledger/TemplatesSheet.swift` and template support in `LedgerStore` and
+`LedgerService`. 11 tests in `TemplateTests`, 6 in `LedgerStoreTemplateTests`, and a UI test
+that applies the fixture template through the real app. The old `ExpenseTemplate`,
+`ExpenseTemplateService` and their tests are gone (581 lines).
+
+The defect is fixed by removing the step that carried it. `TemplateItem.createExpense` took
+`Array(percentages.keys)` — a dictionary's arbitrary order — and zipped it against the member
+list by index, so who got 70% was luck and could differ between two runs of the same
+template. Lines now hold a `SplitRule` keyed by user id, like every other split in the app,
+so there is no mapping to get wrong; `SplitAllocator` rejects a rule naming somebody who is
+not on the ledger instead of quietly handing their share to whoever is left.
+
+Two things the old model could not say:
+
+- **Who pays is separate from how it splits.** `TemplatePayer` is either a fixed member
+  ("the internet is on Josiah's card, whoever records it") or `.applier`.
+- Templates belong to the **ledger**, at `ledgers/{id}/templates/{id}`, so both people see
+  them. The old ones were at `users/{uid}/expenseTemplates`, which no rule granted access to —
+  subcollections do not inherit `users/{userId}` — so the feature was denied in production.
+  Nothing was worth migrating.
+
+`firestore.rules` now grants ledger members everything under their own ledger
+(`match /{document=**}`) rather than naming each subcollection, so a future one needs no
+deploy. **Deploy the rules before using templates.**
+
+Two more vacuous passes found and fixed structurally: `run_tests.sh ui` used `grep` as its
+verdict, and grep exits 0 for *any* matching line — including a failing one. It now counts
+passes and failures, as the other suites already did.
+
+Also worth knowing for iOS: `ToolbarItem(placement: .secondaryAction)` folds the item into
+the system overflow menu, which put the app's own menu inside another menu and made it
+unreachable. The menu sits at `.topBarLeading` on iOS instead.
+
+### Phase 7 output
+
+`firestore.rules` rewritten as one document rather than four deploys of accretion, and
+`firestore.indexes.json` emptied. `./scripts/migrate.sh rules` exercises the deployed rules
+against the real database and reports what is allowed and what is refused.
+
+**No composite indexes are needed.** Every query the app makes is single-field, which
+Firestore indexes automatically: `ledgers` by array-contains on `memberIds`, `entries` by
+`date` within one ledger, `templates` by `name` within one ledger. Keeping a ledger's
+documents underneath it — rather than in top-level collections filtered by `ledgerId` — is
+what removes the need, the same shape that made the queries authorizable at all. The old
+composite index on `expenses` (groupId, createdAt) is gone with the query that used it.
+
+`groups` and `expenses` are now **frozen**: readable, since the migration re-reads them and
+they are the only record of what the old app stored, and writable by nobody. A stray old
+client or a half-finished migration re-run cannot change the thing being migrated from.
+
+What the live check confirms, and one thing it deliberately does not:
+
+- Reading entries and templates, and writing and deleting a template, all work.
+- Reading `expenses` **filtered by group**, the shape the migration uses, works. Sweeping the
+  whole collection unfiltered is refused — the same limit that forced entries into a
+  subcollection: a rule reading `resource.data.groupId` cannot authorize a query.
+- Reading the other member's profile is refused, which is why names live on the ledger.
+- Writes to the frozen collections are not probed. Every unambiguous probe is also
+  destructive — writing to a document that exists would mutate the backup if the rules
+  allowed it, and writing to one that does not would leave a stray document behind. Worse, a
+  write to a *missing* document is refused either way, because an update rule that reads
+  `resource.data.…` errors on the null, so a denial would prove nothing.
+
 ### Names, and why they live on the ledger
 
 `users/{id}` is readable only by that user, so neither member can read the other's profile.
@@ -279,9 +345,14 @@ whose 80 entries had loaded perfectly well. Two fixes, both worth keeping:
   their app starts. Both members can already read and write the ledger document, so this
   needs no loosening of the `users` rule.
 
-The consequence: the other person shows as "Them" until they open the new app once and
-publish their name. Either member *may* write the other's entry in `memberNames` — the rule
-allows it — so a rename affordance is possible if waiting is not acceptable.
+The consequence: the other person shows as "Them" until they open the new app once, which
+publishes their name. Changing it later has to republish, or the other side keeps seeing the
+old one — so `LedgerStore.refreshProfile()` re-reads the profile and rewrites `memberNames`,
+and `EditProfileView` calls it on save. That view survived phase 5 but had nothing linking to
+it; it is now behind **More → Your profile**, which is also the only route to it.
+
+Either member *may* write the other's entry in `memberNames` — the rule allows it — so
+renaming the other person is possible if that is ever wanted.
 
 ### The bootstrap crash, explained
 
@@ -295,6 +366,29 @@ a crashed run always leaves one — makes the next one abort inside
 believing xcodebuild's exit code: it launches host processes it does not run tests in, and
 those still abort on the lock, failing the whole invocation while every test passed. Both
 scripts judge by the test results and say so when they override.
+
+## Where it landed
+
+All seven phases are done. The old defect list, item by item:
+
+| Defect | Outcome |
+| --- | --- |
+| `SplitType.currentUserOwes/.currentUserOwed` stored viewer-relative | Gone. `paidBy`/`owedBy` are explicit; every label takes the viewer, and `BalancePhrasingTests` checks both sides |
+| Two disagreeing balance calculations | One: `Balance`, over the entries in `LedgerStore` |
+| Settlement as a reversible boolean | An entry. Partial settlement is just a smaller amount |
+| `splits` recomputed in four places | Derived once by `SplitAllocator`, stored on the entry |
+| `Double` money | Integer cents, `Decimal` for input |
+| No transaction date, no category | `date` and `category` on every entry |
+| `.navigationDestination` outside the navigation hierarchy | Deleted with `ContentView` |
+| ~165 lines of `#if os(iOS)` that never compiled | Deleted with `ContentView` |
+| A Firestore user fetch per row | Both people loaded once; names published on the ledger |
+| Nothing live; hand-rolled `NotificationCenter` bus | Snapshot listeners |
+| Dev mode as `Double.random(in: -100...100)` | Gone with `GroupViewModel`; dev data is a `LedgerDataSource` |
+| Template percentages mapped to members by array index | `SplitRule` keyed by user id; a stale rule throws |
+| `loadGroups()` then a serial refetch of every expense | One listener |
+
+Not carried across, deliberately: CSV import and export, the changelog sheet, group joining
+by invite code. Say so if any of them are missed; the code is in git history at `aaf6a36`.
 
 ## Other defects to fix on the way through
 

@@ -268,6 +268,86 @@ final class MigrationHarness: XCTestCase {
             .joined(separator: ", ") ?? "-"))
     }
 
+    /// Exercises the deployed rules against the real database: everything the app needs to
+    /// do must be allowed, and the frozen collections must refuse writes.
+    ///
+    /// Writes one template and deletes it again. Nothing else is written.
+    @MainActor
+    func testRules() async throws {
+        let viewerId = try XCTUnwrap(Auth.auth().currentUser?.uid)
+        let service = FirestoreLedgerService()
+        let db = Firestore.firestore()
+
+        func check(_ what: String, expected: Bool, _ operation: () async throws -> Void) async {
+            do {
+                try await operation()
+                report("\(expected ? "ok" : "SHOULD HAVE BEEN DENIED"): \(what)")
+                if !expected { XCTFail("\(what) was allowed and should not be.") }
+            } catch {
+                let code = (error as NSError).code
+                if expected {
+                    report("DENIED: \(what) — \(error.localizedDescription)")
+                    XCTFail("\(what) was denied: \(error.localizedDescription)")
+                } else if code == 7 {
+                    report("correctly denied: \(what)")
+                } else {
+                    // Not permission-denied, so the rules did not refuse it — see the note on
+                    // `denyProbe` about why that still leaves nothing behind.
+                    report("NOT DENIED BY RULES (code \(code)): \(what)")
+                    XCTFail("\(what) was not refused by the rules.")
+                }
+            }
+        }
+
+        let found = try await service.ledger(for: viewerId)
+        let ledger = try XCTUnwrap(found, "no ledger for this account")
+        report("ledger \(ledger.id)")
+
+        await check("read entries", expected: true) {
+            _ = try await service.loadEntriesOnce(ledgerId: ledger.id)
+        }
+        await check("read templates", expected: true) {
+            _ = try await db.collection("ledgers").document(ledger.id)
+                .collection("templates").getDocuments()
+        }
+
+        // A real round trip through the templates subcollection, then cleaned up.
+        let probe = Template(
+            id: "rules-probe", ledgerId: ledger.id, name: "Rules probe",
+            lines: [TemplateLine(note: "probe", amount: Money(cents: 1))],
+            createdBy: viewerId
+        )
+        await check("write a template", expected: true) { try await service.save(probe) }
+        await check("delete a template", expected: true) {
+            try await service.deleteTemplate(id: probe.id, from: ledger.id)
+        }
+
+        // The shape the migration uses, which has to keep working: filtered by group, never
+        // an unfiltered sweep of the collection. An unfiltered `expenses` query *is* refused,
+        // for the same reason a top-level `entries` query was — a rule reading
+        // `resource.data.groupId` cannot authorize a query.
+        await check("read the old expenses, filtered by group as the migration does", expected: true) {
+            _ = try await db.collection("expenses")
+                .whereField("groupId", isEqualTo: ledger.id).limit(to: 1).getDocuments()
+        }
+        await check("sweep the whole expenses collection", expected: false) {
+            _ = try await db.collection("expenses").limit(to: 1).getDocuments()
+        }
+
+        await check("read the other member's profile", expected: false) {
+            let other = try XCTUnwrap(ledger.partner(of: viewerId))
+            _ = try await db.collection("users").document(other).getDocument()
+        }
+
+        // Writes to the frozen collections are deliberately not probed. Every probe that
+        // would be unambiguous is also destructive: writing to a document that exists would
+        // mutate the backup if the rules allowed it, and writing to one that does not would
+        // leave a stray document behind. Worse, a write to a *missing* document is refused
+        // either way — an update rule that reads `resource.data.…` errors on the null — so a
+        // denial would prove nothing. The freeze is asserted by reading the rules, not here.
+        report("(writes to expenses/groups are frozen in the rules; not probed — see the note)")
+    }
+
     /// Reads the database back and reports whether it holds what the migration should have
     /// written. Safe to run any time, including before a commit, where it will say that
     /// nothing has been written yet.

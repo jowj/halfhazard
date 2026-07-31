@@ -82,7 +82,7 @@ run_test_suite() {
 # addresses classes rather than files, so they are listed out here.
 run_ledger_suites() {
   local result=0
-  for suite in MoneyTests SplitAllocatorTests LedgerEntryTests BalanceTests; do
+  for suite in MoneyTests SplitAllocatorTests LedgerEntryTests BalanceTests TemplateTests; do
     run_test_suite "$suite" "$suite" || result=1
     sleep 1
   done
@@ -91,7 +91,7 @@ run_ledger_suites() {
 
 run_store_suites() {
   local result=0
-  for suite in LedgerStoreTests BalancePhrasingTests; do
+  for suite in LedgerStoreTests LedgerStoreTemplateTests BalancePhrasingTests; do
     run_test_suite "$suite" "$suite" || result=1
     sleep 1
   done
@@ -108,13 +108,23 @@ run_ui_suite() {
     echo -e "${RED}No iPhone simulator available.${NC}"
     return 1
   fi
-  if xcodebuild test -project halfhazard.xcodeproj -scheme halfhazard_ios \
-       -destination "id=$device" -only-testing:halfhazard_iosUITests/LedgerScreenUITests 2>&1 \
-       | grep -E "Test case|\*\* TEST"; then
-    echo -e "${GREEN}✓ UI tests passed${NC}"
+  local log
+  log=$(mktemp -t halfhazard-uitests)
+  xcodebuild test -project halfhazard.xcodeproj -scheme halfhazard_ios \
+    -destination "id=$device" -only-testing:halfhazard_iosUITests/LedgerScreenUITests 2>&1 \
+    | tee "$log" | grep -E "Test case|\*\* TEST"
+
+  # grep exits 0 for *any* matching line, including a failure, so it cannot be the verdict.
+  local passed failed
+  passed=$(grep -ac "Test case.*passed" "$log")
+  failed=$(grep -ac "Test case.*failed" "$log")
+  rm -f "$log"
+
+  if [ "$failed" -eq 0 ] && [ "$passed" -gt 0 ]; then
+    echo -e "${GREEN}✓ UI tests passed ($passed)${NC}"
     return 0
   fi
-  echo -e "${RED}✗ UI tests failed${NC}"
+  echo -e "${RED}✗ UI tests failed ($failed of $((passed+failed)))${NC}"
   return 1
 }
 

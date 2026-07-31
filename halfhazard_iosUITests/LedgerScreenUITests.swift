@@ -67,6 +67,44 @@ final class LedgerScreenUITests: XCTestCase {
         attach(app, named: "after-add")
     }
 
+    /// Templates: the fixture has one, applying it writes its lines as real entries.
+    func testApplyingATemplateRecordsItsLines() {
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))
+
+        // Two elements answer to "More": the overflow bar item and the menu button inside it.
+        app.buttons.matching(identifier: "More").firstMatch.tap()
+        let templates = app.buttons["Templates"]
+        XCTAssertTrue(templates.waitForExistence(timeout: 5), "the menu should open")
+        templates.tap()
+        XCTAssertTrue(app.navigationBars["Templates"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Monthly bills"].exists)
+        attach(app, named: "templates")
+
+        // Rent 1800 (60/40, on you) + internet 75 + power 42, all fronted by you:
+        // you are owed 720 + 37.50 + 21 = 778.50 more than before.
+        app.buttons["Record $1,917.00"].tap()
+
+        XCTAssertTrue(app.staticTexts["Laura owes you $892.35"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Rent"].exists)
+        attach(app, named: "after-template")
+    }
+
+    /// The way to change your own name, which is the only way the other person ever sees it.
+    func testProfileIsReachableFromTheScreen() {
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))
+
+        app.buttons.matching(identifier: "More").firstMatch.tap()
+        let profile = app.buttons["Your profile"]
+        XCTAssertTrue(profile.waitForExistence(timeout: 5), "the menu should offer the profile")
+        profile.tap()
+
+        XCTAssertTrue(app.staticTexts["Edit Profile"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["Display Name"].exists)
+        attach(app, named: "profile")
+    }
+
     func testSettlingClearsTheBalance() {
         let app = launch()
         XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))

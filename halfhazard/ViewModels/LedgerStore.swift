@@ -27,11 +27,13 @@ final class LedgerStore {
         func cancel() { task?.cancel(); task = nil }
     }
     private let listener = ListenerBox()
+    private let templateListener = ListenerBox()
 
     private(set) var ledger: Ledger?
     private(set) var entries: [LedgerEntry] = []
     /// Both people, loaded once. `ExpenseRow` used to fetch a user per row just to show a name.
     private(set) var users: [String: User] = [:]
+    private(set) var templates: [Template] = []
     private(set) var isLoading = true
     private(set) var errorMessage: String?
 
@@ -42,6 +44,7 @@ final class LedgerStore {
 
     deinit {
         listener.cancel()
+        templateListener.cancel()
     }
 
     // MARK: - Derived
@@ -72,6 +75,27 @@ final class LedgerStore {
         if let displayName = user.displayName, !displayName.isEmpty { return displayName }
         return user.email.components(separatedBy: "@").first ?? "Them"
     }
+
+    /// Re-reads the viewer's profile and republishes their name.
+    ///
+    /// Changing your display name has to reach the ledger, or the other person carries on
+    /// seeing the old one — their client cannot read your profile to find out.
+    func refreshProfile() async {
+        guard let ledger else { return }
+        guard let people = try? await source.users(ids: ledger.memberIds) else { return }
+        users = Dictionary(people.map { ($0.uid, $0) }, uniquingKeysWith: { first, _ in first })
+        await publishOwnName(in: ledger)
+        if let mine = users[viewerId] {
+            // Assigning through `memberNames?[…]` would do nothing at all when the map is
+            // still nil, which is exactly the case on a ledger nobody has named themselves on.
+            var names = self.ledger?.memberNames ?? [:]
+            names[viewerId] = Self.name(of: mine)
+            self.ledger?.memberNames = names
+        }
+    }
+
+    /// The viewer's own profile, when it has loaded.
+    var viewer: User? { users[viewerId] }
 
     /// Publishes the viewer's own name onto the ledger so the other person can see it.
     private func publishOwnName(in ledger: Ledger) async {
@@ -118,6 +142,19 @@ final class LedgerStore {
                 users = [:]
             }
 
+            templateListener.task = Task { [weak self, source] in
+                // Templates are secondary: if they stop arriving, the ledger carries on
+                // without them rather than the screen reporting a failure over a convenience.
+                do {
+                    for try await templates in source.templates(in: ledger.id) {
+                        guard !Task.isCancelled else { return }
+                        await self?.received(templates: templates)
+                    }
+                } catch {
+                    await self?.received(templates: [])
+                }
+            }
+
             listener.task = Task { [weak self, source] in
                 do {
                     for try await entries in source.entries(in: ledger.id) {
@@ -135,6 +172,7 @@ final class LedgerStore {
 
     func stop() {
         listener.cancel()
+        templateListener.cancel()
     }
 
     private func received(_ entries: [LedgerEntry]) {
@@ -145,6 +183,60 @@ final class LedgerStore {
         }
         isLoading = false
         errorMessage = nil
+    }
+
+    private func received(templates: [Template]) {
+        self.templates = templates.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    // MARK: - Templates
+
+    /// Writes a template's lines as real entries, all dated the same day.
+    ///
+    /// Returns nil and reports the reason if the template no longer fits the ledger — a split
+    /// naming somebody who has left, say. Better to say so than to hand their share to
+    /// whoever is still here, which is what the old template code did silently.
+    @discardableResult
+    func apply(_ template: Template, date: Date = Date()) async -> [LedgerEntry]? {
+        guard let ledger else {
+            errorMessage = "There is no ledger to write to yet."
+            return nil
+        }
+
+        do {
+            let entries = try template.entries(
+                appliedBy: viewerId,
+                among: ledger.memberIds,
+                date: date
+            )
+            for entry in entries { try await source.save(entry) }
+            return entries
+        } catch {
+            failed(error)
+            return nil
+        }
+    }
+
+    func save(_ template: Template) async {
+        do {
+            try await source.save(template)
+        } catch {
+            failed(error)
+        }
+    }
+
+    func delete(_ template: Template) async {
+        do {
+            try await source.deleteTemplate(id: template.id, from: template.ledgerId)
+        } catch {
+            failed(error)
+        }
+    }
+
+    /// A blank template on this ledger, for the editor to fill in.
+    func newTemplate(name: String = "") -> Template? {
+        guard let ledger else { return nil }
+        return Template(ledgerId: ledger.id, name: name, createdBy: viewerId)
     }
 
     private func failed(_ error: Error) {

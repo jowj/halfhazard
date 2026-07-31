@@ -60,6 +60,37 @@ final class DemoLedgerSource: LedgerDataSource, @unchecked Sendable {
 
     func recordName(_ name: String, for userId: String, in ledgerId: String) async throws {}
 
+    private var storedTemplates: [Template] = [
+        Template(
+            id: "monthly", ledgerId: "demo", name: "Monthly bills",
+            lines: [
+                TemplateLine(note: "Rent", amount: Money(cents: 180_000),
+                             payer: .member(DemoLedgerSource.viewerId),
+                             split: .percentage([DemoLedgerSource.viewerId: 60,
+                                                 DemoLedgerSource.partnerId: 40])),
+                TemplateLine(note: "Internet", amount: Money(cents: 7500)),
+                TemplateLine(note: "Power", amount: Money(cents: 4200))
+            ],
+            createdBy: DemoLedgerSource.viewerId
+        )
+    ]
+
+    func templates(in ledgerId: String) -> AsyncThrowingStream<[Template], Error> {
+        AsyncThrowingStream { continuation in
+            continuation.yield(storedTemplates)
+            continuation.finish()
+        }
+    }
+
+    func save(_ template: Template) async throws {
+        storedTemplates.removeAll { $0.id == template.id }
+        storedTemplates.append(template)
+    }
+
+    func deleteTemplate(id: String, from ledgerId: String) async throws {
+        storedTemplates.removeAll { $0.id == id }
+    }
+
     func entries(in ledgerId: String) -> AsyncThrowingStream<[LedgerEntry], Error> {
         AsyncThrowingStream { continuation in
             let id = UUID()
