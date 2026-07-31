@@ -13,8 +13,6 @@ import FirebaseAuth
 import Combine
 
 class UserService: ObservableObject {
-    // Reference to the ExpenseViewModel for use by other views
-    var expenseViewModel: ExpenseViewModel?
    let auth = Auth.auth()
    let db = Firestore.firestore()
    

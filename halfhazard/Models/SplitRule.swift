@@ -96,6 +96,16 @@ enum SplitAllocator {
         }
     }
 
+    /// Rescales legacy dollar parts into cents that sum exactly to `total`.
+    ///
+    /// Old `splits` and `payments` maps were Doubles that drifted from their own total by
+    /// a fraction of a cent. Routing them through the same largest-remainder distribution
+    /// as everything else means a migrated entry still balances to the cent.
+    static func rescale(_ parts: [String: Double], to total: Money) -> [String: Money] {
+        guard !parts.isEmpty else { return [:] }
+        return distribute(total, weights: parts.map { ($0.key, max(0, $0.value)) })
+    }
+
     private static func validateKeys<V>(
         of dictionary: [String: V],
         against participants: [String]
@@ -112,6 +122,7 @@ enum SplitAllocator {
         _ total: Money,
         weights: [(id: String, weight: Double)]
     ) -> [String: Money] {
+        guard !weights.isEmpty else { return [:] }
         let totalWeight = weights.reduce(0) { $0 + $1.weight }
         guard totalWeight > 0 else {
             // Degenerate input (all zero weights): fall back to an even division.

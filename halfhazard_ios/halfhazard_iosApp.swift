@@ -24,7 +24,7 @@ struct halfhazard_iosApp: App {
     
     var body: some Scene {
         WindowGroup {
-            iOSContentView()
+            AppRoot()
         }
     }
 }

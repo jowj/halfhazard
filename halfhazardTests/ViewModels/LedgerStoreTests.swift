@@ -1,0 +1,326 @@
+//
+//  LedgerStoreTests.swift
+//  halfhazardTests
+//
+
+import XCTest
+import FirebaseFirestore
+@testable import halfhazard
+
+private let josiah = "josiah"
+private let laura = "laura"
+private let book = "ledger-1"
+
+/// A working ledger held in memory.
+///
+/// Not a mock: it stores entries, hands them back, and pushes a new snapshot to whoever is
+/// listening, the same way Firestore does. Tests can therefore say "the other person added
+/// an expense" and watch the store react, which is the behaviour that matters.
+private final class InMemorySource: LedgerDataSource, @unchecked Sendable {
+    var ledger: Ledger?
+    var people: [User]
+    private(set) var stored: [String: LedgerEntry] = [:]
+    var failNextSave: Error?
+    /// Reading the other member's profile is denied in production; this reproduces that.
+    var failUsers = false
+    private(set) var recordedNames: [String: String] = [:]
+
+    private var continuations: [UUID: AsyncThrowingStream<[LedgerEntry], Error>.Continuation] = [:]
+    private let lock = NSLock()
+
+    init(ledger: Ledger?, people: [User] = [], entries: [LedgerEntry] = []) {
+        self.ledger = ledger
+        self.people = people
+        for entry in entries { stored[entry.id] = entry }
+    }
+
+    func ledger(for userId: String) async throws -> Ledger? {
+        ledger.flatMap { $0.contains(userId) ? $0 : nil }
+    }
+
+    func users(ids: [String]) async throws -> [User] {
+        if failUsers {
+            throw NSError(domain: "test", code: 7,
+                          userInfo: [NSLocalizedDescriptionKey: "Missing or insufficient permissions."])
+        }
+        return people.filter { ids.contains($0.uid) }
+    }
+
+    func recordName(_ name: String, for userId: String, in ledgerId: String) async throws {
+        recordedNames[userId] = name
+        ledger?.memberNames = recordedNames
+    }
+
+    func entries(in ledgerId: String) -> AsyncThrowingStream<[LedgerEntry], Error> {
+        AsyncThrowingStream { continuation in
+            let id = UUID()
+            lock.withLock { continuations[id] = continuation }
+            continuation.yield(snapshot())
+            continuation.onTermination = { [weak self] _ in
+                self?.lock.withLock { _ = self?.continuations.removeValue(forKey: id) }
+            }
+        }
+    }
+
+    func save(_ entry: LedgerEntry) async throws {
+        if let failNextSave {
+            self.failNextSave = nil
+            throw failNextSave
+        }
+        stored[entry.id] = entry
+        broadcast()
+    }
+
+    func delete(entryId: String, from ledgerId: String) async throws {
+        stored[entryId] = nil
+        broadcast()
+    }
+
+    private func snapshot() -> [LedgerEntry] {
+        stored.values.sorted { $0.date > $1.date }
+    }
+
+    private func broadcast() {
+        let entries = snapshot()
+        let targets = lock.withLock { Array(continuations.values) }
+        for continuation in targets { continuation.yield(entries) }
+    }
+}
+
+private func user(_ id: String, name: String?) -> User {
+    User(uid: id, displayName: name, email: "\(id)@example.com", groupIds: [],
+         createdAt: Timestamp(), lastActive: Timestamp())
+}
+
+private func expense(
+    id: String,
+    amount: Int,
+    paidBy payer: String,
+    date: Date = Date(timeIntervalSince1970: 1_700_000_000)
+) -> LedgerEntry {
+    try! LedgerEntry.expense(
+        id: id,
+        ledgerId: book,
+        amount: Money(cents: amount),
+        paidBy: payer,
+        splitRule: .equal,
+        among: [josiah, laura],
+        date: date,
+        createdBy: payer
+    )
+}
+
+@MainActor
+final class LedgerStoreTests: XCTestCase {
+
+    private func makeStore(
+        entries: [LedgerEntry] = [],
+        people: [User] = [user(josiah, name: "Josiah"), user(laura, name: "Laura")]
+    ) async -> (LedgerStore, InMemorySource) {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura]),
+            people: people,
+            entries: entries
+        )
+        let store = LedgerStore(source: source, viewerId: josiah)
+        await store.start()
+        await settle(store)
+        return (store, source)
+    }
+
+    /// Lets the listener task deliver whatever is pending.
+    private func settle(_ store: LedgerStore) async {
+        for _ in 0..<20 where store.entries.isEmpty || store.isLoading {
+            try? await Task.sleep(nanoseconds: 5_000_000)
+        }
+        try? await Task.sleep(nanoseconds: 20_000_000)
+    }
+
+    func testLoadsTheLedgerAndItsPeople() async {
+        let (store, _) = await makeStore(entries: [expense(id: "a", amount: 8420, paidBy: josiah)])
+
+        XCTAssertEqual(store.ledger?.id, book)
+        XCTAssertEqual(store.partnerId, laura)
+        XCTAssertEqual(store.name(for: josiah), "You")
+        XCTAssertEqual(store.name(for: laura), "Laura")
+        XCTAssertFalse(store.isLoading)
+        XCTAssertNil(store.errorMessage)
+    }
+
+    func testBalanceComesFromTheEntries() async {
+        let (store, _) = await makeStore(entries: [
+            expense(id: "a", amount: 8420, paidBy: josiah),
+            expense(id: "b", amount: 2000, paidBy: laura)
+        ])
+
+        // Josiah is owed half of 84.20 and owes half of 20.00.
+        XCTAssertEqual(store.standing.amount, Money(cents: 3210))
+        XCTAssertTrue(store.standing.viewerIsOwed)
+        XCTAssertEqual(store.settlementNeeded?.from, laura)
+        XCTAssertEqual(store.settlementNeeded?.amount, Money(cents: 3210))
+    }
+
+    /// The point of the rewrite: the other person's change arrives on its own, with no
+    /// notification bus and nothing to refetch.
+    func testAnEntryWrittenElsewhereArrivesOnItsOwn() async throws {
+        let (store, source) = await makeStore(entries: [expense(id: "a", amount: 1000, paidBy: josiah)])
+        XCTAssertEqual(store.entries.count, 1)
+
+        try await source.save(expense(id: "b", amount: 5000, paidBy: laura))
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(store.entries.count, 2)
+        XCTAssertEqual(store.standing.amount, Money(cents: -2000))
+    }
+
+    func testAddingAnExpenseDerivesWhatEachPersonOwes() async throws {
+        let (store, _) = await makeStore()
+
+        let entry = await store.addExpense(amount: Money(cents: 1001), paidBy: josiah, note: "coffee")
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        let saved = try XCTUnwrap(entry)
+        XCTAssertEqual(saved.paidBy, [josiah: Money(cents: 1001)])
+        XCTAssertEqual(saved.owedBy.values.total, Money(cents: 1001), "a stray cent has to go somewhere")
+        XCTAssertEqual(saved.note, "coffee")
+        XCTAssertEqual(store.entries.first?.id, saved.id, "and it shows up without a refresh")
+    }
+
+    func testSettlingWritesAnEntryRatherThanFlaggingOldOnes() async throws {
+        let (store, _) = await makeStore(entries: [expense(id: "a", amount: 8420, paidBy: josiah)])
+
+        let written = await store.settle()
+        let settlement = try XCTUnwrap(written)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(settlement.kind, .settlement)
+        XCTAssertEqual(settlement.amount, Money(cents: 4210))
+        XCTAssertEqual(settlement.paidBy, [laura: Money(cents: 4210)])
+        XCTAssertEqual(store.standing.amount, .zero)
+        XCTAssertEqual(store.entries.count, 2, "the expense is still there — history is not rewritten")
+        XCTAssertNil(store.settlementNeeded)
+    }
+
+    func testPartialSettlementLeavesTheRemainder() async throws {
+        let (store, _) = await makeStore(entries: [expense(id: "a", amount: 10000, paidBy: josiah)])
+
+        _ = await store.settle(amount: Money(cents: 2000))
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(store.standing.amount, Money(cents: 3000))
+    }
+
+    func testSettlingWithNothingOwedDoesNothing() async {
+        let (store, source) = await makeStore()
+
+        let settlement = await store.settle()
+
+        XCTAssertNil(settlement)
+        XCTAssertEqual(source.stored.count, 0)
+        XCTAssertEqual(store.errorMessage, "Nothing to settle.")
+    }
+
+    func testDeletingRemovesItFromTheFeed() async throws {
+        let (store, _) = await makeStore(entries: [
+            expense(id: "a", amount: 1000, paidBy: josiah),
+            expense(id: "b", amount: 2000, paidBy: laura)
+        ])
+
+        await store.delete(try XCTUnwrap(store.entries.first { $0.id == "b" }))
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(store.entries.map(\.id), ["a"])
+        XCTAssertEqual(store.standing.amount, Money(cents: 500))
+    }
+
+    func testAFailedWriteSurfacesAsAMessage() async {
+        let (store, source) = await makeStore()
+        source.failNextSave = NSError(
+            domain: "test", code: 7,
+            userInfo: [NSLocalizedDescriptionKey: "Missing or insufficient permissions."]
+        )
+
+        let entry = await store.addExpense(amount: Money(cents: 500), paidBy: josiah)
+
+        XCTAssertNil(entry)
+        XCTAssertEqual(store.errorMessage, "Missing or insufficient permissions.")
+    }
+
+    func testFeedIsNewestFirstAndGroupedByDay() async {
+        let day = Date(timeIntervalSince1970: 1_700_000_000)
+        let (store, _) = await makeStore(entries: [
+            expense(id: "a", amount: 1000, paidBy: josiah, date: day),
+            expense(id: "b", amount: 2000, paidBy: laura, date: day.addingTimeInterval(60)),
+            expense(id: "c", amount: 3000, paidBy: josiah, date: day.addingTimeInterval(-86_400))
+        ])
+
+        XCTAssertEqual(store.entries.map(\.id), ["b", "a", "c"])
+        XCTAssertEqual(store.entriesByDay.count, 2)
+        XCTAssertEqual(store.entriesByDay.first?.entries.map(\.id), ["b", "a"])
+    }
+
+    func testNoLedgerYetIsAnEmptyStateRatherThanAnError() async {
+        let source = InMemorySource(ledger: nil)
+        let store = LedgerStore(source: source, viewerId: josiah)
+
+        await store.start()
+
+        XCTAssertNil(store.ledger)
+        XCTAssertTrue(store.entries.isEmpty)
+        XCTAssertFalse(store.isLoading)
+        XCTAssertNil(store.errorMessage)
+    }
+
+    /// Shipped broken once: `users/{id}` is readable only by that user, so loading the other
+    /// member's profile is denied — and the store treated that as fatal, so a ledger whose
+    /// entries had loaded fine came up empty behind a permissions error.
+    func testADeniedProfileReadDoesNotCostTheLedger() async {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura]),
+            people: [user(josiah, name: "Josiah")],
+            entries: [expense(id: "a", amount: 8420, paidBy: josiah)]
+        )
+        source.failUsers = true
+        let store = LedgerStore(source: source, viewerId: josiah)
+
+        await store.start()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(store.entries.count, 1, "the entries were readable and must still arrive")
+        XCTAssertEqual(store.standing.amount, Money(cents: 4210))
+        XCTAssertNil(store.errorMessage, "a missing name is not an error worth a banner")
+        XCTAssertEqual(store.name(for: laura), "Them")
+    }
+
+    /// Each side publishes its own name onto the ledger, because neither can read the
+    /// other's profile document.
+    func testPublishesItsOwnNameOntoTheLedger() async {
+        let (store, source) = await makeStore()
+
+        XCTAssertEqual(source.recordedNames[josiah], "Josiah")
+        XCTAssertNil(source.recordedNames[laura], "it publishes only its own")
+        XCTAssertEqual(store.name(for: josiah), "You")
+    }
+
+    func testPrefersTheNamePublishedOnTheLedger() async {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura], memberNames: [laura: "Laura"]),
+            people: [user(josiah, name: "Josiah")],
+            entries: [expense(id: "a", amount: 1000, paidBy: josiah)]
+        )
+        source.failUsers = true
+        let store = LedgerStore(source: source, viewerId: josiah)
+
+        await store.start()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(store.name(for: laura), "Laura", "readable without touching her profile")
+    }
+
+    func testFallsBackToASensibleNameWhenTheUserIsUnknown() async {
+        let (store, _) = await makeStore(people: [user(josiah, name: "Josiah"), user(laura, name: nil)])
+
+        XCTAssertEqual(store.name(for: laura), "laura", "the email's local part beats a blank row")
+        XCTAssertEqual(store.name(for: "nobody"), "Them")
+    }
+}

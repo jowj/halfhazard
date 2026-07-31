@@ -12,7 +12,6 @@ import FirebaseAuth
 
 @main
 struct halfhazardApp: App {
-    @StateObject private var appNavigation = AppNavigation()
     init() {
         print("Configuring Firebase...")
         
@@ -65,33 +64,16 @@ struct halfhazardApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(appNavigation)
+            AppRoot()
                 #if os(iOS)
                 .preferredColorScheme(.light) // Default to light mode on iOS
                 .statusBar(hidden: true) // Hide status bar
                 #endif
         }
         #if os(macOS)
-        .windowStyle(HiddenTitleBarWindowStyle()) // macOS-specific window style
-        .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("New Expense") {
-                    appNavigation.showCreateExpenseForm()
-                }
-                .keyboardShortcut("n", modifiers: .command)
-                
-                Button("New Group") {
-                    appNavigation.showCreateGroupForm()
-                }
-                .keyboardShortcut("n", modifiers: [.command, .shift])
-                
-                Button("Join Group") {
-                    appNavigation.showJoinGroupForm()
-                }
-                .keyboardShortcut("j", modifiers: .command)
-            }
-        }
+        .windowStyle(HiddenTitleBarWindowStyle())
+        // The New Group / Join Group commands went with the group world. Adding an expense
+        // is a button on the one screen, which owns its own ⌘N.
         #endif
     }
 }
