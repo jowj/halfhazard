@@ -1,19 +1,6 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "expenses",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "groupId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    }
-  ],
+  "//": "The ledger model needs no composite indexes. Every query it makes is single-field, and Firestore indexes those automatically: `ledgers` by array-contains on memberIds, `entries` by date within one ledger, `templates` by name within one ledger. Keeping a ledger's documents underneath it, rather than in top-level collections filtered by ledgerId, is what removes the need for composite indexes — the same shape that makes the queries authorizable at all.",
+  "//_removed": "A composite index on expenses (groupId ascending, createdAt descending) served the old group expense list. Nothing queries expenses that way now: the migration filters by groupId alone and sorts in memory, deliberately, so a migration is never the thing that discovers a missing index.",
+  "indexes": [],
   "fieldOverrides": []
 }

@@ -13,6 +13,9 @@ struct EditProfileView: View {
     
     let userService: UserService
     let user: User
+    /// Called after a successful save, before dismissing. The ledger uses it to republish
+    /// the name, which is the only way the other person ever sees it.
+    var onSaved: (() -> Void)?
     
     @State private var displayName: String
     @State private var email: String
@@ -27,9 +30,10 @@ struct EditProfileView: View {
         )
     }
     
-    init(userService: UserService, user: User) {
+    init(userService: UserService, user: User, onSaved: (() -> Void)? = nil) {
         self.userService = userService
         self.user = user
+        self.onSaved = onSaved
         _displayName = State(initialValue: user.displayName ?? "")
         _email = State(initialValue: user.email)
     }
@@ -118,6 +122,7 @@ struct EditProfileView: View {
                 _ = try await userService.updateUserProfile(displayName: displayName, email: email)
                 await MainActor.run {
                     isLoading = false
+                    onSaved?()
                     dismiss()
                 }
             } catch {

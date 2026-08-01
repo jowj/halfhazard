@@ -93,3 +93,7 @@ GoogleService-Info.plist
 
 # Environment configuration
 *.xcconfig
+
+# Credentials for scripts/migrate.sh
+.migration-env
+.migration-commit

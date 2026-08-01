@@ -1,33 +1,87 @@
 rules_version = '2';
 
+// halfhazard access rules.
+//
+// Two people, one ledger. Everything the app reads or writes now lives under
+// `/ledgers/{id}`; `groups` and `expenses` are the pre-migration data, kept as a backup and
+// frozen. Nothing outside these rules is reachable: Firestore denies by default, and rules
+// do not cascade into subcollections unless a path wildcard says so.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow authenticated users to read and write their own user data
+
+    // A profile is its owner's alone. The other member's display name is published onto the
+    // ledger instead of opening these up — see `Ledger.memberNames`.
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Allow authenticated users to read and write their own groups
-    match /groups/{groupId} {
-      allow read: if request.auth != null && resource.data.memberIds.hasAny([request.auth.uid]);
-      allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.createdBy == request.auth.uid;
-    }
-    
-    // Allow authenticated users to read and write expenses in their groups
-    match /expenses/{expenseId} {
-      // Helper function to check if user is in the group
-      function userIsInGroup(groupId) {
-        return request.auth != null && 
-               exists(/databases/$(database)/documents/groups/$(groupId)) && 
-               get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds.hasAny([request.auth.uid]);
+
+    // MARK: - The ledger
+
+    // The membership document. Never shown in the app; it exists so the rule below can
+    // answer "may this user read this entry?" from the path alone.
+    match /ledgers/{ledgerId} {
+      function isMember() {
+        return request.auth != null &&
+               get(/databases/$(database)/documents/ledgers/$(ledgerId))
+                 .data.memberIds.hasAny([request.auth.uid]);
       }
-      
+
+      // `resource == null` is a document that does not exist. Without that case, asking
+      // whether a ledger has been created yet fails with "insufficient permissions" rather
+      // than answering "no", because the rule dereferences a null — which is what the
+      // migration audit does before it has written anything.
+      allow read: if request.auth != null &&
+                     (resource == null || resource.data.memberIds.hasAny([request.auth.uid]));
+      // You can only create a ledger you are part of, and you cannot write yourself out of
+      // one, which would orphan every entry under it.
+      allow create: if request.auth != null &&
+                       request.resource.data.memberIds.hasAny([request.auth.uid]);
+      allow update: if request.auth != null &&
+                       resource.data.memberIds.hasAny([request.auth.uid]) &&
+                       request.resource.data.memberIds.hasAny([request.auth.uid]);
+      // No delete: dropping the ledger would strand every entry and template beneath it.
+
+      // Everything belonging to a ledger — `entries` and `templates` today — is readable and
+      // writable by its members.
+      //
+      // A path wildcard rather than a field check, because of how queries are authorized: a
+      // rule reading `resource.data.ledgerId` can authorize fetching one document but not
+      // querying for many, since Firestore has to decide before it has any documents in
+      // hand. Taking the ledger id from the path means the same check covers a get and a
+      // list, and a subcollection added later needs no deploy.
+      //
+      // Either member can correct or delete an entry. The ledger is append-only in how the
+      // app uses it — settling writes a new line rather than editing old ones — but that is a
+      // property of the app, not something enforced here: re-running the migration overwrites
+      // the entries it wrote last time, and fixing a typo has to stay possible.
+      match /{document=**} {
+        allow read, write: if isMember();
+      }
+    }
+
+    // MARK: - Before the migration
+
+    // Frozen. The ledger was migrated out of these on 2026-07-31 and nothing writes them any
+    // more, so they are readable — the migration re-reads them, and they are the only copy of
+    // what the old app recorded — and no longer writable by anyone. Making that explicit
+    // means a stray old client, or a re-run of a half-finished migration, cannot quietly
+    // change the thing being migrated *from*.
+    match /groups/{groupId} {
+      allow read: if request.auth != null &&
+                     resource.data.memberIds.hasAny([request.auth.uid]);
+      allow write: if false;
+    }
+
+    match /expenses/{expenseId} {
+      function userIsInGroup(groupId) {
+        return request.auth != null &&
+               exists(/databases/$(database)/documents/groups/$(groupId)) &&
+               get(/databases/$(database)/documents/groups/$(groupId))
+                 .data.memberIds.hasAny([request.auth.uid]);
+      }
+
       allow read: if request.auth != null && userIsInGroup(resource.data.groupId);
-      allow create: if request.auth != null && userIsInGroup(request.resource.data.groupId);
-      allow update, delete: if request.auth != null && 
-                              (resource.data.createdBy == request.auth.uid || 
-                               userIsInGroup(resource.data.groupId));
+      allow write: if false;
     }
   }
 }

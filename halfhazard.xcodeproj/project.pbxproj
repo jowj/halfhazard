@@ -15,8 +15,8 @@
 		8A2A27D52D9C807F00685911 /* halfhazard_iosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */; };
 		8A2A27D92D9C809400685911 /* halfhazard_iosUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */; };
 		8A2A27DA2D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */; };
+		8A2A27DC2D9C809400685911 /* LedgerScreenUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27DB2D9C809400685911 /* LedgerScreenUITests.swift */; };
 		8A2A27DD2D9C80AF00685911 /* halfhazard_iosTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */; };
-		8A2A27E12D9C812600685911 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2A27E02D9C812600685911 /* iOSContentView.swift */; };
 		8A2A27E42D9C825500685911 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E32D9C825500685911 /* FirebaseAuth */; };
 		8A2A27E62D9C825500685911 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8A2A27E52D9C825500685911 /* FirebaseFirestore */; };
 		8A91AC782D35F95F001A47C0 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 8A91AC772D35F95F001A47C0 /* FirebaseAuth */; };
@@ -59,8 +59,8 @@
 		8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosApp.swift; sourceTree = "<group>"; };
 		8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITests.swift; sourceTree = "<group>"; };
 		8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		8A2A27DB2D9C809400685911 /* LedgerScreenUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LedgerScreenUITests.swift; sourceTree = "<group>"; };
 		8A2A27DB2D9C80AF00685911 /* halfhazard_iosTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = halfhazard_iosTests.swift; sourceTree = "<group>"; };
-		8A2A27E02D9C812600685911 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
 		8A91AC5B2D342734001A47C0 /* halfhazard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = halfhazard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -69,7 +69,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
-				ContentView.swift,
 				"GoogleService-Info.plist",
 				halfhazardApp.swift,
 				"Preview Content/Preview Assets.xcassets",
@@ -157,7 +156,6 @@
 				8A2A27CC2D9C807F00685911 /* Assets.xcassets */,
 				8A2A27CE2D9C807F00685911 /* GoogleService-Info.plist */,
 				8A2A27CF2D9C807F00685911 /* halfhazard_iosApp.swift */,
-				8A2A27E02D9C812600685911 /* iOSContentView.swift */,
 			);
 			path = halfhazard_ios;
 			sourceTree = "<group>";
@@ -167,6 +165,7 @@
 			children = (
 				8A2A27D62D9C809400685911 /* halfhazard_iosUITests.swift */,
 				8A2A27D72D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift */,
+				8A2A27DB2D9C809400685911 /* LedgerScreenUITests.swift */,
 			);
 			path = halfhazard_iosUITests;
 			sourceTree = "<group>";
@@ -482,7 +481,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A2A27E12D9C812600685911 /* iOSContentView.swift in Sources */,
 				8A2A27D52D9C807F00685911 /* halfhazard_iosApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -501,6 +499,7 @@
 			files = (
 				8A2A27D92D9C809400685911 /* halfhazard_iosUITests.swift in Sources */,
 				8A2A27DA2D9C809400685911 /* halfhazard_iosUITestsLaunchTests.swift in Sources */,
+				8A2A27DC2D9C809400685911 /* LedgerScreenUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,7 +573,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard_ios/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
@@ -592,7 +591,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -608,7 +607,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard_ios/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_PREVIEWS = YES;
@@ -626,7 +625,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "net.jowj.halfhazard-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -843,7 +842,7 @@
 				CODE_SIGN_ENTITLEMENTS = halfhazard/halfhazard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -855,7 +854,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.jowj.halfhazard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -871,7 +870,7 @@
 				CODE_SIGN_ENTITLEMENTS = halfhazard/halfhazard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_ASSET_PATHS = "\"halfhazard/Preview Content\"";
 				DEVELOPMENT_TEAM = 625V8DUDMK;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -883,7 +882,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1.1;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = net.jowj.halfhazard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
