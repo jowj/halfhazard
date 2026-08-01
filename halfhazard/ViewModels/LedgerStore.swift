@@ -317,6 +317,61 @@ final class LedgerStore {
         }
     }
 
+    // MARK: - Files
+
+    /// The whole ledger as a file. JSON keeps the split rules; CSV is for a spreadsheet.
+    func exported(as format: ExportFormat) -> Data? {
+        switch format {
+        case .json:
+            return try? LedgerExport.json(entries)
+        case .csv:
+            let text = LedgerExport.csv(
+                entries,
+                members: ledger?.memberIds ?? [],
+                name: { self.name(for: $0) }
+            )
+            return Data(text.utf8)
+        }
+    }
+
+    enum ExportFormat: String, CaseIterable, Identifiable {
+        case csv, json
+        var id: String { rawValue }
+        var fileExtension: String { rawValue }
+    }
+
+    /// Reads a file without writing anything, so what it found can be shown first.
+    func preview(_ data: Data, named filename: String) -> LedgerExport.ImportResult {
+        guard let ledger else {
+            return .init(entries: [], issues: [.init(row: 0, message: "There is no ledger to import into.")])
+        }
+
+        if filename.lowercased().hasSuffix(".json") {
+            return LedgerExport.fromJSON(data, ledgerId: ledger.id,
+                                         members: ledger.memberIds, importedBy: viewerId)
+        }
+        return LedgerExport.fromCSV(String(decoding: data, as: UTF8.self),
+                                    ledgerId: ledger.id, members: ledger.memberIds,
+                                    importedBy: viewerId, name: { self.name(for: $0) })
+    }
+
+    /// Writes previewed entries. Ids carried in the file overwrite rather than duplicate, so
+    /// importing an export twice leaves the ledger as it was.
+    @discardableResult
+    func importEntries(_ entries: [LedgerEntry]) async -> Int {
+        var written = 0
+        for entry in entries {
+            do {
+                try await source.save(entry)
+                written += 1
+            } catch {
+                failed(error)
+                break
+            }
+        }
+        return written
+    }
+
     func update(_ entry: LedgerEntry) async {
         do {
             try await source.save(entry)

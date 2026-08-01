@@ -408,8 +408,39 @@ All seven phases are done. The old defect list, item by item:
 | Template percentages mapped to members by array index | `SplitRule` keyed by user id; a stale rule throws |
 | `loadGroups()` then a serial refetch of every expense | One listener |
 
-Not carried across, deliberately: CSV import and export, the changelog sheet, group joining
-by invite code. Say so if any of them are missed; the code is in git history at `aaf6a36`.
+Not carried across, deliberately: the changelog sheet and group joining by invite code. The
+code is in git history at `aaf6a36`. Import and export came back — see below.
+
+## Import and export
+
+`Models/LedgerExport.swift`, `Views/Ledger/TransferSheets.swift`, and `exported(as:)` /
+`preview(_:named:)` / `importEntries(_:)` on the store. 15 tests in `LedgerExportTests`, 5 in
+`LedgerStoreTransferTests`, one UI test. Both directions, both formats, from **More →
+Export… / Import…**.
+
+The two formats are for different jobs, and the difference is worth keeping straight:
+
+- **JSON** is the ledger's own shape and round-trips exactly, split rules included. This is
+  the backup format.
+- **CSV** is for a spreadsheet, and is lossy by nature: it names people in its column headers
+  rather than identifying them, and records what each person owed rather than the rule that
+  produced it. An imported CSV rebuilds entries from the amounts — faithful to the money, not
+  to the intent.
+
+Decisions worth remembering:
+
+- **Ids travel in the file.** Importing an export therefore replaces rather than duplicates,
+  and re-importing the same file twice leaves the ledger exactly as it was. A hand-written
+  row with no id gets a fresh one.
+- **CSV columns are matched by display name *or* user id**, so a file still imports after
+  somebody has renamed themselves.
+- **A bad row costs only itself.** Parsing collects issues per row, numbered as a spreadsheet
+  shows them, and imports the rest. The import sheet shows what it found — ready, skipped,
+  and why — before anything is written; a preview is a look, not a write, and there is a test
+  that says so.
+- Imported entries must balance and must name only people on this ledger. Anything else is
+  reported and skipped rather than written, since an unbalanced entry corrupts every balance
+  after it.
 
 ## Other defects to fix on the way through
 

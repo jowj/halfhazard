@@ -17,6 +17,8 @@ struct LedgerScreen: View {
     @State private var showingTemplates = false
     @State private var showingProfile = false
     @State private var editing: LedgerEntry?
+    @State private var showingExport = false
+    @State private var showingImport = false
     @State private var userService = UserService()
 
     /// Signing out is the only thing left over from the old chrome that still needs a home.
@@ -92,6 +94,22 @@ struct LedgerScreen: View {
                         }
                         .disabled(store.viewer == nil)
 
+                        Divider()
+
+                        Button {
+                            showingExport = true
+                        } label: {
+                            Label("Export…", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(store.entries.isEmpty)
+
+                        Button {
+                            showingImport = true
+                        } label: {
+                            Label("Import…", systemImage: "square.and.arrow.down")
+                        }
+                        .disabled(store.ledger == nil)
+
                         if let onSignOut {
                             Divider()
                             Button("Sign out", role: .destructive, action: onSignOut)
@@ -104,6 +122,8 @@ struct LedgerScreen: View {
             .sheet(isPresented: $showingAdd) { AddExpenseSheet(store: store) }
             .sheet(isPresented: $showingSettle) { SettleSheet(store: store) }
             .sheet(isPresented: $showingTemplates) { TemplatesSheet(store: store) }
+            .sheet(isPresented: $showingExport) { ExportSheet(store: store) }
+            .sheet(isPresented: $showingImport) { ImportSheet(store: store) }
             .sheet(item: $editing) { entry in
                 EditEntrySheet(store: store, entry: entry)
             }

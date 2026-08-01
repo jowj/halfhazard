@@ -266,6 +266,18 @@ final class MigrationHarness: XCTestCase {
             + " standing=\(store.standing.amount.formatted()) error=\(store.errorMessage ?? "none")")
         report("names: " + (store.ledger?.memberIds.map { "\($0)=\(store.name(for: $0))" }
             .joined(separator: ", ") ?? "-"))
+
+        // The most recently *recorded* entries, which is not the same as the most recent by
+        // date — it is what changed last, which is what you want when a count surprises you.
+        let newest = store.entries.sorted { $0.createdAt > $1.createdAt }.prefix(12)
+        report("last \(newest.count) recorded:")
+        for entry in newest {
+            report("  \(LedgerExport.dateFormatter.string(from: entry.date))"
+                + "  \(entry.kind.rawValue.padding(toLength: 10, withPad: " ", startingAt: 0))"
+                + "  \(entry.amount.formatted().padding(toLength: 12, withPad: " ", startingAt: 0))"
+                + "  \(entry.deltaLabel(for: viewerId).padding(toLength: 12, withPad: " ", startingAt: 0))"
+                + "  \(entry.note ?? "—")  [\(entry.id)]")
+        }
     }
 
     /// Exercises the deployed rules against the real database: everything the app needs to

@@ -130,6 +130,27 @@ final class LedgerScreenUITests: XCTestCase {
         attach(app, named: "after-edit")
     }
 
+    /// Export is reachable and offers both formats.
+    func testExportIsReachable() {
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))
+
+        app.buttons.matching(identifier: "More").firstMatch.tap()
+        let export = app.buttons["Export…"]
+        XCTAssertTrue(export.waitForExistence(timeout: 5))
+        export.tap()
+
+        XCTAssertTrue(app.navigationBars["Export"].waitForExistence(timeout: 5), "the export sheet should open")
+        XCTAssertTrue(app.buttons["CSV"].exists, "both formats should be visible, not hidden in a picker")
+        XCTAssertTrue(app.buttons["JSON"].exists)
+        attach(app, named: "export")
+
+        // The explanation follows the selection.
+        app.buttons["JSON"].tap()
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'split rules'")).firstMatch
+            .waitForExistence(timeout: 3))
+    }
+
     func testSettlingClearsTheBalance() {
         let app = launch()
         XCTAssertTrue(app.staticTexts["Laura owes you $113.85"].waitForExistence(timeout: 10))

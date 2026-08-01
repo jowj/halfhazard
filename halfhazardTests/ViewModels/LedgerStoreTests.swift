@@ -510,3 +510,92 @@ final class LedgerStoreTemplateTests: XCTestCase {
         XCTAssertTrue(fresh?.lines.isEmpty ?? false)
     }
 }
+
+@MainActor
+final class LedgerStoreTransferTests: XCTestCase {
+
+    private func makeStore(entries: [LedgerEntry]) async -> (LedgerStore, InMemorySource) {
+        let source = InMemorySource(
+            ledger: Ledger(id: book, memberIds: [josiah, laura]),
+            people: [user(josiah, name: "Josiah"), user(laura, name: "Laura")],
+            entries: entries
+        )
+        let store = LedgerStore(source: source, viewerId: josiah)
+        await store.start()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        return (store, source)
+    }
+
+    private var sample: [LedgerEntry] {
+        [expense(id: "a", amount: 8420, paidBy: josiah),
+         expense(id: "b", amount: 1250, paidBy: laura)]
+    }
+
+    func testExportsBothFormats() async throws {
+        let (store, _) = await makeStore(entries: sample)
+
+        let csv = try XCTUnwrap(store.exported(as: .csv))
+        let json = try XCTUnwrap(store.exported(as: .json))
+
+        let text = String(decoding: csv, as: UTF8.self)
+        XCTAssertTrue(text.contains("paid_You") || text.contains("paid_Laura"))
+        XCTAssertEqual(text.components(separatedBy: "\n").count, 3, "a header and two rows")
+        XCTAssertTrue(String(decoding: json, as: UTF8.self).contains("\"ledgerId\""))
+    }
+
+    /// The round trip that matters: export, import, and the ledger is unchanged rather than
+    /// doubled, because the ids travel with the file.
+    func testImportingItsOwnExportChangesNothing() async throws {
+        let (store, source) = await makeStore(entries: sample)
+        let data = try XCTUnwrap(store.exported(as: .json))
+
+        let preview = store.preview(data, named: "ledger.json")
+        XCTAssertTrue(preview.issues.isEmpty)
+        let written = await store.importEntries(preview.entries)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(written, 2)
+        XCTAssertEqual(store.entries.count, 2, "replaced, not added again")
+        XCTAssertEqual(source.stored.count, 2)
+        XCTAssertEqual(store.standing.amount, Money(cents: 3585))
+    }
+
+    func testImportingACSVSomebodyTyped() async throws {
+        let (store, _) = await makeStore(entries: [])
+        let text = """
+        date,description,amount,paid_You,owed_You,owed_Laura
+        2026-03-14,Pie,20.00,20.00,10.00,10.00
+        """
+
+        let preview = store.preview(Data(text.utf8), named: "typed.csv")
+        let written = await store.importEntries(preview.entries)
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertEqual(written, 1)
+        XCTAssertEqual(store.entries.first?.note, "Pie")
+        XCTAssertEqual(store.standing.amount, Money(cents: 1000))
+    }
+
+    func testPreviewWritesNothingUntilItIsAccepted() async throws {
+        let (store, source) = await makeStore(entries: [])
+        let text = """
+        date,description,amount,paid_You,owed_You,owed_Laura
+        2026-03-14,Pie,20.00,20.00,10.00,10.00
+        """
+
+        _ = store.preview(Data(text.utf8), named: "typed.csv")
+        try await Task.sleep(nanoseconds: 30_000_000)
+
+        XCTAssertTrue(source.stored.isEmpty, "a preview is a look, not a write")
+    }
+
+    func testAFileFullOfNonsenseIsReportedNotWritten() async {
+        let (store, source) = await makeStore(entries: [])
+
+        let preview = store.preview(Data("hello".utf8), named: "notes.json")
+
+        XCTAssertTrue(preview.entries.isEmpty)
+        XCTAssertFalse(preview.issues.isEmpty)
+        XCTAssertTrue(source.stored.isEmpty)
+    }
+}

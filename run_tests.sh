@@ -82,7 +82,7 @@ run_test_suite() {
 # addresses classes rather than files, so they are listed out here.
 run_ledger_suites() {
   local result=0
-  for suite in MoneyTests SplitAllocatorTests LedgerEntryTests BalanceTests TemplateTests; do
+  for suite in MoneyTests SplitAllocatorTests LedgerEntryTests BalanceTests TemplateTests LedgerExportTests; do
     run_test_suite "$suite" "$suite" || result=1
     sleep 1
   done
@@ -91,7 +91,7 @@ run_ledger_suites() {
 
 run_store_suites() {
   local result=0
-  for suite in LedgerStoreTests LedgerStoreTemplateTests BalancePhrasingTests; do
+  for suite in LedgerStoreTests LedgerStoreTemplateTests LedgerStoreTransferTests BalancePhrasingTests SplitShapeTests; do
     run_test_suite "$suite" "$suite" || result=1
     sleep 1
   done
